@@ -78,6 +78,16 @@ void setup() {
   stored_config.load();
 
   //Init LCD backlights with the last stored conig values
+  Serial.println("last stored config for backlights.");
+  Serial.print("is valid: ");
+  Serial.println(stored_config.config.backlights.is_valid);
+  Serial.print("intensity: ");
+  Serial.println(stored_config.config.backlights.intensity);
+  Serial.print("pattern: ");
+  Serial.println(stored_config.config.backlights.pattern);
+  Serial.print("color phase: ");
+  Serial.println(stored_config.config.backlights.color_phase);
+
   backlights.begin(&stored_config.config.backlights);
   //Init the buttons
   buttons.begin();
@@ -86,8 +96,8 @@ void setup() {
 
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   //Init the Gesture sensor
-  tfts.println("Gesture sensor start");
-  GestureStart(); //TODO put into class
+  //tfts.println("Gesture sensor start");
+  //GestureStart(); //TODO put into class
 #endif
 
   // Setup the displays (TFTs) initaly and show bootup message(s)
@@ -173,7 +183,9 @@ void loop() {
   //check for the button pins and set the state of each button
   buttons.loop();
 
-  HandleGestureInterupt();
+#ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  //HandleGestureInterupt();
+#endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
   HandlePowerButton();
  
@@ -260,7 +272,7 @@ void HandleMenu() {
     else {
       // Backlight Pattern
       if (menu_state == Menu::backlight_pattern) {
-        Serial.println(" menu_state is now backlight_pattern.");
+        //Serial.println(" menu_state is now backlight_pattern.");
         if (menu_change != 0) {
           backlights.setNextPattern(menu_change);
         }
@@ -398,6 +410,7 @@ void HandlePowerButton(){
   }
 }
 
+#ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void GestureStart()
 {
     // for gesture sensor APDS9660 - Set interrupt pin on ESP32 as input
@@ -477,7 +490,7 @@ void HandleGesture() {
   }
   return;
 }
-
+#endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 void setupMenu() {  // TODO: Build a beautiful menu! on all screens and like the "original" firmware(s) did
   //Serial.println(" setupMenu called.");

@@ -131,6 +131,7 @@ void TFTs::LoadNextImage() {
 }
 
 void TFTs::InvalidateImageInBuffer() { // force reload from Flash with new dimming settings
+  //Serial.println("TFTs::InvalidateImageInBuffer() called");
   FileInBuffer=255; // invalid, always load first image
 }
 

@@ -22,6 +22,7 @@ void Backlights::begin(StoredConfig::Config::Backlights *config_)  {
 // These feel like they should be generalizable into a helper function.
 // https://stackoverflow.com/questions/11720656/modulo-operation-with-negative-numbers
 void Backlights::setNextPattern(int8_t i) {
+  //Serial.println("Backlights::setNextPattern called");
   int8_t next_pattern = (config->pattern + i) % num_patterns;
   while (next_pattern < 0) {
     next_pattern += num_patterns;
@@ -46,6 +47,7 @@ void Backlights::adjustIntensity(int16_t adj) {
 }
 
 void Backlights::setIntensity(uint8_t intensity) {
+  //Serial.println("Backlights::setIntensity called");
   config->intensity = intensity;
   setBrightness(0xFF >> max_intensity - config->intensity - 1);
   pattern_needs_init = true;
@@ -55,6 +57,7 @@ void Backlights::loop() {
   //   enum patterns { dark, test, constant, rainbow, pulse, breath, num_patterns };
   if (off || config->pattern == dark) {
     if (pattern_needs_init) {
+      //Serial.println("Backlights::loop - pattern needs init set!");
       clear();
       show();
     }
@@ -87,6 +90,7 @@ void Backlights::loop() {
 }
 
 void Backlights::pulsePattern() {
+  //Serial.println("Backlights::pulsePattern called");
   if (pattern_needs_init) {
     fill(phaseToColor(config->color_phase));
   }
@@ -124,6 +128,7 @@ void Backlights::breathPattern() {
 }
 
 void Backlights::testPattern() {
+  //Serial.println("Backlights::testPattern called");
   const uint8_t num_colors = 4;  // or 3 if you don't want black
   uint8_t num_states = NUM_DIGITS * num_colors;
   uint8_t state = (millis()/test_ms_delay) % num_states;

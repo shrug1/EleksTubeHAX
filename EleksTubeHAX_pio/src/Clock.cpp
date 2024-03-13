@@ -43,7 +43,7 @@
     Rtc.SetDateTime(tt);  
   }
 #else // SI HAI IPS Clock XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-  // For all other clocks, useDS1307 RTC chip drivers
+  // For all other clocks, use DS1307 RTC chip drivers
   // For the DS3231 RTC
   #include <DS1307RTC.h>
   void RtcBegin() {}

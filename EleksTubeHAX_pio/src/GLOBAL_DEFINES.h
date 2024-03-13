@@ -133,7 +133,7 @@
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
   // WS2812 (or compatible) LEDs on the back of the display modules.
-  #define BACKLIGHTS_PIN (12)
+  #define BACKLIGHTS_PIN (GPIO_NUM_12)
 
   // No Buttons on SE verion!!!
   // Set to pins, which should always be HIGH!
@@ -141,6 +141,10 @@
   #define BUTTON_MODE_PIN (GPIO_NUM_3)
   #define BUTTON_RIGHT_PIN (GPIO_NUM_3)
   #define BUTTON_POWER_PIN (GPIO_NUM_3)
+  // #define BUTTON_LEFT_PIN (33)
+  // #define BUTTON_MODE_PIN (32)
+  // #define BUTTON_RIGHT_PIN (35)
+  // #define BUTTON_POWER_PIN (34)
   
   // Pins ADPS interupt
   #define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_5) // -> INTERRUPT
