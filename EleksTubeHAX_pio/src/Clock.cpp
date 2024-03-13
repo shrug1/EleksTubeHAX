@@ -1,7 +1,8 @@
 #include "Clock.h"
 #include "WiFi_WPS.h"
 
-#ifdef HARDWARE_SI_HAI_CLOCK
+#ifdef HARDWARE_SI_HAI_CLOCK // SI HAI IPS Clock XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  // If it is a SI HAI Clock, use differnt RTC chip drivers
   #include <ThreeWire.h>  
   #include <RtcDS1302.h>
   ThreeWire myWire(DS1302_IO, DS1302_SCLK, DS1302_CE); // IO, SCLK, CE
@@ -41,7 +42,8 @@
   void RtcSet(uint32_t tt) {
     Rtc.SetDateTime(tt);  
   }
-#else 
+#else // SI HAI IPS Clock XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  // For all other clocks, useDS1307 RTC chip drivers
   // For the DS3231 RTC
   #include <DS1307RTC.h>
   void RtcBegin() {}
@@ -51,7 +53,7 @@
   void RtcSet(uint32_t tt) {
     RTC.set(tt);
   }
-#endif 
+#endif // SI HAI IPS Clock XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 
 
@@ -98,15 +100,15 @@ time_t Clock::syncProvider() {
   if (millis() - millis_last_ntp > refresh_ntp_every_ms || millis_last_ntp == 0) {
     if (WifiState == connected) { 
       // It's time to get a new NTP sync
-      Serial.print("Getting NTP.");
+      Serial.print("Getting NTP");
 //      ntpTimeClient.forceUpdate();  // maybe this breaks the NTP requests as this should not be done more than every minute.
       if (ntpTimeClient.update()) {
-        Serial.print(".");
+        Serial.println(".");
         ntp_now = ntpTimeClient.getEpochTime();
         Serial.println("NTP query done.");
         Serial.print("NTP time = ");
         Serial.println(ntpTimeClient.getFormattedTime());
-//      if (ntp_now > 1644601505) { //is it valid - reasonable number?
+//      if (ntp_now > 1710201944) { //is it valid - reasonable number?
           // Sync the RTC to NTP if needed.
         Serial.println("NTP, RTC, Diff: ");
         Serial.println(ntp_now);

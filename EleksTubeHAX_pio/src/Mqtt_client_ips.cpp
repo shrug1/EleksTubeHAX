@@ -61,7 +61,7 @@ void sendToBroker(char* topic, char* message) {
     char topicArr[100];
     sprintf(topicArr, "%s/%s", MQTT_CLIENT, topic);
     MQTTclient.publish(topicArr, message);
-#ifdef DEBUG_OUTPUT // long output
+#ifdef DEBUG_OUTPUT_MQTT // long output
     Serial.print("Sending to MQTT: ");
     Serial.print(topicArr);
     Serial.print("/");
@@ -133,7 +133,7 @@ void checkMqtt() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {  //A new message has been received
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_MQTT
     Serial.print("Received MQTT topic: ");
     Serial.print(topic);                       // long output
 #endif    
@@ -145,7 +145,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
     for (int i = 1; i < length; i++) {
         sprintf(message, "%s%c", message, (char)payload[i]);
     }
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_MQTT
     Serial.print("\t     Message: ");
     Serial.println(message);
 #else    

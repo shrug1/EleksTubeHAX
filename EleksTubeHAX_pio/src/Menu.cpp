@@ -22,6 +22,7 @@ void Menu::loop(Buttons &buttons) {
     // Go idle.
     state = idle;
     state_changed = true;
+    //Serial.println("Menu goes idle!");
     return;
   }
   
@@ -31,6 +32,7 @@ void Menu::loop(Buttons &buttons) {
 
     millis_last_button_press = millis();
     state_changed = true;
+    //Serial.println("Menu wake up!");
     return;
   }
 
@@ -44,6 +46,7 @@ void Menu::loop(Buttons &buttons) {
 
     millis_last_button_press = millis();
     state_changed = true;
+    //Serial.println("Menu next option!");  
     return;
   }
 
@@ -51,6 +54,7 @@ void Menu::loop(Buttons &buttons) {
   if (state != idle && (power_state == Button::down_edge)) {
     state = idle;
     state_changed = true;
+    //Serial.println("Menu exit!");  
     return;
   }
 
@@ -66,9 +70,23 @@ void Menu::loop(Buttons &buttons) {
 
     millis_last_button_press = millis();
     state_changed = true;
+    //Serial.println("Menu left or right!");
     return;
   }
   // Some other button state, but it doesn't trigger any change in state.  There are LOTS of states that will
   // get here, but I think they're all "just do nothing."  If there's an explicit state we want to handle,
   // add an if() block above.
 }
+
+const String Menu::state_str[Menu::num_states] = 
+  { "idle",
+    "backlight_pattern",
+    "pattern_color",
+    "backlight_intensity",
+    "twelve_hour",
+    "blank_hours_zero",
+    "utc_offset_hour",
+    "utc_offset_15m",
+    "selected_graphic",
+    "start_wps" 
+  };

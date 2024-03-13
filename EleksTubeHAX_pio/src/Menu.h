@@ -7,7 +7,7 @@
  * with writing it special purpose.
  */
 #include <Arduino.h>
-#include "Buttons.h"
+#include "Button.h"
 
 
 class Menu {
@@ -33,13 +33,16 @@ public:
     num_states
   };
 
+  const static String state_str[num_states];
+
   states getState()     { return(state); }
   int8_t getChange()    { return(change); }
   bool stateChanged()   { return(state_changed); }
+  String getStateStr()  { return state_str[state]; }
 
 
 private:
-  const uint16_t idle_timeout_ms = 10000;  // Timeout and return to idle after 10 seconds of inactivity.
+  const uint16_t idle_timeout_ms = 20000;  // Timeout and return to idle after 20 seconds of inactivity.
 
   // State variables
   states state;

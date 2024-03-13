@@ -8,6 +8,10 @@
 #include <FS.h>
 #include "SPIFFS.h"  // For ESP32 only
 
+// get rid of all warnings from the display driver libs (TFTs)!
+// because we are not configuring the driver (no CONFIG_TFT_eSPI_ESPIDF defined) and using it with the default values, we set DISABLE ALL directly
+#define DISABLE_ALL_LIBRARY_WARNINGS
+
 #include <TFT_eSPI.h>
 #include "ChipSelect.h"
 

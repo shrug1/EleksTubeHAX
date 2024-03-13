@@ -1,4 +1,4 @@
-#include "Buttons.h"
+#include "Button.h"
 
 void Button::begin() {
   millis_at_last_transition = millis();
@@ -80,5 +80,12 @@ void Button::loop() {
 }
 
 const String Button::state_str[Button::num_states] = 
-  {"idle", "down_edge", "down", "down_long_edge", "down_long", "up_edge", "up_long_edge"};
+  { "idle", 
+    "down_edge", 
+    "down", 
+    "down_long_edge", 
+    "down_long", 
+    "up_edge", 
+    "up_long_edge"
+  };
   
