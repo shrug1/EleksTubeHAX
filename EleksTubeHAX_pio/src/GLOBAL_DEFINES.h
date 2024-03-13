@@ -136,58 +136,18 @@
   #define BACKLIGHTS_PIN (12)
 
   // No Buttons on SE verion!!!
-  // Set to pins, which should always be 1!
+  // Set to pins, which should always be HIGH!
   #define BUTTON_LEFT_PIN (GPIO_NUM_3)
   #define BUTTON_MODE_PIN (GPIO_NUM_3)
   #define BUTTON_RIGHT_PIN (GPIO_NUM_3)
   #define BUTTON_POWER_PIN (GPIO_NUM_3)
   
   // Pins ADPS interupt
-  //#define APDS9960_INT   36 // Needs to be an interrupt pin
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_1) // -> clock works, but no INT and no serial output
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_2) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 1 always;
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_3) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 1 always;
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_4) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 1 always;
   #define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_5) // -> INTERRUPT
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_6) // -> bootloop before init
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_7) // -> bootloop before init
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_8) // -> bootloop before init
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_9) // -> bootloop after init
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_10) // -> bootloop after init
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_11) // -> bootloop after init
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_12) // -> bootloop after many >main::interruptRoutine() - init success
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_13) // -> bootloop after many >main::interruptRoutine() - init success
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_14) // -> Interesting behavoir!!! interrupt triggered, no bootloop
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_15) // -> bootloop after many >main::interruptRoutine() - init success
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_16) // -> bootloop after init
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_17) // -> bootloop after init
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_18) // -> bootloop after many >main::interruptRoutine() - init success
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_19) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 0 always;
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_20) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 1 always;
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_21) // -> bootloop after many >main::interruptRoutine() - init failed
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_22) // -> bootloop after many >main::interruptRoutine() - init failed
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_23) // -> bootloop after many >main::interruptRoutine() - init success
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_25) // -> bootloop after many >main::interruptRoutine() - init success
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_26) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 1 always;
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_27) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 1 always;  
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_28) // -> Failure while booting Guru Meditation Error: Core  1 panic'ed (LoadProhibited). Exception was unhandled.
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_29) // -> Failure while booting Guru Meditation Error: Core  1 panic'ed (LoadProhibited). Exception was unhandled.
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_30) // -> Failure while booting Guru Meditation Error: Core  1 panic'ed (LoadProhibited). Exception was unhandled.
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_31) // -> Failure while booting Guru Meditation Error: Core  1 panic'ed (LoadProhibited). Exception was unhandled. 
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_32) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 1 always; 
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_33) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 0 always; 
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_34) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 0 always;
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_35) // -> Interesting behavoire!!! interrupt seems to fire, but then core panic
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_36) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 0 always;
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_37) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 0 always;
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_38) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 0 always;
-  //#define GESTURE_SENSOR_INPUT_PIN (GPIO_NUM_39) // -> clock works, but no INT, int u = digitalRead(GESTURE_SENSOR_INPUT_PIN) = 0 always;
-  
-
 
   // I2C to DS3231 RTC.
-  //#define RTC_SCL_PIN (22)
-  //#define RTC_SDA_PIN (21)
+  #define RTC_SCL_PIN (22)
+  #define RTC_SDA_PIN (21)
 
   // Chip Select shift register, to select the -
   #define CSSR_DATA_PIN (14)
