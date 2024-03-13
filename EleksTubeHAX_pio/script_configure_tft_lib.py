@@ -22,4 +22,4 @@ shutil.copy2('./src/GLOBAL_DEFINES.h', './.pio/libdeps/esp32dev/TFT_eSPI/User_Se
 # env.Execute("copy .\\src\\_USER_DEFINES.h .\\.pio\\libdeps\\esp32dev\\TFT_eSPI")
 # env.Execute("copy .\\src\\GLOBAL_DEFINES.h .\\.pio\\libdeps\\esp32dev\\TFT_eSPI\\User_Setup.h")
 
-print("Done.")
+print("Done copying TFT config files!")
