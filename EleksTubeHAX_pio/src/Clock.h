@@ -1,9 +1,6 @@
 #ifndef CLOCK_H
 #define CLOCK_H
 
-//get rid of all warnings from the display driver libs (TFTs)
-#define CONFIG_DISABLE_WARNINGS 1
-
 #include <stdint.h>
 #include "GLOBAL_DEFINES.h"
 #include <TimeLib.h>

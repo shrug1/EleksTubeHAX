@@ -15,7 +15,8 @@ void Backlights::begin(StoredConfig::Config::Backlights *config_)  {
     config->is_valid = StoredConfig::valid;
   }
 
-  off = true;
+  //switches backlights off PERMANENTLY if true!
+  off = false;
 }
 
 
