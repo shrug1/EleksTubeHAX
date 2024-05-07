@@ -72,18 +72,18 @@ void setup() {
   buttons.begin();
   menu.begin();
 
+  // Setup the displays (TFTs) initaly and show bootup message(s)
+  tfts.begin();  // and count number of clock faces available
+  tfts.fillScreen(TFT_BLACK);
+  tfts.setTextColor(TFT_WHITE, TFT_BLACK);
+  tfts.setCursor(0, 0, 4);  // Font 2. 16 pixel high
+  tfts.println("setup...");
+
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   //Init the Gesture sensor
   tfts.println("Gesture sensor start");
   GestureStart(); //TODO put into class
 #endif
-
-  // Setup the displays (TFTs) initaly and show bootup message(s)
-  tfts.begin();  // and count number of clock faces available
-  tfts.fillScreen(TFT_BLACK);
-  tfts.setTextColor(TFT_WHITE, TFT_BLACK);
-  tfts.setCursor(0, 0, 2);  // Font 2. 16 pixel high
-  tfts.println("setup...");
 
   // Setup WiFi connection. Must be done before setting up Clock.
   // This is done outside Clock so the network can be used for other things.
@@ -107,18 +107,29 @@ void setup() {
   MqttStart();
 
 #ifdef GEOLOCATION_ENABLED
-  tfts.println("Geoloc query");
+  tfts.println("Use internet based geo locaction query to get the actual timezone to be used!");
   if (GetGeoLocationTimeZoneOffset()) {
     tfts.print("TZ: ");
     tfts.println(GeoLocTZoffset);
     uclock.setTimeZoneOffset(GeoLocTZoffset * 3600);
-    Serial.print("Saving config...");
+    Serial.print("Saving config, triggered by timezone change...");
     stored_config.save();
     Serial.println(" Done.");
   } else {
-    Serial.println("Geolocation failed.");    
+    Serial.println("Geolocation failed.");
     tfts.println("Geo FAILED");
   }
+#else
+  Serial.print("Stored Tiemzone: ");
+  Serial.println(uclock.getTimeZoneOffset());
+  Serial.println("Use custom set timezone!");
+  GeoLocTZoffset = strtod(CUSTOM_TIMEZONE_OFFSET, NULL);
+  Serial.print("Timezone offset: ");
+  Serial.println(GeoLocTZoffset);
+  uclock.setTimeZoneOffset(GeoLocTZoffset * 3600);
+  Serial.print("Saving config, triggered by timezone change...");
+  stored_config.save();
+  Serial.println(" Done.");
 #endif
 
   if (uclock.getActiveGraphicIdx() > tfts.NumberOfClockFaces) {
@@ -139,7 +150,7 @@ void setup() {
   tfts.fillScreen(TFT_BLACK);
   uclock.loop();
   updateClockDisplay(TFTs::force);
-  Serial.println("Setup finished.");
+  Serial.println("Setup finished!");
 }
 
 void loop() {
@@ -231,7 +242,7 @@ void loop() {
     if (menu_state == Menu::idle) {
       // We just changed into idle, so force redraw everything, and save the config.
       updateClockDisplay(TFTs::force);
-      Serial.print("Saving config...");
+      Serial.print("Saving config, after leaving menu...");
       stored_config.save();
       Serial.println(" Done.");
     }
@@ -459,35 +470,59 @@ void GestureInterruptRoutine() {
 void HandleGesture() { 
     //Serial.println("->main::HandleGesture()");
     if ( apds.isGestureAvailable() ) {
-    switch ( apds.readGesture() ) {
-      case DIR_UP:
-        buttons.left.setDownEdgeState();
-        Serial.println("Gesture detected! LEFT");
-        break;
-      case DIR_DOWN:
-        buttons.right.setDownEdgeState();
-        Serial.println("Gesture detected! RIGHT");
-        break;
-      case DIR_LEFT:
-        buttons.power.setDownEdgeState();
-        Serial.println("Gesture detected! DOWN");
-        break;
-      case DIR_RIGHT:
-        buttons.mode.setDownEdgeState();
-        Serial.println("Gesture detected! UP");
-        break;
-      case DIR_NEAR:
-        buttons.mode.setDownEdgeState();
-        Serial.println("Gesture detected! NEAR");
-        break;
-      case DIR_FAR:
-        buttons.power.setDownEdgeState();
-        Serial.println("Gesture detected! FAR");
-        break;
-      default:        
-        Serial.println("Movement detected but NO gesture detected!");
-    }
-  }
+      Menu::states menu_state = Menu::idle;
+      switch ( apds.readGesture() ) {
+        case DIR_UP:
+          Serial.println("Gesture detected! LEFT");
+          menu_state = menu.getState();
+          if (menu_state == Menu::idle) { //not in the menu, so set the clock face instead
+            Serial.println("Adjust Clock Graphics down 1");
+            uclock.adjustClockGraphicsIdx(-1);
+            if(tfts.current_graphic != uclock.getActiveGraphicIdx()) {
+              tfts.current_graphic = uclock.getActiveGraphicIdx();
+            updateClockDisplay(TFTs::force);   // redraw everything
+            }
+          }
+          else {
+            buttons.left.setDownEdgeState(); // in the menu, so "press" the left button
+          }
+          break;
+        case DIR_DOWN:
+          Serial.println("Gesture detected! RIGHT");
+          menu_state = menu.getState();
+          Serial.println(menu_state);
+          if (menu_state == Menu::idle) { //not in the menu, so set the clock face instead
+            Serial.println("Adjust Clock Graphics up 1");
+            uclock.adjustClockGraphicsIdx(1);
+            if(tfts.current_graphic != uclock.getActiveGraphicIdx()) {
+              tfts.current_graphic = uclock.getActiveGraphicIdx();
+            updateClockDisplay(TFTs::force);   // redraw everything
+            }
+          }
+          else {
+            buttons.right.setDownEdgeState(); // in the menu, so "press" the right button
+          }
+          break;
+        case DIR_LEFT:
+          buttons.power.setDownEdgeState();
+          Serial.println("Gesture detected! DOWN");
+          break;
+        case DIR_RIGHT:
+          buttons.mode.setDownEdgeState();
+          Serial.println("Gesture detected! UP");
+          break;
+        case DIR_NEAR:
+          buttons.mode.setDownEdgeState();
+          Serial.println("Gesture detected! NEAR");
+          break;
+        case DIR_FAR:
+          buttons.power.setDownEdgeState();
+          Serial.println("Gesture detected! FAR");
+          break;
+        default:        
+          Serial.println("Movement detected but NO gesture detected!");
+      } //switch apds.readGesture()
+    } //if apds.isGestureAvailable()
   return;
 }
 #endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -495,7 +530,7 @@ void HandleGesture() {
 void setupMenu() {
   tfts.chip_select.setHoursTens();
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
-  tfts.fillRect(0, 120, 135, 120, TFT_BLACK);
+  tfts.fillRect(0, 240, 135, 240, TFT_BLACK);
   tfts.setCursor(0, 124, 4);  // Font 4. 26 pixel high
 }
 
@@ -523,7 +558,7 @@ void EveryFullHour(bool loopUpdate) {
       tfts.InvalidateImageInBuffer(); // invalidate; reload images with new dimming value
       backlights.dimming = true;
       if (menu.getState() == Menu::idle || !loopUpdate) { // otherwise erases the menu
-        updateClockDisplay(TFTs::force); // update all
+        updateClockDisplay(TFTs::force); // update all        
       }
     } else {
       Serial.println("Setting daytime mode (normal brightness)");
@@ -538,6 +573,7 @@ void EveryFullHour(bool loopUpdate) {
   }   
 }
 
+//check Daylight-Saving-Time (Summertime)
 void UpdateDstEveryNight() {
   uint8_t currentDay = uclock.getDay();
   // This `DstNeedsUpdate` is True between 3:00:05 and 3:00:59. Has almost one minute of time slot to fetch updates, incl. eventual retries.

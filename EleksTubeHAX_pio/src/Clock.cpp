@@ -72,7 +72,7 @@ void Clock::begin(StoredConfig::Config::Clock *config_) {
     Serial.println("Loaded Clock config is invalid, using default.  This is normal on first boot.");
     setTwelveHour(false);
     setBlankHoursZero(false);
-    setTimeZoneOffset(1 * 3600);  // CET
+    setTimeZoneOffset(2 * 3600);  // defaulting CEST
     setActiveGraphicIdx(1);
     config->is_valid = StoredConfig::valid;
   }
