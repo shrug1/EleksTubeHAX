@@ -42,7 +42,7 @@ uint32_t LastTimeTriedToConnect = 0;
 bool MqttConnected = true; // skip error meggase if disabled
 // commands from server    // = "directive/status"
 bool MqttCommandPower = true;
-int  MqttCommandState = 1;  
+int  MqttCommandState = 1;
 bool MqttCommandPowerReceived = false;
 bool MqttCommandStateReceived = false;
 
@@ -71,8 +71,8 @@ void sendToBroker(const char* topic, const char* message) {
     Serial.print(topic);
     Serial.print("/");
     Serial.println(message);
-#endif    
-    delay (120);  
+#endif
+    delay (120);  // delay to prevent flooding the broker
   }
 }
 
@@ -101,9 +101,9 @@ void MqttStart() {
         return;  // do not continue if not connected
       }
       
-    char subscibeTopic[100];
-    sprintf(subscibeTopic, "%s/#", MQTT_CLIENT);
-    MQTTclient.subscribe(subscibeTopic);  //Subscribes to all messages send to the device
+    char subscribeTopic[100];
+    sprintf(subscribeTopic, "%s/#", MQTT_CLIENT);
+    MQTTclient.subscribe(subscribeTopic);  //Subscribes to all messages send to the device
 
     sendToBroker("report/online", "true");  // Reports that the device is online
     sendToBroker("report/firmware", FIRMWARE_VERSION);  // Reports the firmware version
@@ -148,19 +148,19 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
 #ifdef DEBUG_OUTPUT
     Serial.print("\t     Message: ");
     Serial.println(message);
-#else    
+#else
     Serial.print("MQTT RX: ");
     Serial.print(tokens[1]);
     Serial.print("/");
     Serial.print(tokens[2]);
     Serial.print("/");
     Serial.println(message);
-#endif    
+#endif
 
     if (tokensNumber < 3) {
         // otherwise code below crashes on the strmp on non-initialized pointers in tokens[] array
         Serial.println("Number of tokens in MQTT message < 3!");
-        return; 
+        return;
     }
     
     //------------------Decide what to do depending on the topic and message---------------------------------
@@ -186,23 +186,23 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
 
 void MqttLoopFrequently(){
 #ifdef MQTT_ENABLED
-  MQTTclient.loop(); 
+  MQTTclient.loop();
   checkMqtt();
-#endif  
+#endif
 }
 
 void MqttLoopInFreeTime(){
 #ifdef MQTT_ENABLED
   MqttReportBackOnChange();
   MqttPeriodicReportBack();
-#endif  
+#endif
 }
 
 void MqttReportBattery() {
   char message2[5];
   sprintf(message2, "%d", MqttStatusBattery);
   sendToBroker("report/battery", message2);
-} 
+}
 
 void MqttReportStatus() {
   if (LastSentStatus != MqttStatusState) {
@@ -211,15 +211,15 @@ void MqttReportStatus() {
     sendToBroker("report/setpoint", message2);
     LastSentStatus = MqttStatusState;
   }
-}    
+}
 
 void MqttReportTemperature() {
   #ifdef ONE_WIRE_BUS_PIN
   if (fTemperature > -30) { // transmit data to MQTT only if data is valid
     sendToBroker("report/temperature", sTemperatureTxt);
   }
-  #endif  
-}    
+  #endif
+}
 
 void MqttReportPowerState() {
   if (MqttStatusPower != LastSentPowerState) {
@@ -245,14 +245,14 @@ void MqttReportWiFiSignal() {
 void MqttReportNotification(String message) {
   int i;
   byte NotificationChecksum = 0;
-  for (i=0; i<message.length(); i++) {    
+  for (i=0; i<message.length(); i++) {
     NotificationChecksum += byte(message[i]);
   }
   // send only different notification, do not re-send same notifications!
   if (NotificationChecksum != LastNotificationChecksum) {
     // string to char array
-    char msg2[message.length() + 1]; 
-    strcpy(msg2, message.c_str());    
+    char msg2[message.length() + 1];
+    strcpy(msg2, message.c_str());
     sendToBroker("report/notification", msg2);
     LastNotificationChecksum = NotificationChecksum;
   }
