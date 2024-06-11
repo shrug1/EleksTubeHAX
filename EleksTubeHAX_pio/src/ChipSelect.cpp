@@ -9,10 +9,10 @@ void ChipSelect::begin() {
   Serial.println("ChipSelect::begin!");  
 #endif
 
-  // Initialize each LCD enable pin as OUTPUT and set it to LOW (disabled)
+  // Initialize each LCD enable pin as OUTPUT and set it to HIGH (disabled)
   for (int i = 0; i < numLCDs; ++i) {
     pinMode(lcdEnablePins[i], OUTPUT);
-    digitalWrite(lcdEnablePins[i], LOW);
+    digitalWrite(lcdEnablePins[i], HIGH);
   }
 }
 
@@ -28,8 +28,8 @@ void ChipSelect::update() {
     // This is where you'd add your logic, for now, we'll just cycle through them
     bool enable = (i == currentLCD); // Example condition, replace with your logic
 
-    // Set the pin HIGH (enable) or LOW (disable) based on the condition
-    digitalWrite(lcdEnablePins[i], enable ? LOW : HIGH);
+    // Set the pin HIGH (disable) or LOW (enable) based on the condition
+    digitalWrite(lcdEnablePins[i], enable ? HIGH : LOW);
     //digitalWrite(lcdEnablePins[i], HIGH);
   }
 

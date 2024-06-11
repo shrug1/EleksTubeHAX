@@ -355,11 +355,12 @@
   #define TFT_HEIGHT 240
   //#define CGRAM_OFFSET      // Library will add offsets required
   #define TFT_SDA_READ      // Read and write on the MOSI/SDA pin, no separate MISO pin
-  #define TFT_MOSI (GPIO_NUM_12)
-  #define TFT_SCLK (GPIO_NUM_13)
-  //#define TFT_CS    -1 // Not connected
-  #define TFT_DC   (GPIO_NUM_14)  // Data Command, aka Register Select or RS
-  #define TFT_RST  (GPIO_NUM_15)  // Connect reset to ensure display initialises
+  #define TFT_MOSI (GPIO_NUM_32)
+  #define TFT_SCLK (GPIO_NUM_33)
+  //#define TFT_CS   (GPIO_NUM_27) // Not connected
+  #define TFT_CS   -1 // Not connected
+  #define TFT_DC   (GPIO_NUM_25)  // Data Command, aka Register Select or RS
+  #define TFT_RST  (GPIO_NUM_26)  // Connect reset to ensure display initialises
 
   //#define LOAD_GLCD   // Font 1. Original Adafruit 8 pixel font needs ~1820 bytes in FLASH
   #define LOAD_FONT2  // Font 2. Small 16 pixel high font, needs ~3534 bytes in FLASH, 96 characters
