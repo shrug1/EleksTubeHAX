@@ -6,7 +6,7 @@
 void TFTs::begin() {
   // Start with all displays selected.
   chip_select.begin();
-  chip_select.setAll();
+  //chip_select.setAll();
 
   // Turn power on to displays.
   pinMode(TFT_ENABLE_PIN, OUTPUT);
@@ -29,7 +29,7 @@ void TFTs::begin() {
 void TFTs::reinit() {
   // Start with all displays selected.
   chip_select.begin();
-  chip_select.setAll();
+  //chip_select.setAll();
 
   // Turn power on to displays.
   pinMode(TFT_ENABLE_PIN, OUTPUT);
@@ -41,12 +41,12 @@ void TFTs::reinit() {
 
 void TFTs::clear() {
   // Start with all displays selected.
-  chip_select.setAll();
+  //chip_select.setAll();
   enableAllDisplays();
 }
 
 void TFTs::showNoWifiStatus() {
-  chip_select.setSecondsOnes();
+  //chip_select.setSecondsOnes();
   setTextColor(TFT_RED, TFT_BLACK);
   fillRect(0, TFT_HEIGHT - 27, TFT_WIDTH, 27, TFT_BLACK);
   setCursor(5, TFT_HEIGHT - 27, 4);  // Font 4. 26 pixel high
@@ -54,7 +54,7 @@ void TFTs::showNoWifiStatus() {
   }
 
 void TFTs::showNoMqttStatus() {
-  chip_select.setSecondsTens();
+  //chip_select.setSecondsTens();
   setTextColor(TFT_RED, TFT_BLACK);
   fillRect(0, TFT_HEIGHT - 27, TFT_WIDTH, 27, TFT_BLACK);
   setCursor(5, TFT_HEIGHT - 27, 4);
@@ -106,6 +106,10 @@ void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
  */
  
 void TFTs::showDigit(uint8_t digit) {
+#ifdef DEBUG_OUTPUT
+  Serial.print("TFTs::showDigit: ");
+  Serial.println(digit);
+#endif
   chip_select.setDigit(digit);
 
   if (digits[digit] == blanked) {

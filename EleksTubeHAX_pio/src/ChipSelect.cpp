@@ -1,25 +1,39 @@
 #include "ChipSelect.h"
 
-void ChipSelect::begin() {
-  pinMode(CSSR_LATCH_PIN, OUTPUT);
-  pinMode(CSSR_DATA_PIN, OUTPUT);
-  pinMode(CSSR_CLOCK_PIN, OUTPUT);
+// Define the pins for each LCD's enable wire
+const int lcdEnablePins[] = {GPIO_NUM_15,GPIO_NUM_2,GPIO_NUM_27,GPIO_NUM_12,GPIO_NUM_14,GPIO_NUM_13};
+const int numLCDs = sizeof(lcdEnablePins) / sizeof(lcdEnablePins[0]);
 
-  digitalWrite(CSSR_DATA_PIN, LOW);
-  digitalWrite(CSSR_CLOCK_PIN, LOW);
-  digitalWrite(CSSR_LATCH_PIN, LOW);
-  update();
+void ChipSelect::begin() {
+#ifdef DEBUG_OUTPUT
+  Serial.println("ChipSelect::begin!");  
+#endif
+
+  // Initialize each LCD enable pin as OUTPUT and set it to LOW (disabled)
+  for (int i = 0; i < numLCDs; ++i) {
+    pinMode(lcdEnablePins[i], OUTPUT);
+    digitalWrite(lcdEnablePins[i], LOW);
+  }
 }
 
 void ChipSelect::update() {
-  // Documented in README.md.  Q7 and Q6 are unused. Q5 is Seconds Ones, Q0 is Hours Tens.
-  // Q7 is the first bit written, Q0 is the last.  So we push two dummy bits, then start with
-  // Seconds Ones and end with Hours Tens.
-  // CS is Active Low, but digits_map is 1 for enable, 0 for disable.  So we bit-wise NOT first.
+#ifdef DEBUG_OUTPUT
+  Serial.println("ChipSelect::update!");
+  Serial.print("CurrentLCD: ");
+  Serial.println(currentLCD);
+#endif
+  // Example logic to enable/disable each LCD
+  for (int i = 0; i < numLCDs; ++i) {
+    // Determine if the current LCD should be enabled or disabled
+    // This is where you'd add your logic, for now, we'll just cycle through them
+    bool enable = (i == currentLCD); // Example condition, replace with your logic
 
-  uint8_t to_shift = (~digits_map) << 2;
+    // Set the pin HIGH (enable) or LOW (disable) based on the condition
+    digitalWrite(lcdEnablePins[i], enable ? LOW : HIGH);
+    //digitalWrite(lcdEnablePins[i], HIGH);
+  }
 
-  digitalWrite(CSSR_LATCH_PIN, LOW);
-  shiftOut(CSSR_DATA_PIN, CSSR_CLOCK_PIN, LSBFIRST, to_shift);
-  digitalWrite(CSSR_LATCH_PIN, HIGH);
+  // Optionally, update currentLCD to cycle through LCDs or implement your logic
+  //currentLCD = 0
+  //(currentLCD + 1) % numLCDs;
 }

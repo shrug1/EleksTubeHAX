@@ -207,7 +207,7 @@ void loop() {
 
   // Power button: If in menu, exit menu. Else turn off displays and backlight.
   if (buttons.power.isDownEdge() && (menu.getState() == Menu::idle)) {
-    tfts.chip_select.setAll();
+    //tfts.chip_select.setAll();
     tfts.fillScreen(TFT_BLACK);
 
     tfts.toggleAllDisplays();
@@ -215,7 +215,7 @@ void loop() {
 #ifndef HARDWARE_SI_HAI_CLOCK
       tfts.reinit();  // reinit (original EleksTube HW: after a few hours in OFF state the displays do not wake up properly)
 #endif
-      tfts.chip_select.setAll();
+      //tfts.chip_select.setAll();
       tfts.fillScreen(TFT_BLACK);
 
       updateClockDisplay(TFTs::force);
@@ -528,7 +528,7 @@ void HandleGesture() {
 #endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 void setupMenu() {
-  tfts.chip_select.setHoursTens();
+  //tfts.chip_select.setHoursTens();
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
   tfts.fillRect(0, 240, 135, 240, TFT_BLACK);
   tfts.setCursor(0, 124, 4);  // Font 4. 26 pixel high
