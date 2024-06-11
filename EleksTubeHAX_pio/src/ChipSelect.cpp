@@ -6,7 +6,7 @@ const int numLCDs = sizeof(lcdEnablePins) / sizeof(lcdEnablePins[0]);
 
 void ChipSelect::begin() {
 #ifdef DEBUG_OUTPUT
-  Serial.println("ChipSelect::begin!");  
+  Serial.println("ChipSelect::begin!");
 #endif
 
   // Initialize each LCD enable pin as OUTPUT and set it to LOW (disabled)
@@ -29,7 +29,7 @@ void ChipSelect::update() {
     bool enable = (i == currentLCD); // Example condition, replace with your logic
 
     // Set the pin HIGH (enable) or LOW (disable) based on the condition
-    digitalWrite(lcdEnablePins[i], enable ? LOW : HIGH);
+    digitalWrite(lcdEnablePins[i], enable ? HIGH : LOW);
     //digitalWrite(lcdEnablePins[i], HIGH);
   }
 
