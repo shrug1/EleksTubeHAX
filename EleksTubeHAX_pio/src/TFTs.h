@@ -38,11 +38,15 @@ public:
   void showAllDigits()               { for (uint8_t digit=0; digit < NUM_DIGITS; digit++) showDigit(digit); }
   void showDigit(uint8_t digit);
 
-  // Controls the power to all displays
-  void enableAllDisplays()           { digitalWrite(TFT_ENABLE_PIN, HIGH); enabled = true; }
-  void disableAllDisplays()          { digitalWrite(TFT_ENABLE_PIN, LOW); enabled = false; }
-  void toggleAllDisplays()           { if (enabled) disableAllDisplays(); else enableAllDisplays(); }
-  bool isEnabled()                   { return enabled; }
+ #ifdef TFT_ENABLE_PIN
+    // Controls the power to all displays
+    void enableAllDisplays()           { digitalWrite(TFT_ENABLE_PIN, HIGH); enabled = true; }
+    void disableAllDisplays()          { digitalWrite(TFT_ENABLE_PIN, LOW); enabled = false; }
+    void toggleAllDisplays()           { if (enabled) disableAllDisplays(); else enableAllDisplays(); }
+    bool isEnabled()                   { return enabled; }
+  #else
+    bool isEnabled()                   { return 1; }
+  #endif
 
   // Making chip_select public so we don't have to proxy all methods, and the caller can just use it directly.
   ChipSelect chip_select;

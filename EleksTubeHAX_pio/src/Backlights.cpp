@@ -52,17 +52,21 @@ void Backlights::setIntensity(uint8_t intensity) {
 }
 
 void Backlights::loop() {
+  Serial.println("Backlights::loop");
   //   enum patterns { dark, test, constant, rainbow, pulse, breath, num_patterns };
   if (off || config->pattern == dark) {
+    Serial.println("Backlights pattern: off or dark, skipping!");
     if (pattern_needs_init) {
       clear();
       show();
     }
   }
   else if (config->pattern == test) {
+    Serial.println("Backlights pattern: testPattern!");
     testPattern();
   }
   else if (config->pattern == constant) {
+    Serial.println("Backlights pattern: constant!");
     if (pattern_needs_init) {
       fill(phaseToColor(config->color_phase));
     }
@@ -74,12 +78,15 @@ void Backlights::loop() {
     show();
   }
   else if (config->pattern == rainbow) {
+    Serial.println("Backlights pattern: rainbowPattern!");
     rainbowPattern();
   }
   else if (config->pattern == pulse) {
+    Serial.println("Backlights pattern: pulsePattern!");
     pulsePattern();
   }
   else if (config->pattern == breath) {
+    Serial.println("Backlights pattern: breathPattern!");
     breathPattern();
   }
 

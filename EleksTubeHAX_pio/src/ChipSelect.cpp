@@ -28,9 +28,9 @@ void ChipSelect::update() {
     // This is where you'd add your logic, for now, we'll just cycle through them
     bool enable = (i == currentLCD); // Example condition, replace with your logic
 
-    // Set the pin HIGH (disable) or LOW (enable) based on the condition
-    digitalWrite(lcdEnablePins[i], enable ? HIGH : LOW);
-    //digitalWrite(lcdEnablePins[i], HIGH);
+        // Set the pin HIGH (disable) or LOW (enable) based on the condition
+    //digitalWrite(lcdEnablePins[i], enable ? HIGH : LOW);
+        //digitalWrite(lcdEnablePins[i], HIGH);
   }
 
   // Optionally, update currentLCD to cycle through LCDs or implement your logic

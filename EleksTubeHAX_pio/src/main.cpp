@@ -170,10 +170,14 @@ void loop() {
         updateClockDisplay(TFTs::force);
       }
 #endif
+#ifdef TFT_ENABLE_PIN
       tfts.enableAllDisplays();
+#endif
       backlights.PowerOn();
     } else {
+#ifdef TFT_ENABLE_PIN
       tfts.disableAllDisplays();
+#endif
       backlights.PowerOff();
     }
   }
@@ -210,7 +214,9 @@ void loop() {
     //tfts.chip_select.setAll();
     tfts.fillScreen(TFT_BLACK);
 
+#ifdef TFT_ENABLE_PIN
     tfts.toggleAllDisplays();
+#endif
     if (tfts.isEnabled()) {
 #ifndef HARDWARE_SI_HAI_CLOCK
       tfts.reinit();  // reinit (original EleksTube HW: after a few hours in OFF state the displays do not wake up properly)

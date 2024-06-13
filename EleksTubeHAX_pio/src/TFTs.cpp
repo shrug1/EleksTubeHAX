@@ -9,8 +9,12 @@ void TFTs::begin() {
   //chip_select.setAll();
 
   // Turn power on to displays.
-  pinMode(TFT_ENABLE_PIN, OUTPUT);
-  enableAllDisplays();
+  #ifdef TFT_ENABLE_PIN
+    pinMode(TFT_ENABLE_PIN, OUTPUT);
+    enableAllDisplays();
+  #else
+    enabled = true;
+  #endif
   InvalidateImageInBuffer();
 
   // Initialize the super class.
@@ -31,9 +35,11 @@ void TFTs::reinit() {
   chip_select.begin();
   //chip_select.setAll();
 
+#ifdef TFT_ENABLE_PIN
   // Turn power on to displays.
   pinMode(TFT_ENABLE_PIN, OUTPUT);
   enableAllDisplays();
+#endif
 
   // Initialize the super class.
   init();
@@ -42,7 +48,9 @@ void TFTs::reinit() {
 void TFTs::clear() {
   // Start with all displays selected.
   //chip_select.setAll();
+#ifdef TFT_ENABLE_PIN
   enableAllDisplays();
+#endif
 }
 
 void TFTs::showNoWifiStatus() {

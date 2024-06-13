@@ -318,7 +318,8 @@
 #ifdef HARDWARE_IPSTUBE_H401_CLOCK // IPSTUBE Model H401 Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
   // WS2812 (or compatible) LEDs on the back of the display modules.
-  #define BACKLIGHTS_PIN (GPIO_NUM_5)
+  #define BACKLIGHTS_PIN (GPIO_NUM_5) // or 4?
+  //#define BACKLIGHTS_PIN (GPIO_NUM_4) // or 5?
 
   // Only one Button on H401 version!!!
   // Set the other pins to pins, which should always be HIGH!
@@ -346,7 +347,7 @@
 
   // Power for all TFT displays are grounded through a MOSFET so they can all be turned off.
   // Active HIGH.
-  #define TFT_ENABLE_PIN (GPIO_NUM_4)    // One transistor for all displays
+  //#define TFT_ENABLE_PIN (GPIO_NUM_4)    // One transistor for all displays
 
   // configure library \TFT_eSPI\User_Setup.h
   // ST7789 135 x 240 display with no chip select line
