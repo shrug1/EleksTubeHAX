@@ -1,7 +1,15 @@
 #include "ChipSelect.h"
 
+
+  //#define TFT_CS        GPIO_NUM_15 //seconds ones
+  //#define TFT_CS        GPIO_NUM_2 //seconds tens
+  //#define TFT_CS        GPIO_NUM_27 //minutes ones
+  //#define TFT_CS        GPIO_NUM_14 //minutes tens
+  //#define TFT_CS        GPIO_NUM_12 //hours ones
+  //#define TFT_CS         GPIO_NUM_13 //hours tens
+
 // Define the pins for each LCD's enable wire
-const int lcdEnablePins[] = {GPIO_NUM_15,GPIO_NUM_2,GPIO_NUM_27,GPIO_NUM_12,GPIO_NUM_14,GPIO_NUM_13};
+const int lcdEnablePins[] = {GPIO_NUM_13,GPIO_NUM_12,GPIO_NUM_14,GPIO_NUM_27,GPIO_NUM_2,GPIO_NUM_15};
 const int numLCDs = sizeof(lcdEnablePins) / sizeof(lcdEnablePins[0]);
 
 void ChipSelect::begin() {
