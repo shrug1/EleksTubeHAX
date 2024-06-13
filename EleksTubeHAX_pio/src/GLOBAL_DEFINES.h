@@ -346,7 +346,7 @@
 
   // Power for all TFT displays are grounded through a MOSFET so they can all be turned off.
   // Active HIGH.
-  #define TFT_ENABLE_PIN (GPIO_NUM_4)    // One transistor for all displays
+  #define TFT_ENABLE_PIN (GPIO_NUM_4)    // Needed?
 
   // configure library \TFT_eSPI\User_Setup.h
   // ST7789 135 x 240 display with no chip select line
@@ -357,7 +357,7 @@
   #define TFT_SDA_READ      // Read and write on the MOSI/SDA pin, no separate MISO pin
   #define TFT_MOSI (GPIO_NUM_32)
   #define TFT_SCLK (GPIO_NUM_33)
-  #define TFT_CS   (GPIO_NUM_27) // Not connected
+  #define TFT_CS   (GPIO_NUM_27) // ONE display ONLY for now
   #define TFT_DC   (GPIO_NUM_25)  // Data Command, aka Register Select or RS
   #define TFT_RST  (GPIO_NUM_26)  // Connect reset to ensure display initialises
 
