@@ -287,7 +287,11 @@ void setup(void) {
   //tft.init(240, 320);           // Init ST7789 320x240
 
   // OR use this initializer (uncomment) if using a 1.14" 240x135 TFT:
-  tft.init(135, 240);           // Init ST7789 240x135
+  tft.init(135, 240);           // Init ST7789 240x135  
+  // tft.init(135, 240, SPI_MODE0);           // Init ST7789 240x135
+  // tft.init(135, 240, SPI_MODE1);           // Init ST7789 240x135
+  // tft.init(135, 240, SPI_MODE2);           // Init ST7789 240x135
+  // tft.init(135, 240, SPI_MODE3);           // Init ST7789 240x135
   
   // OR use this initializer (uncomment) if using a 1.47" 172x320 TFT:
   //tft.init(172, 320);           // Init ST7789 172x320
