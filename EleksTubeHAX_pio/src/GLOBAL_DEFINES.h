@@ -357,7 +357,7 @@
   #define TFT_SDA_READ      // Read and write on the MOSI/SDA pin, no separate MISO pin
   #define TFT_MOSI (GPIO_NUM_32)
   #define TFT_SCLK (GPIO_NUM_33)
-  #define TFT_CS   (GPIO_NUM_27) // ONE display ONLY for now
+  #define TFT_CS   (-1) // ONE display ONLY for now
   #define TFT_DC   (GPIO_NUM_25)  // Data Command, aka Register Select or RS
   #define TFT_RST  (GPIO_NUM_26)  // Connect reset to ensure display initialises
 

@@ -46,16 +46,9 @@
   #define TFT_DC         5
 
 #else
-  // For the breakout board, you can use any 2 or 3 pins.
-  // These pins will also work for the 1.8" TFT shield.
-  //#define TFT_CS        GPIO_NUM_15 //seconds ones
-  //#define TFT_CS        GPIO_NUM_2 //seconds tens
-  //#define TFT_CS        GPIO_NUM_27 //minutes ones
-  //#define TFT_CS        GPIO_NUM_14 //minutes tens
-  //#define TFT_CS        GPIO_NUM_12 //hours ones
-  #define TFT_CS         GPIO_NUM_13 //hours tens
-  #define TFT_RST        GPIO_NUM_26 // Or set to -1 and connect to Arduino RESET pin
-  #define TFT_DC         GPIO_NUM_25
+#define TFT_CS    -1  //CS: Don't define a GPIO pin here
+#define TFT_DC    25  //RS
+#define TFT_RST   26
 #endif
 
 // OPTION 1 (recommended) is to use the HARDWARE SPI pins, which are unique
@@ -67,21 +60,25 @@
 
 // OPTION 2 lets you interface the display using ANY TWO or THREE PINS,
 // tradeoff being that performance is not as fast as hardware SPI above.
-#define TFT_MOSI        GPIO_NUM_32  // Data out
-#define TFT_SCLK        GPIO_NUM_33  // Clock out
+#define TFT_MISO  -1
+#define TFT_MOSI  32  //SDA
+#define TFT_SCLK  33  //SCL
+
+#define TFT_CS_1   13 //(GPIO13)
+#define TFT_CS_2   12 //(GPIO12)
+#define TFT_CS_3   14 //(GPIO14)
+#define TFT_CS_4   27 //(GPIO27)
+#define TFT_CS_5   2  //(GPIO2)
+#define TFT_CS_6   15 //(GPIO15)
+
+int cspins[] = {TFT_CS_1,TFT_CS_2,TFT_CS_3,TFT_CS_4,TFT_CS_5,TFT_CS_6};
 
 Adafruit_ST7789 tft = Adafruit_ST7789(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
 
 
 float p = 3.1415926;
 
-void loop() {
-  Serial.println(F("Invert Display!"));
-  tft.invertDisplay(true);
-  delay(500);
-  tft.invertDisplay(false);
-  delay(500);
-}
+
 
 void testlines(uint16_t color) {
   tft.fillScreen(ST77XX_BLACK);
@@ -277,6 +274,39 @@ void setup(void) {
   delay(4000);  // Waiting for serial monitor to catch up.
   Serial.println(F("Hello! ST77xx TFT Test"));
 
+  Serial.println("Set CS pins as output pins.");
+  for(int i=0; i<6; i++) {
+    pinMode(cspins[i],OUTPUT);
+  }
+
+  //Deactivate CS for all dispays
+  Serial.println("Deactivate all displays for now. Putting all CS pins HIGH.");
+  for(int i=0; i<6; i++) {
+    digitalWrite(cspins[i], HIGH);
+  }
+  delay(500);
+  
+  //Serial.println("Initialising all displays all together now. Putting all CS pins LOW.");
+  //Activate and init all dispays
+  Serial.println("Init one display only. Putting ONE CS pin to LOW.");
+  digitalWrite(cspins[0], LOW);
+  // for(int i=0; i<6; i++) {
+  //   digitalWrite(cspins[i], LOW);
+  // }
+  delay(500);  
+  Serial.println("Initialising library now.");  
+  tft.init(135, 240);           // Init ST7789 240x135
+  //Serial.println("Initialising rotation.");
+  //tft.setRotation(0);
+
+  //Deactivate CS for all dispays
+  Serial.println("Deactivate all displays again. Putting all CS pins HIGH.");
+  for(int i=0; i<6; i++) {
+    digitalWrite(cspins[i], HIGH);
+  }
+  delay(500);
+  //Serial.println("DONE Initialising all displays!");
+
   // Use this initializer (uncomment) if using a 1.3" or 1.54" 240x240 TFT:
   //tft.init(240, 240);           // Init ST7789 240x240
 
@@ -287,7 +317,7 @@ void setup(void) {
   //tft.init(240, 320);           // Init ST7789 320x240
 
   // OR use this initializer (uncomment) if using a 1.14" 240x135 TFT:
-  tft.init(135, 240);           // Init ST7789 240x135  
+  //tft.init(135, 240);           // Init ST7789 240x135  
   // tft.init(135, 240, SPI_MODE0);           // Init ST7789 240x135
   // tft.init(135, 240, SPI_MODE1);           // Init ST7789 240x135
   // tft.init(135, 240, SPI_MODE2);           // Init ST7789 240x135
@@ -307,59 +337,141 @@ void setup(void) {
   Serial.println(F("Initialized"));
 
   uint16_t time = millis();
-  Serial.println(F("Fill Screen Black!"));
-  tft.fillScreen(ST77XX_BLACK);
-  time = millis() - time;
 
-  Serial.print(F("Time in ms to Fill Screen Black: "));Serial.println(time, DEC);
-  delay(500);
+  // for(int i=0; i<6; i++)
+  // { 
+  //   digitalWrite(cspins[i], LOW);
+  //   Serial.println(F("Fill Screen Black!"));
+  //   tft.fillScreen(ST77XX_BLACK);
+  //   digitalWrite(cspins[i], HIGH);
+  // }  
+  // // Serial.println(F("Fill Screen Black!"));
+  // // tft.fillScreen(ST77XX_BLACK);
+  // time = millis() - time;
+
+  // Serial.print(F("Time in ms to Fill Screen Black: "));Serial.println(time, DEC);
+  // delay(500);
 
   // large block of text
-  Serial.println(F("Fill Screen Black2!"));
-  tft.fillScreen(ST77XX_BLACK);
+  // Serial.println(F("Test Draw Text!"));
+  // for(int i=0; i<6; i++)
+  // { 
+  //   digitalWrite(cspins[i], LOW);
+  //   testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
+  //   digitalWrite(cspins[i], HIGH);
+  // }
+  // delay(1000);
+
+  // // tft print function!
+  // Serial.println(F("TFT Print Test!"));
+  // for(int i=0; i<6; i++)
+  // { 
+  //   digitalWrite(cspins[i], LOW);
+  //   tftPrintTest();
+  //   digitalWrite(cspins[i], HIGH);
+  // }
+  // delay(4000);
+
+  // // a single pixel
+  // Serial.println(F("Draw Single Pixel Green!"));
+  // for(int i=0; i<6; i++)
+  // { 
+  //   digitalWrite(cspins[i], LOW);
+  //   tft.drawPixel(tft.width()/2, tft.height()/2, ST77XX_GREEN);
+  //   digitalWrite(cspins[i], HIGH);
+  // }
+  // delay(500);
+
+  // // line draw test
+  // Serial.println(F("Draw Lines Yellow!"));
+  // for(int i=0; i<6; i++)
+  // { 
+  //   digitalWrite(cspins[i], LOW);
+  //   testlines(ST77XX_YELLOW);
+  //   digitalWrite(cspins[i], HIGH);
+  // }
+  // delay(500);
+
+  // // optimized lines
+  // for(int i=0; i<6; i++)
+  // { 
+  //   digitalWrite(cspins[i], LOW);
+  //   testfastlines(ST77XX_RED, ST77XX_BLUE);
+  //   digitalWrite(cspins[i], HIGH);
+  // }
+  // delay(500);
+
+  // for(int i=0; i<6; i++)
+  // { 
+  //   digitalWrite(cspins[i], LOW);
+  //   testdrawrects(ST77XX_GREEN);
+  //   digitalWrite(cspins[i], HIGH);
+  // }
+  // delay(500);
+
+  // for(int i=0; i<6; i++)
+  // { 
+  //   digitalWrite(cspins[i], LOW);
+  //   testfillrects(ST77XX_YELLOW, ST77XX_MAGENTA);
+  //   digitalWrite(cspins[i], HIGH);
+  // }
+  // delay(500);
+
+  // for(int i=0; i<6; i++)
+  // { 
+  //   digitalWrite(cspins[i], LOW);
+  //   tft.fillScreen(ST77XX_BLACK);
+  //   testfillcircles(10, ST77XX_BLUE);
+  //   testdrawcircles(10, ST77XX_WHITE);
+  //   digitalWrite(cspins[i], HIGH);
+  // }
+  // delay(500);
+
+  // for(int i=0; i<6; i++)
+  // { 
+  //   digitalWrite(cspins[i], LOW);
+  //   testroundrects();
+  //   digitalWrite(cspins[i], HIGH);
+  // }
+  // delay(500);
+
+  // for(int i=0; i<6; i++)
+  // { 
+  //   digitalWrite(cspins[i], LOW);
+  //   testtriangles();
+  //   digitalWrite(cspins[i], HIGH);
+  // }
+  // delay(500);
+
+  // for(int i=0; i<6; i++)
+  // { 
+  //   digitalWrite(cspins[i], LOW);
+  //   mediabuttons();
+  //   digitalWrite(cspins[i], HIGH);
+  // }
+  // delay(500);
+
+  
+  // Serial.println("done");
+  // delay(1000);
+}
+
+void loop() {
+  // large block of text
   Serial.println(F("Test Draw Text!"));
-  testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
-  delay(1000);
-
-  // tft print function!
-  Serial.println(F("TFT Print Test!"));
-  tftPrintTest();
-  delay(4000);
-
-  // a single pixel
-  Serial.println(F("Draw Single Pixel Green!"));
-  tft.drawPixel(tft.width()/2, tft.height()/2, ST77XX_GREEN);
-  delay(500);
-
-  // line draw test
-  Serial.println(F("Draw Lines Yellow!"));
-  testlines(ST77XX_YELLOW);
-  delay(500);
-
-  // optimized lines
-  testfastlines(ST77XX_RED, ST77XX_BLUE);
-  delay(500);
-
-  testdrawrects(ST77XX_GREEN);
-  delay(500);
-
-  testfillrects(ST77XX_YELLOW, ST77XX_MAGENTA);
-  delay(500);
-
-  tft.fillScreen(ST77XX_BLACK);
-  testfillcircles(10, ST77XX_BLUE);
-  testdrawcircles(10, ST77XX_WHITE);
-  delay(500);
-
-  testroundrects();
-  delay(500);
-
-  testtriangles();
-  delay(500);
-
-  mediabuttons();
-  delay(500);
-
-  Serial.println("done");
-  delay(1000);
+  
+  Serial.println("Init one display only. Putting ONE CS pin to LOW.");
+  digitalWrite(cspins[0], LOW);
+  delay(100);
+  tft.fillScreen(ST77XX_WHITE);
+  //testfillcircles(10, ST77XX_BLUE);
+  //testdrawtext("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur adipiscing ante sed nibh tincidunt feugiat. Maecenas enim massa, fringilla sed malesuada et, malesuada sit amet turpis. Sed porttitor neque ut ante pretium vitae malesuada nunc bibendum. Nullam aliquet ultrices massa eu hendrerit. Ut sed nisi lorem. In vestibulum purus a tortor imperdiet posuere. ", ST77XX_WHITE);
+  digitalWrite(cspins[0], HIGH);
+  
+  delay(2000);
+  //Serial.println(F("Invert Display!"));
+  //tft.invertDisplay(true);
+  //delay(500);
+  //tft.invertDisplay(false);
+  //delay(500);
 }

@@ -8,6 +8,7 @@
 
 #include <stdint.h>
 #include "GLOBAL_DEFINES.h"
+//#include "ChipSelect.h"
 //#include "Buttons.h"
 //#include "Backlights.h"
 //#include "TFTs.h"
@@ -44,6 +45,18 @@
 
 TFT_eSPI tft = TFT_eSPI();
 
+const int lcdEnablePins[] = {GPIO_NUM_13,GPIO_NUM_12,GPIO_NUM_14,GPIO_NUM_27,GPIO_NUM_2,GPIO_NUM_15};
+const int numLCDs = sizeof(lcdEnablePins) / sizeof(lcdEnablePins[0]);
+
+#define BLACK 0x0000
+#define BLUE 0x001F
+#define RED 0xF800
+#define GREEN 0x07E0
+#define CYAN 0x07FF
+#define MAGENTA 0xF81F
+#define YELLOW 0xFFE0
+#define WHITE 0xFFFF
+
 // Clock         uclock;
 // Menu          menu;
 // StoredConfig  stored_config;
@@ -67,15 +80,44 @@ TFT_eSPI tft = TFT_eSPI();
 
 void setup() {
   Serial.begin(115200);
-  delay(1000);  // Waiting for serial monitor to catch up.
+  delay(4000);  // Waiting for serial monitor to catch up.
   Serial.println("");
   Serial.println(FIRMWARE_VERSION);
   Serial.println("In setup().");
 
+  // Initialize each LCD enable pin as OUTPUT and set it to HIGH (disabled)
+  for (int i = 0; i < numLCDs; ++i) {
+    pinMode(lcdEnablePins[i], OUTPUT);
+    digitalWrite(lcdEnablePins[i], HIGH);
+  }
+  delay(500);
+
+
+  digitalWrite(GPIO_NUM_13, LOW);
+
+
   tft.init();
+  tft.setRotation(0);
   //pinMode(GPIO_NUM_15, OUTPUT);
   //digitalWrite(GPIO_NUM_15, HIGH);
-  tft.fillScreen(0xF81F);
+  tft.fillScreen(MAGENTA);
+  delay(1000);
+  tft.fillScreen(YELLOW);
+  delay(1000);
+  tft.fillScreen(CYAN);
+  delay(1000);
+  tft.fillScreen(RED);
+  delay(1000);
+  tft.fillScreen(GREEN);
+  delay(1000);
+  tft.fillScreen(BLUE);
+  delay(1000);
+  tft.fillScreen(BLACK);
+  delay(1000);
+  tft.fillScreen(WHITE);
+  delay(1000);  
+  digitalWrite(GPIO_NUM_13, HIGH);
+  delay(1000);
 
   // stored_config.begin();
   // stored_config.load();
@@ -173,7 +215,7 @@ void loop() {
 
   delay(TDELAY);
 
-  //digitalWrite(GPIO_NUM_15, HIGH);
+  digitalWrite(GPIO_NUM_13, LOW);
 
   tft.drawPixel(30,30,wr);
   Serial.print(" Pixel value written = ");
@@ -191,7 +233,7 @@ void loop() {
   // Walking 1 test
   wr = wr<<1;
   if (wr >= 0x10000) wr = 1;
-digitalWrite(GPIO_NUM_15, LOW);
+digitalWrite(GPIO_NUM_13, HIGH);
 
   // Do all the maintenance work
   //WifiReconnect(); // if not connected attempt to reconnect
