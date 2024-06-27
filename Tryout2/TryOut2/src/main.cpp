@@ -67,6 +67,8 @@ void setup() {
   }
   tft.init();
   tft.setRotation(0);
+
+  tft.fillScreen(YELLOW);
   
   //Deactivate CS for all dispays
   for(int i=0; i<6; i++) {
@@ -91,6 +93,7 @@ void loop() {
     tft.setCursor (0, 128);
     tft.print("Text test on display ");
     tft.print(i);
+    tft.println("!");
    
     // deselect display i
     digitalWrite(cspins[i], HIGH);
