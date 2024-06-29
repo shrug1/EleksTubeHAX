@@ -77,7 +77,9 @@ private:
   uint32_t millis_at_last_loop;
   state button_state;
 
-  bool isButtonDown() { return digitalRead(bpin) == active_state; }
+  bool isButtonDown() {
+    return digitalRead(bpin) == active_state;
+    }
 };
 
 

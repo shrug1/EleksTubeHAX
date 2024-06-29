@@ -34,7 +34,9 @@ SparkFun_APDS9960 apds      = SparkFun_APDS9960();
 int volatile      isr_flag  = 0;
 #endif //NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+#ifdef USE_BACKLIGHTS
 Backlights    backlights;
+#endif
 Buttons       buttons;
 TFTs          tfts;
 Clock         uclock;
@@ -60,24 +62,36 @@ void HandleGesture(void); //only for NovelLife SE
 
 void setup() {
   Serial.begin(115200);
-  delay(1000);  // Waiting for serial monitor to catch up.
+  delay(5000);  // Waiting 4s for serial monitor to catch up. 
   Serial.println("");
   Serial.println(FIRMWARE_VERSION);
-  Serial.println("In setup().");  
+  Serial.println("In setup().");
 
-  stored_config.begin();
-  stored_config.load();
+  //stored_config.begin();
+  //stored_config.load();
 
-  backlights.begin(&stored_config.config.backlights);
-  buttons.begin();
-  menu.begin();
+  //backlights.begin(&stored_config.config.backlights);
+  //buttons.begin();
+  //menu.begin();
 
   // Setup the displays (TFTs) initaly and show bootup message(s)
+#ifdef DEBUG_OUTPUT
+    Serial.println("Call tfts.begin()!-------------------------------------------------------");
+#endif
   tfts.begin();  // and count number of clock faces available
-  tfts.fillScreen(TFT_BLACK);
-  tfts.setTextColor(TFT_WHITE, TFT_BLACK);
-  tfts.setCursor(0, 0, 4);  // Font 2. 16 pixel high
-  tfts.println("setup...");
+#ifdef DEBUG_OUTPUT
+  Serial.println("Call tfts.fillScreen(TFT_YELLOW)------------------------------------------");
+#endif
+  tfts.fillScreen(TFT_YELLOW);
+#ifdef DEBUG_OUTPUT
+  //Serial.println("Call tfts.setTextColor(TFT_WHITE, TFT_BLACK)-----------------------------");
+#endif
+  //tfts.setTextColor(TFT_WHITE, TFT_YELLOW);
+#ifdef DEBUG_OUTPUT
+  //Serial.println("Call tfts.setCursor(0, 0, 4)---------------------------------------------");
+#endif
+  //tfts.setCursor(0, 0, 4);  // Font 2. 16 pixel high
+  //tfts.println("Setup...");
 
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   //Init the Gesture sensor
@@ -88,22 +102,34 @@ void setup() {
   // Setup WiFi connection. Must be done before setting up Clock.
   // This is done outside Clock so the network can be used for other things.
 //  WiFiBegin(&stored_config.config.wifi);
-  tfts.println("WiFi start");
+#ifdef DEBUG_OUTPUT
+  Serial.println("WifiBegin();");
+#endif
+  //tfts.println("WiFi start");
   WifiBegin();
-  
+
   // wait for a bit before querying NTP
-  for (uint8_t ndx=0; ndx < 5; ndx++) {
-    tfts.print(">");
+  for (uint8_t ndx=0; ndx < 5; ndx++) {    
+#ifdef DEBUG_OUTPUT
+    Serial.print(">");
+#endif
+    //tfts.print(">");
     delay(100);
   }
-  tfts.println("");
+  //tfts.println("");
 
   // Setup the clock.  It needs WiFi to be established already.
-  tfts.println("Clock start");
+  #ifdef DEBUG_OUTPUT
+    Serial.println("Clock start");
+  #endif
+  //tfts.println("Clock start");
   uclock.begin(&stored_config.config.uclock);
 
   // Setup MQTT
-  tfts.println("MQTT start");
+  #ifdef DEBUG_OUTPUT
+    Serial.println("MQTT start");
+  #endif
+  //tfts.println("MQTT start");
   MqttStart();
 
 #ifdef GEOLOCATION_ENABLED
@@ -120,16 +146,14 @@ void setup() {
     tfts.println("Geo FAILED");
   }
 #else
-  Serial.print("Stored Tiemzone: ");
-  Serial.println(uclock.getTimeZoneOffset());
+  Serial.print("Stored Tiemzone: ");Serial.println(uclock.getTimeZoneOffset());
   Serial.println("Use custom set timezone!");
   GeoLocTZoffset = strtod(CUSTOM_TIMEZONE_OFFSET, NULL);
-  Serial.print("Timezone offset: ");
-  Serial.println(GeoLocTZoffset);
+  Serial.print("Timezone offset: "); Serial.println(GeoLocTZoffset);
   uclock.setTimeZoneOffset(GeoLocTZoffset * 3600);
   Serial.print("Saving config, triggered by timezone change...");
   stored_config.save();
-  Serial.println(" Done.");
+  Serial.println("Done.");
 #endif
 
   if (uclock.getActiveGraphicIdx() > tfts.NumberOfClockFaces) {
@@ -138,17 +162,26 @@ void setup() {
   }
   tfts.current_graphic = uclock.getActiveGraphicIdx();
 
-  tfts.println("Done with setup.");
+  tfts.println("Done with Setup!");
 
   // Leave boot up messages on screen for a few seconds.
+#ifdef DEBUG_OUTPUT
+    Serial.println("Wait for 10 seconds before starting the loop()...");
+ #endif
   for (uint8_t ndx=0; ndx < 10; ndx++) {
     tfts.print(">");
     delay(200);
   }
 
   // Start up the clock displays.
+#ifdef DEBUG_OUTPUT
+    Serial.println("Call tfts.fillScreen(TFT_BLACK)------------------------------------------");
+#endif
   tfts.fillScreen(TFT_BLACK);
   uclock.loop();
+#ifdef DEBUG_OUTPUT
+    Serial.println("Call updateClockDisplay--------------------------------------------------");
+#endif
   updateClockDisplay(TFTs::force);
   Serial.println("Setup finished!");
 }
@@ -173,12 +206,16 @@ void loop() {
 #ifdef TFT_ENABLE_PIN
       tfts.enableAllDisplays();
 #endif
+#ifdef USE_BACKLIGHTS
       backlights.PowerOn();
+#endif
     } else {
 #ifdef TFT_ENABLE_PIN
       tfts.disableAllDisplays();
 #endif
+#ifdef USE_BACKLIGHTS
       backlights.PowerOff();
+#endif
     }
   }
 
@@ -211,7 +248,7 @@ void loop() {
 
   // Power button: If in menu, exit menu. Else turn off displays and backlight.
   if (buttons.power.isDownEdge() && (menu.getState() == Menu::idle)) {
-    //tfts.chip_select.setAll();
+    //tfts.chip_select.setAll();   
     tfts.fillScreen(TFT_BLACK);
 
 #ifdef TFT_ENABLE_PIN
@@ -226,11 +263,16 @@ void loop() {
 
       updateClockDisplay(TFTs::force);
     }
+#ifdef USE_BACKLIGHTS
     backlights.togglePower();
+#endif
   }
  
   menu.loop(buttons);  // Must be called after buttons.loop()
+
+#ifdef USE_BACKLIGHTS
   backlights.loop();
+#endif
   uclock.loop();
 
   EveryFullHour(true); // night or daytime
@@ -250,15 +292,14 @@ void loop() {
       updateClockDisplay(TFTs::force);
       Serial.print("Saving config, after leaving menu...");
       stored_config.save();
-      Serial.println(" Done.");
-    }
-    else {
+      Serial.println("Done.");
+    } else {
+#ifdef USE_BACKLIGHTS
       // Backlight Pattern
       if (menu_state == Menu::backlight_pattern) {
         if (menu_change != 0) {
           backlights.setNextPattern(menu_change);
         }
-
         setupMenu();
         tfts.println("Pattern:");
         tfts.println(backlights.getPatternStr());
@@ -281,8 +322,11 @@ void loop() {
         tfts.println("Intensity:");
         tfts.println(backlights.getIntensity());
       }
+
       // 12 Hour or 24 Hour mode?
-      else if (menu_state == Menu::twelve_hour) {
+      else
+#endif      
+      if (menu_state == Menu::twelve_hour) {
         if (menu_change != 0) {
           uclock.toggleTwelveHour();
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
@@ -386,7 +430,7 @@ void loop() {
         tfts.println("Connect to WiFi?");
         tfts.println("Left=WPS");
       }
-#endif   
+#endif
     }
   }
 
@@ -562,7 +606,9 @@ void EveryFullHour(bool loopUpdate) {
       Serial.println("Setting night mode (dimmed)");
       tfts.dimming = TFT_DIMMED_INTENSITY;
       tfts.InvalidateImageInBuffer(); // invalidate; reload images with new dimming value
+#ifdef USE_BACKLIGHTS
       backlights.dimming = true;
+#endif
       if (menu.getState() == Menu::idle || !loopUpdate) { // otherwise erases the menu
         updateClockDisplay(TFTs::force); // update all        
       }
@@ -570,7 +616,9 @@ void EveryFullHour(bool loopUpdate) {
       Serial.println("Setting daytime mode (normal brightness)");
       tfts.dimming = 255; // 0..255
       tfts.InvalidateImageInBuffer(); // invalidate; reload images with new dimming value
+#ifdef USE_BACKLIGHTS
       backlights.dimming = false;
+#endif
       if (menu.getState() == Menu::idle || !loopUpdate) { // otherwise erases the menu
         updateClockDisplay(TFTs::force); // update all
       }

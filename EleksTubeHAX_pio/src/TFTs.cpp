@@ -58,6 +58,7 @@ void TFTs::showNoWifiStatus() {
   setTextColor(TFT_RED, TFT_BLACK);
   fillRect(0, TFT_HEIGHT - 27, TFT_WIDTH, 27, TFT_BLACK);
   setCursor(5, TFT_HEIGHT - 27, 4);  // Font 4. 26 pixel high
+  Serial.println("NO WIFI !");
   print("NO WIFI !");
   }
 
@@ -66,6 +67,7 @@ void TFTs::showNoMqttStatus() {
   setTextColor(TFT_RED, TFT_BLACK);
   fillRect(0, TFT_HEIGHT - 27, TFT_WIDTH, 27, TFT_BLACK);
   setCursor(5, TFT_HEIGHT - 27, 4);
+  Serial.println("NO MQTT !");
   print("NO MQTT !");
   }
 
@@ -80,30 +82,38 @@ void TFTs::showTemperature() {
       print(sTemperatureTxt);
       print(" C");
    }
-#ifdef DEBUG_OUTPUT
-    Serial.println("Temperature to LCD");
-#endif    
+  #ifdef DEBUG_OUTPUT
+      Serial.println("Temperature to LCD");
+  #endif
+  #endif
+  #ifndef ONE_WIRE_BUS_PIN  
+    Serial.println("NO Temperatur sensor!");
+    print("NO Temperatur sensor!");
   #endif
 }
 
 void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
   uint8_t old_value = digits[digit];
   digits[digit] = value;
-  
   if (show != no && (old_value != value || show == force)) {
+#ifdef DEBUG_OUTPUT
+    Serial.print("Show digit: ");Serial.println(digit);
+#endif
     showDigit(digit);
 
     if (digit == SECONDS_ONES) 
-      if (WifiState != connected) { 
+      if (WifiState != connected) {
         showNoWifiStatus();
-      }    
-
+      }
     if (digit == SECONDS_TENS) 
-      if (!MqttConnected) { 
+      if (!MqttConnected) {
         showNoMqttStatus();
       }
 
     if (digit == HOURS_ONES) {
+#ifdef DEBUG_OUTPUT
+        Serial.println("Show Temperature");
+#endif
         showTemperature();
       }
   }
@@ -114,18 +124,25 @@ void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
  */
  
 void TFTs::showDigit(uint8_t digit) {
-#ifdef DEBUG_OUTPUT
-  Serial.print("TFTs::showDigit: ");
-  Serial.println(digit);
+#ifdef DEBUG_OUTPUT_TFT
+  Serial.println("TFTs::showDigit!");
+  Serial.println("Calling chip_select.setDigit(digit)!");
 #endif
   chip_select.setDigit(digit);
 
   if (digits[digit] == blanked) {
-    fillScreen(TFT_BLACK);
+#ifdef DEBUG_OUTPUT_TFT
+    Serial.println("fillScreen with Black (whipe)!");
+#endif
+    fillScreen(TFT_WHITE);
   }
   else {
+    fillScreen(TFT_YELLOW);
     uint8_t file_index = current_graphic * 10 + digits[digit];
-    DrawImage(file_index);
+#ifdef DEBUG_OUTPUT_TFT
+    Serial.print("fillScreen with image: ");Serial.println(file_index);
+#endif
+    //DrawImage(file_index);
     
     uint8_t NextNumber = digits[SECONDS_ONES] + 1;
     if (NextNumber > 9) NextNumber = 0; // pre-load only seconds, because they are drawn first
@@ -135,8 +152,8 @@ void TFTs::showDigit(uint8_t digit) {
 
 void TFTs::LoadNextImage() {
   if (NextFileRequired != FileInBuffer) {
-#ifdef DEBUG_OUTPUT
-    Serial.println("Preload next img");
+#ifdef DEBUG_OUTPUT_TFT
+    Serial.println("Preload next image");
 #endif
     LoadImageIntoBuffer(NextFileRequired);
   }
@@ -189,17 +206,15 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   char filename[10];
   sprintf(filename, "/%d.bmp", file_index);
 
-#ifdef DEBUG_OUTPUT
-  Serial.print("Loading: ");
-  Serial.println(filename);
+#ifdef DEBUG_OUTPUT_TFT
+  Serial.print("Loading: ");Serial.println(filename);
 #endif
   
   // Open requested file on SD card
   bmpFS = SPIFFS.open(filename, "r");
   if (!bmpFS)
   {
-    Serial.print("File not found: ");
-    Serial.println(filename);
+    Serial.print("File not found: ");Serial.println(filename);
     return(false);
   }
 
@@ -238,19 +253,10 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   int16_t x = (TFT_WIDTH - w) / 2;
   int16_t y = (TFT_HEIGHT - h) / 2;
   
-#ifdef DEBUG_OUTPUT
-  Serial.print(" image W, H, BPP: ");
-  Serial.print(w); 
-  Serial.print(", "); 
-  Serial.print(h);
-  Serial.print(", "); 
-  Serial.println(bitDepth);
-  Serial.print(" dimming: ");
-  Serial.println(dimming);
-  Serial.print(" offset x, y: ");
-  Serial.print(x); 
-  Serial.print(", "); 
-  Serial.println(y);
+#ifdef DEBUG_OUTPUT_TFT
+  Serial.print(" image W, H, BPP: ");Serial.print(w); Serial.print(", ");Serial.print(h);Serial.print(", ");Serial.println(bitDepth);
+  Serial.print(" dimming: ");Serial.println(dimming);
+  Serial.print(" offset x, y: ");Serial.print(x);Serial.print(", ");Serial.println(y);
 #endif
   if (read32(bmpFS) != 0 || (bitDepth != 24 && bitDepth != 1 && bitDepth != 4 && bitDepth != 8)) {
     Serial.println("BMP format not recognized.");
@@ -313,9 +319,8 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   FileInBuffer = file_index;
   
   bmpFS.close();
-#ifdef DEBUG_OUTPUT
-  Serial.print("img load time: ");
-  Serial.println(millis() - StartTime);  
+#ifdef DEBUG_OUTPUT_TFT
+  Serial.print("img load time: ");Serial.println(millis() - StartTime);
 #endif
   return (true);
 }

@@ -5,8 +5,7 @@ void Button::begin() {
   millis_at_last_loop = millis_at_last_transition;
 
 #ifdef DEBUG_OUTPUT
-    Serial.print("init button ");
-    Serial.println(bpin);
+    Serial.print("init button with pin: ");Serial.println(bpin);
 #endif
 
   pinMode(bpin, INPUT);
@@ -28,7 +27,7 @@ void Button::loop() {
     Serial.print("[B ");
     Serial.print(bpin);
     Serial.print("]");
-  }  
+  }
 #endif
 
   state previous_state = button_state;

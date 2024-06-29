@@ -44,11 +44,11 @@
 // ************ Hardware definitions *********************
 
 // Disable all warnings from the TFT_eSPI lib
-#define DISABLE_ALL_LIBRARY_WARNINGS
+//#define DISABLE_ALL_LIBRARY_WARNINGS
 
 // Common indexing scheme, used to identify the digit
 #define NUM_DIGITS   (6)
-#ifdef HARDWARE_PunkCyber_CLOCK
+#if defined(HARDWARE_PunkCyber_CLOCK) || defined(HARDWARE_IPSTUBE_H401_CLOCK)
   #define SECONDS_ONES (5)
   #define SECONDS_TENS (4)
   #define MINUTES_ONES (3)
@@ -64,13 +64,14 @@
   #define HOURS_TENS   (5)
 #endif
 
-
-#define SECONDS_ONES_MAP (0x01 << SECONDS_ONES)
-#define SECONDS_TENS_MAP (0x01 << SECONDS_TENS)
-#define MINUTES_ONES_MAP (0x01 << MINUTES_ONES)
-#define MINUTES_TENS_MAP (0x01 << MINUTES_TENS)
-#define HOURS_ONES_MAP   (0x01 << HOURS_ONES)
-#define HOURS_TENS_MAP   (0x01 << HOURS_TENS)
+#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+  #define SECONDS_ONES_MAP (0x01 << SECONDS_ONES)
+  #define SECONDS_TENS_MAP (0x01 << SECONDS_TENS)
+  #define MINUTES_ONES_MAP (0x01 << MINUTES_ONES)
+  #define MINUTES_TENS_MAP (0x01 << MINUTES_TENS)
+  #define HOURS_ONES_MAP   (0x01 << HOURS_ONES)
+  #define HOURS_TENS_MAP   (0x01 << HOURS_TENS)
+#endif
 
 #ifdef HARDWARE_SI_HAI_CLOCK // SI HAI IPS Clock XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -318,8 +319,10 @@
 #ifdef HARDWARE_IPSTUBE_H401_CLOCK // IPSTUBE Model H401 Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
   // WS2812 (or compatible) LEDs on the back of the display modules.
-  #define BACKLIGHTS_PIN (GPIO_NUM_5) // or 4?
-  //#define BACKLIGHTS_PIN (GPIO_NUM_4) // or 5?
+#ifdef USE_BACKLIGHTS
+  #define BACKLIGHTS_PIN (GPIO_NUM_5)
+#endif  
+  #define BACKLIGHTS_PIN (GPIO_NUM_5) // or 5?
 
   // Only one Button on H401 version!!!
   // Set the other pins to pins, which should always be HIGH!
@@ -330,8 +333,8 @@
   #define BUTTON_LEFT_PIN (3)
   #define BUTTON_RIGHT_PIN (3)
   #define BUTTON_POWER_PIN (3)
-
-  #define BUTTON_MODE_PIN (GPIO_NUM_0) // Button on the back of the clock
+  #define BUTTON_MODE_PIN (3) // Button on the back of the clock
+  //#define BUTTON_MODE_PIN (GPIO_NUM_0) // Button on the back of the clock
    
   // 3-wire to DS1302 RTC
   #define DS1302_SCLK  (GPIO_NUM_22)
@@ -349,19 +352,32 @@
   // Active HIGH.
   //#define TFT_ENABLE_PIN (GPIO_NUM_4)    // One transistor for all displays
 
+  // Activate "backlight" LEDs on the back/bottom of the displays
+  //#define USE_BACKLIGHTS // Activate the WS2812 LEDs on the back of the displays
+
   // configure library \TFT_eSPI\User_Setup.h
   // ST7789 135 x 240 display with no chip select line
-  #define ST7789_DRIVER     // Configure all registers
+  #define ST7789_DRIVER       // Configure all registers
   #define TFT_WIDTH  135
   #define TFT_HEIGHT 240
   //#define CGRAM_OFFSET      // Library will add offsets required
-  #define TFT_SDA_READ      // Read and write on the MOSI/SDA pin, no separate MISO pin
-  #define TFT_MOSI (GPIO_NUM_32)
-  #define TFT_SCLK (GPIO_NUM_33)
-  //#define TFT_CS   (GPIO_NUM_27) // Not connected
-  #define TFT_CS   -1 // Not connected
-  #define TFT_DC   (GPIO_NUM_25)  // Data Command, aka Register Select or RS
-  #define TFT_RST  (GPIO_NUM_26)  // Connect reset to ensure display initialises
+  #define TFT_SDA_READ        // Read and write on the MOSI/SDA pin, no separate MISO pin
+  #define TFT_MOSI 32
+  #define TFT_SCLK 33
+  
+  #define TFT_CS    -1 // Not connected
+
+  #define TFT_CS_1  13 //(GPIO13)
+  #define TFT_CS_2  12 //(GPIO12)
+  #define TFT_CS_3  14 //(GPIO14)
+  #define TFT_CS_4  27 //(GPIO27)
+  #define TFT_CS_5  2  //(GPIO2)
+  #define TFT_CS_6  15 //(GPIO15)
+  
+  #define TOUCH_CS -1 //disable touch in library
+  
+  #define TFT_DC   25  // Data Command, aka Register Select or RS
+  #define TFT_RST  26  // Connect reset to ensure display initialises
 
   //#define LOAD_GLCD   // Font 1. Original Adafruit 8 pixel font needs ~1820 bytes in FLASH
   #define LOAD_FONT2  // Font 2. Small 16 pixel high font, needs ~3534 bytes in FLASH, 96 characters

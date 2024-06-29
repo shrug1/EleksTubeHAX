@@ -1,6 +1,8 @@
 #ifndef BACKLIGHTS_H
 #define BACKLIGHTS_H
 
+#ifdef USE_BACKLIGHTS
+
 #include "GLOBAL_DEFINES.h"
 
 /*
@@ -24,7 +26,14 @@ public:
     Adafruit_NeoPixel(NUM_DIGITS, BACKLIGHTS_PIN, NEO_GRB + NEO_KHZ800)
     {}
 
-  enum patterns { dark, test, constant, rainbow, pulse, breath, num_patterns };
+  enum patterns { 
+      dark, 
+      test, 
+      constant, 
+      rainbow, 
+      pulse, 
+      breath, 
+      num_patterns };
   const static String patterns_str[num_patterns];
 
   void begin(StoredConfig::Config::Backlights *config_);
@@ -79,5 +88,7 @@ private:
   const uint32_t test_ms_delay = 250; 
 
 };
+
+#endif // USE_BACKLIGHTS
 
 #endif // BACKLIGHTS_H

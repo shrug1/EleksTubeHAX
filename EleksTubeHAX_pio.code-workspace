@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "EleksTubeHAX_pio"
+		},
+		{
+			"name": "TryOut1",
+			"path": "Tryout1/TryOut1"
+		},
+		{
+			"name": "TryOut2",
+			"path": "Tryout2/TryOut2"
+		}
+	],
+	"settings": {}
+}

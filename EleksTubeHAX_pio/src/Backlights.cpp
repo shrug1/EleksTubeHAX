@@ -1,12 +1,14 @@
 #include "Backlights.h"
 
+#ifdef USE_BACKLIGHTS
+
 void Backlights::begin(StoredConfig::Config::Backlights *config_)  {
   config=config_;
 
   if (config->is_valid != StoredConfig::valid) {
     // Config is invalid, probably a new device never had its config written.
     // Load some reasonable defaults.
-    Serial.println("Loaded Backlights config is invalid, using default.  This is normal on first boot.");
+    Serial.println("Loaded Backlights config is invalid, using default. This is normal on FIRST boot!");
     setPattern(rainbow);
     setColorPhase(0);
     setIntensity(max_intensity-1);
@@ -14,6 +16,10 @@ void Backlights::begin(StoredConfig::Config::Backlights *config_)  {
     setBreathRate(10);
     config->is_valid = StoredConfig::valid;
   }
+#ifdef DEBUG_OUTPUT
+  Serial.println("Loaded Backlights config SUCCESSFULLY.");
+  Serial.print("Pattern: ");Serial.println(getPatternStr());
+#endif
 
   off = false;
 }
@@ -195,3 +201,5 @@ void Backlights::rainbowPattern() {
 
 const String Backlights::patterns_str[Backlights::num_patterns] = 
   { "Dark", "Test", "Constant", "Rainbow", "Pulse", "Breath" };
+
+#endif // USE_BACKLIGHTS
