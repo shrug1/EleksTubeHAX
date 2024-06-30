@@ -11,7 +11,7 @@
 #include "ChipSelect.h"
 //#include "Buttons.h"
 //#include "Backlights.h"
-//#include "TFTs.h"
+#include "TFTs.h"
 //#include "Clock.h"
 //#include "Menu.h"
 //#include "StoredConfig.h"
@@ -37,19 +37,10 @@
 
 // Backlights    backlights;
 // Buttons       buttons;
-#include <TFT_eSPI.h>
-#include <SPI.h>
 
-//TFTs          tfts;
-#define TDELAY 500
 
-TFT_eSPI tft = TFT_eSPI();
-
- // Making chip_select public so we don't have to proxy all methods, and the caller can just use it directly.
-ChipSelect chip_select;
-
-const int lcdEnablePins[] = {GPIO_NUM_13,GPIO_NUM_12,GPIO_NUM_14,GPIO_NUM_27,GPIO_NUM_2,GPIO_NUM_15};
-const int numLCDs = sizeof(lcdEnablePins) / sizeof(lcdEnablePins[0]);
+//const int lcdEnablePins[] = {GPIO_NUM_13,GPIO_NUM_12,GPIO_NUM_14,GPIO_NUM_27,GPIO_NUM_2,GPIO_NUM_15};
+//const int numLCDs = sizeof(lcdEnablePins) / sizeof(lcdEnablePins[0]);
 
 #define BLACK 0x0000
 #define BLUE 0x001F
@@ -63,23 +54,24 @@ const int numLCDs = sizeof(lcdEnablePins) / sizeof(lcdEnablePins[0]);
 // Clock         uclock;
 // Menu          menu;
 // StoredConfig  stored_config;
+TFTs          tfts;
 
-// bool          FullHour        = false;
-// uint8_t       hour_old        = 255;
-// bool          DstNeedsUpdate  = false;
-// uint8_t       yesterday       = 0;
+bool          FullHour        = false;
+uint8_t       hour_old        = 255;
+bool          DstNeedsUpdate  = false;
+uint8_t       yesterday       = 0;
 
 // Helper function, defined below.
-// void updateClockDisplay(TFTs::show_t show=TFTs::yes);
-// void setupMenu(void);
-// void EveryFullHour(bool loopUpdate=false);
-// void UpdateDstEveryNight(void);
-// #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-// void GestureStart();
-// void HandleGestureInterupt(void); //only for NovelLife SE
-// void GestureInterruptRoutine(void); //only for NovelLife SE
-// void HandleGesture(void); //only for NovelLife SE
-// #endif //NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+void updateClockDisplay(TFTs::show_t show=TFTs::yes);
+void setupMenu(void);
+void EveryFullHour(bool loopUpdate=false);
+void UpdateDstEveryNight(void);
+#ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+void GestureStart();
+void HandleGestureInterupt(void); //only for NovelLife SE
+void GestureInterruptRoutine(void); //only for NovelLife SE
+void HandleGesture(void); //only for NovelLife SE
+#endif //NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 void setup() {
   Serial.begin(115200);
@@ -88,59 +80,59 @@ void setup() {
   Serial.println(FIRMWARE_VERSION);
   Serial.println("In setup().");
 
-  // Initialize each LCD enable pin as OUTPUT and set it to HIGH (disabled)
-            // for (int i = 0; i < numLCDs; ++i) {
-            //   pinMode(lcdEnablePins[i], OUTPUT);
-            //   digitalWrite(lcdEnablePins[i], HIGH);
-            // }
-            // delay(500);
+                            // Initialize each LCD enable pin as OUTPUT and set it to HIGH (disabled)
+                                      // for (int i = 0; i < numLCDs; ++i) {
+                                      //   pinMode(lcdEnablePins[i], OUTPUT);
+                                      //   digitalWrite(lcdEnablePins[i], HIGH);
+                                      // }
+                                      // delay(500);
 
-  chip_select.begin();
+                            //chip_select.begin();
 
-            // digitalWrite(GPIO_NUM_13, LOW);
-  chip_select.enableAllCSPinsH401();
+                                      // digitalWrite(GPIO_NUM_13, LOW);
+                            //chip_select.enableAllCSPinsH401();
 
-            // digitalWrite(GPIO_NUM_13, HIGH);
+                                      // digitalWrite(GPIO_NUM_13, HIGH);
 
-  tft.init();
-  tft.setRotation(0);
+                            //tft.init();
+                            //tft.setRotation(0);
 
-  chip_select.disableAllCSPinsH401();
+                            //chip_select.disableAllCSPinsH401();
 
-  //pinMode(GPIO_NUM_15, OUTPUT);
-  //digitalWrite(GPIO_NUM_15, HIGH);
-  chip_select.enableDigitCSPinsH401(SECONDS_ONES);
-  tft.fillScreen(MAGENTA);
-  chip_select.disableDigitCSPinsH401(SECONDS_ONES);
-  delay(2000);
-  chip_select.enableDigitCSPinsH401(SECONDS_TENS);
-  tft.fillScreen(YELLOW);
-  chip_select.disableDigitCSPinsH401(SECONDS_TENS);
-  delay(2000);
-  chip_select.enableDigitCSPinsH401(MINUTES_ONES);
-  tft.fillScreen(CYAN);
-  chip_select.disableDigitCSPinsH401(MINUTES_ONES);
-  delay(2000);
-  chip_select.enableDigitCSPinsH401(MINUTES_TENS);
-  tft.fillScreen(RED);
-  chip_select.disableDigitCSPinsH401(MINUTES_TENS);
-  delay(2000);
-  chip_select.enableDigitCSPinsH401(HOURS_ONES);
-  tft.fillScreen(GREEN);
-  chip_select.disableDigitCSPinsH401(HOURS_ONES);
-  delay(2000);
-  chip_select.enableDigitCSPinsH401(HOURS_TENS);
-  tft.fillScreen(BLUE);
-  chip_select.disableDigitCSPinsH401(HOURS_TENS);
-  delay(2000);
-  chip_select.enableAllCSPinsH401();
-  tft.fillScreen(BLACK);
-  delay(2000);
-  tft.fillScreen(WHITE);
-  delay(2000);  
-  chip_select.disableAllCSPinsH401();
-            //digitalWrite(GPIO_NUM_13, HIGH);
-  //delay(5000);
+                            //pinMode(GPIO_NUM_15, OUTPUT);
+                            //digitalWrite(GPIO_NUM_15, HIGH);
+                            // chip_select.enableDigitCSPinsH401(SECONDS_ONES);
+                            // tft.fillScreen(MAGENTA);
+                            // chip_select.disableDigitCSPinsH401(SECONDS_ONES);
+                            // delay(2000);
+                            // chip_select.enableDigitCSPinsH401(SECONDS_TENS);
+                            // tft.fillScreen(YELLOW);
+                            // chip_select.disableDigitCSPinsH401(SECONDS_TENS);
+                            // delay(2000);
+                            // chip_select.enableDigitCSPinsH401(MINUTES_ONES);
+                            // tft.fillScreen(CYAN);
+                            // chip_select.disableDigitCSPinsH401(MINUTES_ONES);
+                            // delay(2000);
+                            // chip_select.enableDigitCSPinsH401(MINUTES_TENS);
+                            // tft.fillScreen(RED);
+                            // chip_select.disableDigitCSPinsH401(MINUTES_TENS);
+                            // delay(2000);
+                            // chip_select.enableDigitCSPinsH401(HOURS_ONES);
+                            // tft.fillScreen(GREEN);
+                            // chip_select.disableDigitCSPinsH401(HOURS_ONES);
+                            // delay(2000);
+                            // chip_select.enableDigitCSPinsH401(HOURS_TENS);
+                            // tft.fillScreen(BLUE);
+                            // chip_select.disableDigitCSPinsH401(HOURS_TENS);
+                            // delay(2000);
+                            // chip_select.enableAllCSPinsH401();
+                            // tft.fillScreen(BLACK);
+                            // delay(2000);
+                            // tft.fillScreen(WHITE);
+                            // delay(2000);  
+                            // chip_select.disableAllCSPinsH401();
+                            //           //digitalWrite(GPIO_NUM_13, HIGH);
+                            //delay(5000);
 
   // stored_config.begin();
   // stored_config.load();
@@ -150,11 +142,12 @@ void setup() {
   // menu.begin();
 
   // Setup the displays (TFTs) initaly and show bootup message(s)
-  // tfts.begin();  // and count number of clock faces available
-  // tfts.fillScreen(TFT_BLACK);
-  // tfts.setTextColor(TFT_WHITE, TFT_BLACK);
-  // tfts.setCursor(0, 0, 4);  // Font 2. 16 pixel high
-  // tfts.println("setup...");
+  tfts.begin();  // and count number of clock faces available
+  tfts.fillScreen(TFT_YELLOW);
+  delay(10000);
+  tfts.setTextColor(TFT_WHITE, TFT_BLACK);
+  tfts.setCursor(0, 0, 2);  // Font 2. 16 pixel high
+  tfts.println("setup...");
 
 // #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 //   //Init the Gesture sensor
@@ -235,8 +228,6 @@ void loop() {
 
   static uint32_t wr = 1;
   static uint32_t rd = 0xFFFFFFFF;
-
-  delay(TDELAY);
 
               //   digitalWrite(GPIO_NUM_13, LOW);
 
@@ -676,7 +667,7 @@ void HandleGesture() {
 //   }   
 // }
 
-//check Daylight-Saving-Time (Summertime)
+// //check Daylight-Saving-Time (Summertime)
 // void UpdateDstEveryNight() {
 //   uint8_t currentDay = uclock.getDay();
 //   // This `DstNeedsUpdate` is True between 3:00:05 and 3:00:59. Has almost one minute of time slot to fetch updates, incl. eventual retries.

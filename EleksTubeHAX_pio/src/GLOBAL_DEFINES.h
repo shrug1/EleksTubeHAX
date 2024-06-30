@@ -344,9 +344,8 @@
   // DEFINED IN User_Setup.h
   // Look for: TFT_MOSI, TFT_SCLK, TFT_CS, TFT_DC, and TFT_RST
 
-  // Power for all TFT displays are grounded through a MOSFET so they can all be turned off.
-  // Active HIGH.
-  //#define TFT_ENABLE_PIN (GPIO_NUM_4)    // Needed?
+  // The H401 has the enable pin of the LCDs connectected to the VCC, so Always On.
+  //#define TFT_ENABLE_PIN (GPIO_NUM_4)
 
   // configure library \TFT_eSPI\User_Setup.h
   // ST7789 135 x 240 display with no chip select line
@@ -358,15 +357,15 @@
   //#define CGRAM_OFFSET      // Library will add offsets required
   #define TFT_SDA_READ      // Read and write on the MOSI/SDA pin, no separate MISO pin
 
-  #define TFT_MISO  -1
+  #define TFT_MISO  -1 // No MISO
   #define TFT_MOSI (GPIO_NUM_32)
   #define TFT_SCLK (GPIO_NUM_33)
 
-  #define TFT_CS   (-1) // ONE display ONLY for now
+  #define TFT_CS   (-1) // MUST be -1 for H401 -> chipselect class does the magic also without a shift register
   #define TFT_DC   (GPIO_NUM_25)  // Data Command, aka Register Select or RS
   #define TFT_RST  (GPIO_NUM_26)  // Connect reset to ensure display initialises
 
-  #define TOUCH_CS  -1
+  #define TOUCH_CS  -1 // No Touch
 
   #define LOAD_GLCD   // Font 1. Original Adafruit 8 pixel font needs ~1820 bytes in FLASH
   #define LOAD_FONT2  // Font 2. Small 16 pixel high font, needs ~3534 bytes in FLASH, 96 characters
@@ -379,8 +378,6 @@
 
   #define SMOOTH_FONT
 
-
-  //#define SPI_FREQUENCY  27000000
   #define SPI_FREQUENCY  55000000
   #define SPI_READ_FREQUENCY  20000000
   //#define SPI_READ_FREQUENCY 40000000

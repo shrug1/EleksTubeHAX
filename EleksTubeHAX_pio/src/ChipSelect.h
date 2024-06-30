@@ -20,18 +20,17 @@ public:
   // So 0 is disabled, 1 is enabled (even though CS is active low, this gets mapped.)
   // So bit 0 (LSB), is index 0, is SECONDS_ONES
   // Translation to what the 74HC595 uses is done in update()
-  //void setDigitMap(uint8_t map, bool update_=true)   { if (update_) update(); }//digits_map = map;  }
-  // uint8_t getDigitMap()                        { return digits_map; }
+  void setDigitMap(uint8_t map, bool update_=true)   { if (update_) update(); }//digits_map = map;  }
+  uint8_t getDigitMap()                        { return digits_map; }
 
   // Helper functions
   // Sets just the one digit by digit number
-  void setDigit(uint8_t digit, bool update_=true) { currentLCD = digit; if (update_) update(); }
+  void setDigit(uint8_t digit, bool update_=true);
   void enableDigitCSPinsH401(uint8_t digit);
   void disableDigitCSPinsH401(uint8_t digit);
   
-  void setAll(bool update_=true)                  { for (int i = 0; i < NUM_DIGITS; ++i) {setDigit(i), update();} }
-  
-  // void clear(bool update_=true)                   { setDigitMap(all_off, update_); }
+  void setAll(bool update_=true);
+  void clear(bool update_=true);
   void setSecondsOnes()                           { setDigit(SECONDS_ONES); }
   void setSecondsTens()                           { setDigit(SECONDS_TENS); }
   void setMinutesOnes()                           { setDigit(MINUTES_ONES); }
@@ -48,9 +47,9 @@ public:
   void enableAllCSPinsH401();
   void disableAllCSPinsH401();
 private:
-  //uint8_t digits_map;
-  //const uint8_t all_on = 0x3F;
-  //const uint8_t all_off = 0x00;
+  uint8_t digits_map;
+  const uint8_t all_on = 0x3F;
+  const uint8_t all_off = 0x00;
 };
 
 
