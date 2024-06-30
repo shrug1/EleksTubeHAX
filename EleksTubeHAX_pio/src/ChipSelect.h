@@ -9,7 +9,7 @@
 
 class ChipSelect {
 public:
-  ChipSelect() : digits_map(all_off) {}
+  ChipSelect() {};
 
   void begin();
   void update();
@@ -26,14 +26,18 @@ public:
   // Helper functions
   // Sets just the one digit by digit number
   void setDigit(uint8_t digit, bool update_=true) { currentLCD = digit; if (update_) update(); }
-  // void setAll(bool update_=true)                  { setDigitMap(all_on,  update_); }
+  void enableDigitCSPinsH401(uint8_t digit);
+  void disableDigitCSPinsH401(uint8_t digit);
+  
+  void setAll(bool update_=true)                  { for (int i = 0; i < NUM_DIGITS; ++i) {setDigit(i), update();} }
+  
   // void clear(bool update_=true)                   { setDigitMap(all_off, update_); }
-  // void setSecondsOnes()                           { setDigit(SECONDS_ONES); }
-  // void setSecondsTens()                           { setDigit(SECONDS_TENS); }
-  // void setMinutesOnes()                           { setDigit(MINUTES_ONES); }
-  // void setMinutesTens()                           { setDigit(MINUTES_TENS); }
-  // void setHoursOnes()                             { setDigit(HOURS_ONES); }
-  // void setHoursTens()                             { setDigit(HOURS_TENS); }
+  void setSecondsOnes()                           { setDigit(SECONDS_ONES); }
+  void setSecondsTens()                           { setDigit(SECONDS_TENS); }
+  void setMinutesOnes()                           { setDigit(MINUTES_ONES); }
+  void setMinutesTens()                           { setDigit(MINUTES_TENS); }
+  void setHoursOnes()                             { setDigit(HOURS_ONES); }
+  void setHoursTens()                             { setDigit(HOURS_TENS); }
   // bool isSecondsOnes()                            { return (digits_map&SECONDS_ONES_MAP > 0); }
   // bool isSecondsTens()                            { return (digits_map&SECONDS_TENS_MAP > 0); }
   // bool isMinutesOnes()                            { return (digits_map&MINUTES_ONES_MAP > 0); }
@@ -41,10 +45,12 @@ public:
   // bool isHoursOnes()                              { return (digits_map&HOURS_ONES_MAP > 0); }
   // bool isHoursTens()                              { return (digits_map&HOURS_TENS_MAP > 0); }
 
+  void enableAllCSPinsH401();
+  void disableAllCSPinsH401();
 private:
-  uint8_t digits_map;
-  const uint8_t all_on = 0x3F;
-  const uint8_t all_off = 0x00;
+  //uint8_t digits_map;
+  //const uint8_t all_on = 0x3F;
+  //const uint8_t all_off = 0x00;
 };
 
 

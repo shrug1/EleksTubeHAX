@@ -8,7 +8,7 @@
 
 #include <stdint.h>
 #include "GLOBAL_DEFINES.h"
-//#include "ChipSelect.h"
+#include "ChipSelect.h"
 //#include "Buttons.h"
 //#include "Backlights.h"
 //#include "TFTs.h"
@@ -44,6 +44,9 @@
 #define TDELAY 500
 
 TFT_eSPI tft = TFT_eSPI();
+
+ // Making chip_select public so we don't have to proxy all methods, and the caller can just use it directly.
+ChipSelect chip_select;
 
 const int lcdEnablePins[] = {GPIO_NUM_13,GPIO_NUM_12,GPIO_NUM_14,GPIO_NUM_27,GPIO_NUM_2,GPIO_NUM_15};
 const int numLCDs = sizeof(lcdEnablePins) / sizeof(lcdEnablePins[0]);
@@ -86,38 +89,58 @@ void setup() {
   Serial.println("In setup().");
 
   // Initialize each LCD enable pin as OUTPUT and set it to HIGH (disabled)
-  for (int i = 0; i < numLCDs; ++i) {
-    pinMode(lcdEnablePins[i], OUTPUT);
-    digitalWrite(lcdEnablePins[i], HIGH);
-  }
-  delay(500);
+            // for (int i = 0; i < numLCDs; ++i) {
+            //   pinMode(lcdEnablePins[i], OUTPUT);
+            //   digitalWrite(lcdEnablePins[i], HIGH);
+            // }
+            // delay(500);
 
+  chip_select.begin();
 
-  digitalWrite(GPIO_NUM_13, LOW);
+            // digitalWrite(GPIO_NUM_13, LOW);
+  chip_select.enableAllCSPinsH401();
 
+            // digitalWrite(GPIO_NUM_13, HIGH);
 
   tft.init();
   tft.setRotation(0);
+
+  chip_select.disableAllCSPinsH401();
+
   //pinMode(GPIO_NUM_15, OUTPUT);
   //digitalWrite(GPIO_NUM_15, HIGH);
+  chip_select.enableDigitCSPinsH401(SECONDS_ONES);
   tft.fillScreen(MAGENTA);
-  delay(1000);
+  chip_select.disableDigitCSPinsH401(SECONDS_ONES);
+  delay(2000);
+  chip_select.enableDigitCSPinsH401(SECONDS_TENS);
   tft.fillScreen(YELLOW);
-  delay(1000);
+  chip_select.disableDigitCSPinsH401(SECONDS_TENS);
+  delay(2000);
+  chip_select.enableDigitCSPinsH401(MINUTES_ONES);
   tft.fillScreen(CYAN);
-  delay(1000);
+  chip_select.disableDigitCSPinsH401(MINUTES_ONES);
+  delay(2000);
+  chip_select.enableDigitCSPinsH401(MINUTES_TENS);
   tft.fillScreen(RED);
-  delay(1000);
+  chip_select.disableDigitCSPinsH401(MINUTES_TENS);
+  delay(2000);
+  chip_select.enableDigitCSPinsH401(HOURS_ONES);
   tft.fillScreen(GREEN);
-  delay(1000);
+  chip_select.disableDigitCSPinsH401(HOURS_ONES);
+  delay(2000);
+  chip_select.enableDigitCSPinsH401(HOURS_TENS);
   tft.fillScreen(BLUE);
-  delay(1000);
+  chip_select.disableDigitCSPinsH401(HOURS_TENS);
+  delay(2000);
+  chip_select.enableAllCSPinsH401();
   tft.fillScreen(BLACK);
-  delay(1000);
+  delay(2000);
   tft.fillScreen(WHITE);
-  delay(1000);  
-  digitalWrite(GPIO_NUM_13, HIGH);
-  delay(1000);
+  delay(2000);  
+  chip_select.disableAllCSPinsH401();
+            //digitalWrite(GPIO_NUM_13, HIGH);
+  //delay(5000);
 
   // stored_config.begin();
   // stored_config.load();
@@ -215,25 +238,25 @@ void loop() {
 
   delay(TDELAY);
 
-  digitalWrite(GPIO_NUM_13, LOW);
+              //   digitalWrite(GPIO_NUM_13, LOW);
 
-  tft.drawPixel(30,30,wr);
-  Serial.print(" Pixel value written = ");
-  Serial.println(wr,HEX);
-  
-  rd = tft.readPixel(30,30);
-  Serial.print(" Pixel value read    = ");
-  Serial.println(rd,HEX);
+              //   tft.drawPixel(30,30,wr);
+              //   Serial.print(" Pixel value written = ");
+              //   Serial.println(wr,HEX);
+                
+              //   rd = tft.readPixel(30,30);
+              //   Serial.print(" Pixel value read    = ");
+              //   Serial.println(rd,HEX);
 
-  if (rd!=wr) {
-    Serial.println(" ERROR                 ^^^^");
-    //while(1) yield();
-  }
-  else Serial.println(" PASS ");
-  // Walking 1 test
-  wr = wr<<1;
-  if (wr >= 0x10000) wr = 1;
-digitalWrite(GPIO_NUM_13, HIGH);
+              //   if (rd!=wr) {
+              //     Serial.println(" ERROR                 ^^^^");
+              //     //while(1) yield();
+              //   }
+              //   else Serial.println(" PASS ");
+              //   // Walking 1 test
+              //   wr = wr<<1;
+              //   if (wr >= 0x10000) wr = 1;
+              // digitalWrite(GPIO_NUM_13, HIGH);
 
   // Do all the maintenance work
   //WifiReconnect(); // if not connected attempt to reconnect
