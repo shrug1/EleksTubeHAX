@@ -48,13 +48,7 @@
 
 // Common indexing scheme, used to identify the digit
 #define NUM_DIGITS   (6)
-  //GPIO_NUM_15 //seconds ones (LED7 - total right)
-  //GPIO_NUM_2  //seconds tens (LED6 - second from right)
-  //GPIO_NUM_27 //minutes ones (LED5 - third from right)
-  //GPIO_NUM_14 //minutes tens (LED4 - third from left)
-  //GPIO_NUM_12 //hours ones   (LED3 - second from left)
-  //GPIO_NUM_13 //hours tens   (LED2 - total left)
-//#if defined(HARDWARE_PunkCyber_CLOCK) || defined(HARDWARE_IPSTUBE_H401_CLOCK)
+
 #ifdef HARDWARE_PunkCyber_CLOCK 
   #define SECONDS_ONES (5)
   #define SECONDS_TENS (4)
@@ -70,7 +64,6 @@
   #define HOURS_ONES   (4)
   #define HOURS_TENS   (5)
 #endif
-
 
 #define SECONDS_ONES_MAP (0x01 << SECONDS_ONES)
 #define SECONDS_TENS_MAP (0x01 << SECONDS_TENS)
@@ -329,15 +322,13 @@
 
   // Only one Button on H401 version!!!
   // Set the other pins to pins, which should always be HIGH!
-  // Pin 9 = CPU_PU = EN = Always HIGH on this board
-  // #define BUTTON_LEFT_PIN (9)  
-  // #define BUTTON_RIGHT_PIN (9)
-  // #define BUTTON_POWER_PIN (9)
+  // Pin 9 = CPU_PU = EN = Always LOW on this board
+  // Pin 3 = CPU_PU = EN = Always LOW on this board
   #define BUTTON_LEFT_PIN (3)
   #define BUTTON_RIGHT_PIN (3)
   #define BUTTON_POWER_PIN (3)
 
-  #define BUTTON_MODE_PIN (GPIO_NUM_0) // Button on the back of the clock
+  #define BUTTON_MODE_PIN (GPIO_NUM_0) // Only ONE Button on the back of the clock
    
   // 3-wire to DS1302 RTC
   #define DS1302_SCLK  (GPIO_NUM_22)
@@ -346,10 +337,9 @@
 
   // Chip Select shift register, to select the display
   // No shift register on this board - Chip Select of the displays is directly connected to the ESP32
-
-  // SPI to displays
-  // DEFINED IN User_Setup.h
-  // Look for: TFT_MOSI, TFT_SCLK, TFT_CS, TFT_DC, and TFT_RST
+  // #define CSSR_DATA_PIN ()
+  // #define CSSR_CLOCK_PIN ()
+  // #define CSSR_LATCH_PIN ()
 
   // The H401 has the enable pin of the LCDs connectected to the VCC, so Always On.
   //#define TFT_ENABLE_PIN (GPIO_NUM_4)
@@ -374,6 +364,7 @@
 
   #define TOUCH_CS  -1 // No Touch
 
+  //Fonts to load for TFT
   //#define LOAD_GLCD   // Font 1. Original Adafruit 8 pixel font needs ~1820 bytes in FLASH
   #define LOAD_FONT2  // Font 2. Small 16 pixel high font, needs ~3534 bytes in FLASH, 96 characters
   //#define LOAD_FONT4  // Font 4. Medium 26 pixel high font, needs ~5848 bytes in FLASH, 96 characters

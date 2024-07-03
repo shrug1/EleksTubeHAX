@@ -72,3 +72,16 @@ void Menu::loop(Buttons &buttons) {
   // get here, but I think they're all "just do nothing."  If there's an explicit state we want to handle,
   // add an if() block above.
 }
+
+const String Menu::state_str[Menu::num_states] = { 
+    "idle",
+    "backlight_pattern",
+    "pattern_color",
+    "backlight_intensity",
+    "twelve_hour",
+    "blank_hours_zero",
+    "utc_offset_hour",
+    "utc_offset_15m",
+    "selected_graphic",
+    "start_wps"
+  };

@@ -107,7 +107,7 @@ void TFTs::showTemperature() {
 }
 
 void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
-  #ifdef DEBUG_OUTPUT
+  #ifdef DEBUG_OUTPUT_VERBOSE
     Serial.print("TFTs::setDigit! digit: ");Serial.print(digit);Serial.print("; value: ");Serial.println(value);
   #endif
   uint8_t old_value = digits[digit];
@@ -137,7 +137,7 @@ void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
  */
  
 void TFTs::showDigit(uint8_t digit) {
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_VERBOSE
   Serial.print("TFTs::showDigit: ");Serial.println(digit);
 #endif
   chip_select.setDigit(digit);
@@ -160,7 +160,7 @@ void TFTs::showDigit(uint8_t digit) {
 
 void TFTs::LoadNextImage() {
   if (NextFileRequired != FileInBuffer) {
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_VERBOSE
     Serial.println("Preload next img");
 #endif
     LoadImageIntoBuffer(NextFileRequired);
@@ -214,7 +214,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   char filename[10];
   sprintf(filename, "/%d.bmp", file_index);
 
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_VERBOSE
   Serial.print("Loading: ");
   Serial.println(filename);
 #endif
@@ -263,7 +263,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   int16_t x = (TFT_WIDTH - w) / 2;
   int16_t y = (TFT_HEIGHT - h) / 2;
   
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_VERBOSE
   Serial.print(" image W, H, BPP: ");
   Serial.print(w); 
   Serial.print(", "); 
@@ -338,7 +338,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   FileInBuffer = file_index;
   
   bmpFS.close();
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_VERBOSE
   Serial.print("img load time: ");
   Serial.println(millis() - StartTime);  
 #endif
@@ -375,7 +375,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   char filename[10];
   sprintf(filename, "/%d.clk", file_index);
 
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_VERBOSE
   Serial.print("Loading: ");
   Serial.println(filename);
 #endif
@@ -417,7 +417,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   int16_t x = (TFT_WIDTH - w) / 2;
   int16_t y = (TFT_HEIGHT - h) / 2;
   
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_VERBOSE
   Serial.print(" image W, H: ");
   Serial.print(w); 
   Serial.print(", "); 
@@ -462,7 +462,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   FileInBuffer = file_index;
   
   bmpFS.close();
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_VERBOSE
   Serial.print("img load time: ");
   Serial.println(millis() - StartTime);  
 #endif
@@ -473,14 +473,14 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
 void TFTs::DrawImage(uint8_t file_index) {
 
   uint32_t StartTime = millis();
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_VERBOSE
   Serial.println("");  
   Serial.print("Drawing image: ");  
   Serial.println(file_index);  
 #endif  
   // check if file is already loaded into buffer; skip loading if it is. Saves 50 to 150 msec of time.
   if (file_index != FileInBuffer) {
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_VERBOSE
   Serial.println("Not preloaded; loading now...");  
 #endif  
     LoadImageIntoBuffer(file_index);
@@ -491,7 +491,7 @@ void TFTs::DrawImage(uint8_t file_index) {
   pushImage(0,0, TFT_WIDTH, TFT_HEIGHT, (uint16_t *)UnpackedImageBuffer);
   setSwapBytes(oldSwapBytes);
 
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_VERBOSE
   Serial.print("img transfer time: ");  
   Serial.println(millis() - StartTime);  
 #endif

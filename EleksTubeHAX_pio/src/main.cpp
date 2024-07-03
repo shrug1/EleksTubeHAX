@@ -9,17 +9,17 @@
 #include <stdint.h>
 #include "GLOBAL_DEFINES.h"
 #include "ChipSelect.h"
-//#include "Buttons.h"
-//#include "Backlights.h"
+#include "Buttons.h"
+#include "Backlights.h"
 #include "TFTs.h"
 #include "Clock.h"
-//#include "Menu.h"
+#include "Menu.h"
 #include "StoredConfig.h"
 #include "WiFi_WPS.h"
 #include "Mqtt_client_ips.h"
 #include "TempSensor_inc.h"
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-#include "Gestures.h"
+//#include "Gestures.h"
 //TODO put into class
 #include <Wire.h>
 #include <SparkFun_APDS9960.h>
@@ -35,8 +35,8 @@ SparkFun_APDS9960 apds      = SparkFun_APDS9960();
 int volatile      isr_flag  = 0;
 #endif //NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-// Backlights    backlights;
-// Buttons       buttons;
+Backlights    backlights;
+Buttons       buttons;
 
 #define BLACK 0x0000
 #define BLUE 0x001F
@@ -48,7 +48,7 @@ int volatile      isr_flag  = 0;
 #define WHITE 0xFFFF
 
 Clock         uclock;
-// Menu          menu;
+Menu          menu;
 StoredConfig  stored_config;
 TFTs          tfts;
 
@@ -76,95 +76,40 @@ void setup() {
   Serial.println(FIRMWARE_VERSION);
   Serial.println("In setup().");
 
-                            // Initialize each LCD enable pin as OUTPUT and set it to HIGH (disabled)
-                                      // for (int i = 0; i < numLCDs; ++i) {
-                                      //   pinMode(lcdEnablePins[i], OUTPUT);
-                                      //   digitalWrite(lcdEnablePins[i], HIGH);
-                                      // }
-                                      // delay(500);
-
-                            //chip_select.begin();
-
-                                      // digitalWrite(GPIO_NUM_13, LOW);
-                            //chip_select.enableAllCSPinsH401();
-
-                                      // digitalWrite(GPIO_NUM_13, HIGH);
-
-                            //tft.init();
-                            //tft.setRotation(0);
-
-                            //chip_select.disableAllCSPinsH401();
-
-                            //pinMode(GPIO_NUM_15, OUTPUT);
-                            //digitalWrite(GPIO_NUM_15, HIGH);
-                            // chip_select.enableDigitCSPinsH401(SECONDS_ONES);
-                            // tft.fillScreen(MAGENTA);
-                            // chip_select.disableDigitCSPinsH401(SECONDS_ONES);
-                            // delay(2000);
-                            // chip_select.enableDigitCSPinsH401(SECONDS_TENS);
-                            // tft.fillScreen(YELLOW);
-                            // chip_select.disableDigitCSPinsH401(SECONDS_TENS);
-                            // delay(2000);
-                            // chip_select.enableDigitCSPinsH401(MINUTES_ONES);
-                            // tft.fillScreen(CYAN);
-                            // chip_select.disableDigitCSPinsH401(MINUTES_ONES);
-                            // delay(2000);
-                            // chip_select.enableDigitCSPinsH401(MINUTES_TENS);
-                            // tft.fillScreen(RED);
-                            // chip_select.disableDigitCSPinsH401(MINUTES_TENS);
-                            // delay(2000);
-                            // chip_select.enableDigitCSPinsH401(HOURS_ONES);
-                            // tft.fillScreen(GREEN);
-                            // chip_select.disableDigitCSPinsH401(HOURS_ONES);
-                            // delay(2000);
-                            // chip_select.enableDigitCSPinsH401(HOURS_TENS);
-                            // tft.fillScreen(BLUE);
-                            // chip_select.disableDigitCSPinsH401(HOURS_TENS);
-                            // delay(2000);
-                            // chip_select.enableAllCSPinsH401();
-                            // tft.fillScreen(BLACK);
-                            // delay(2000);
-                            // tft.fillScreen(WHITE);
-                            // delay(2000);  
-                            // chip_select.disableAllCSPinsH401();
-                            //           //digitalWrite(GPIO_NUM_13, HIGH);
-                            //delay(5000);
-
   stored_config.begin();
   stored_config.load();
 
-  // backlights.begin(&stored_config.config.backlights);
-  // buttons.begin();
-  // menu.begin();
+  backlights.begin(&stored_config.config.backlights);
+  buttons.begin();
+  menu.begin();
 
   // Setup the displays (TFTs) initaly and show bootup message(s)
   tfts.begin();  // and count number of clock faces available
-  tfts.fillScreen(TFT_YELLOW);
+  tfts.fillScreen(TFT_SKYBLUE);
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
   tfts.setCursor(0, 0, 2);  // Font 2. 18 pixel high (needs to be definded for loading)
-                                                      //tfts.println("setup...");
+  tfts.println("setup...");
 
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   //Init the Gesture sensor
-  tfts.println("Gesture sensor start");
+  tfts.println("Gesture sensor start");Serial.println("Gesture sensor start");
   GestureStart(); //TODO put into class
 #endif
 
   // Setup WiFi connection. Must be done before setting up Clock.
   // This is done outside Clock so the network can be used for other things.
-                                                      //tfts.println("WiFi start");
+  tfts.println("WiFi start");Serial.println("WiFi start");
   WifiBegin();
   
-  // // wait for a bit before querying NTP
+  // wait for a bit before querying NTP
   for (uint8_t ndx=0; ndx < 5; ndx++) {
-                                                      //tfts.print(">");
+    tfts.print(">");
     delay(100);
   }
-                                                      //tfts.println("");
+  tfts.println("");
 
-  // // Setup the clock.  It needs WiFi to be established already.
-                                                      //tfts.println("Clock start");
-  Serial.println("Clock start");                                                     
+  // Setup the clock.  It needs WiFi to be established already.
+  tfts.println("Clock start");Serial.println("Clock start");
   uclock.begin(&stored_config.config.uclock);
   #ifdef DEBUG_OUTPUT
     Serial.print("Blank hours zero: ");
@@ -175,9 +120,8 @@ void setup() {
     Serial.println(uclock.getTimeZoneOffset());
   #endif
 
-  // // Setup MQTT
-                                                      //tfts.println("MQTT start");
-  Serial.println("MQTT start");
+  // Setup MQTT
+  tfts.println("MQTT start");Serial.println("MQTT start");
   MqttStart();
 
 #ifdef GEOLOCATION_ENABLED
@@ -194,13 +138,15 @@ void setup() {
     tfts.println("Geo FAILED");
   }
 #else
-  Serial.print("Stored Tiemzone: ");
-  Serial.println(uclock.getTimeZoneOffset());
-  Serial.println("Use custom set timezone!");
+  //Serial.print("Stored zimezone offset is: ");Serial.println((uclock.getTimeZoneOffset()/3600));
+
+  //Hack to set the timezone offset to a custom value
+  Serial.println("HACK!!! Always use custom timezone offset defined in the CODE!");
   GeoLocTZoffset = strtod(CUSTOM_TIMEZONE_OFFSET, NULL);
-  Serial.print("Timezone offset: ");
-  Serial.println(GeoLocTZoffset);
+  Serial.print("Used custom timezone offset: ");Serial.println(GeoLocTZoffset);
+  //set as seconds (times 3600 to get seconds from hours)
   uclock.setTimeZoneOffset(GeoLocTZoffset * 3600);
+
   Serial.print("Saving config, triggered by timezone change...");
   stored_config.save();
   Serial.println(" Done.");
@@ -231,10 +177,6 @@ void setup() {
   tfts.fillScreen(TFT_BLACK);
   uclock.loop();
   updateClockDisplay(TFTs::force);
-  #ifdef DEBUG_OUTPUT
-    Serial.println("Waiting 5s!");
-    delay(5000);
-  #endif
 
   Serial.println("Setup finished!");
 }
@@ -258,12 +200,12 @@ void loop() {
       }
 #endif
       tfts.enableAllDisplays();
-//      backlights.PowerOn();
+      backlights.PowerOn();
     } else {
       tfts.disableAllDisplays();
-//      backlights.PowerOff();
+      backlights.PowerOff();
     }
- }
+  }
 
   if (MqttCommandStateReceived) {
     MqttCommandStateReceived = false;
@@ -286,190 +228,185 @@ void loop() {
     */
   }
 
-//   buttons.loop();
+  buttons.loop();         // for the states of the buttons
 
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   HandleGestureInterupt();
 #endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 // Power button: If in menu, exit menu. Else turn off displays and backlight.
-//   if (buttons.power.isDownEdge() && (menu.getState() == Menu::idle)) {
-//     //tfts.chip_select.setAll();
-//     tfts.fillScreen(TFT_BLACK);
-
-//     tfts.toggleAllDisplays();
-//     if (tfts.isEnabled()) {
-// #ifndef HARDWARE_SI_HAI_CLOCK
-//       tfts.reinit();  // reinit (original EleksTube HW: after a few hours in OFF state the displays do not wake up properly)
-// #endif
-//       //tfts.chip_select.setAll();
-//       tfts.fillScreen(TFT_BLACK);
-
-//       updateClockDisplay(TFTs::force);
-//     }
-//     backlights.togglePower();
-//   }
+  if (buttons.power.isDownEdge() && (menu.getState() == Menu::idle)) {
+    tfts.chip_select.setAll();
+    tfts.fillScreen(TFT_BLACK);
+    tfts.toggleAllDisplays();
+    if (tfts.isEnabled()) {
+#ifndef HARDWARE_SI_HAI_CLOCK
+      tfts.reinit();  // reinit (original EleksTube HW: after a few hours in OFF state the displays do not wake up properly)
+#endif
+      tfts.chip_select.setAll();
+      tfts.fillScreen(TFT_BLACK);
+      updateClockDisplay(TFTs::force);
+    }
+    backlights.togglePower();
+  }
  
-//   menu.loop(buttons);  // Must be called after buttons.loop()
-//   backlights.loop();
-  uclock.loop();
+  menu.loop(buttons);     // Must be called after buttons.loop()
+  backlights.loop();
+  uclock.loop();          // read the time values from RTC, if needed
 
-  EveryFullHour(true); // night or daytime
-
-//   // Update the clock.
-  updateClockDisplay();
-  
+  EveryFullHour(true);   // night or daytime  
+  updateClockDisplay();  // Update the clock.  
   UpdateDstEveryNight();
 
   // Menu
-//   if (menu.stateChanged() && tfts.isEnabled()) {
-//     Menu::states menu_state = menu.getState();
-//     int8_t menu_change = menu.getChange();
+  if (menu.stateChanged() && tfts.isEnabled()) {
+    Menu::states menu_state = menu.getState();
+    int8_t menu_change = menu.getChange();
 
-//     if (menu_state == Menu::idle) {
-//       // We just changed into idle, so force redraw everything, and save the config.
-//       updateClockDisplay(TFTs::force);
-//       Serial.print("Saving config, after leaving menu...");
-//       stored_config.save();
-//       Serial.println(" Done.");
-//     }
-//     else {
-//       // Backlight Pattern
-//       if (menu_state == Menu::backlight_pattern) {
-//         if (menu_change != 0) {
-//           backlights.setNextPattern(menu_change);
-//         }
+    if (menu_state == Menu::idle) {
+      // We just changed into idle, so force redraw everything, and save the config.
+      updateClockDisplay(TFTs::force);
+      Serial.print("Saving config, after leaving menu...");
+      stored_config.save();
+      Serial.println(" Done.");
+    }
+    else {
+      // Backlight Pattern
+      if (menu_state == Menu::backlight_pattern) {
+        if (menu_change != 0) {
+          backlights.setNextPattern(menu_change);
+        }
 
-//         setupMenu();
-//         tfts.println("Pattern:");
-//         tfts.println(backlights.getPatternStr());
-//       }
-//       // Backlight Color
-//       else if (menu_state == Menu::pattern_color) {
-//         if (menu_change != 0) {
-//           backlights.adjustColorPhase(menu_change*16);
-//         }
-//         setupMenu();
-//         tfts.println("Color:");
-//         tfts.printf("%06X\n", backlights.getColor()); 
-//       }
-//       // Backlight Intensity
-//       else if (menu_state == Menu::backlight_intensity) {
-//         if (menu_change != 0) {
-//           backlights.adjustIntensity(menu_change);
-//         }
-//         setupMenu();
-//         tfts.println("Intensity:");
-//         tfts.println(backlights.getIntensity());
-//       }
-//       // 12 Hour or 24 Hour mode?
-//       else if (menu_state == Menu::twelve_hour) {
-//         if (menu_change != 0) {
-//           uclock.toggleTwelveHour();
-//           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
-//           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::force);
-//         }
+        setupMenu();
+        tfts.println("Pattern:");
+        tfts.println(backlights.getPatternStr());
+      }
+      // Backlight Color
+      else if (menu_state == Menu::pattern_color) {
+        if (menu_change != 0) {
+          backlights.adjustColorPhase(menu_change*16);
+        }
+        setupMenu();
+        tfts.println("Color:");
+        tfts.printf("%06X\n", backlights.getColor()); 
+      }
+      // Backlight Intensity
+      else if (menu_state == Menu::backlight_intensity) {
+        if (menu_change != 0) {
+          backlights.adjustIntensity(menu_change);
+        }
+        setupMenu();
+        tfts.println("Intensity:");
+        tfts.println(backlights.getIntensity());
+      }
+      // 12 Hour or 24 Hour mode?
+      else if (menu_state == Menu::twelve_hour) {
+        if (menu_change != 0) {
+          uclock.toggleTwelveHour();
+          tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
+          tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::force);
+        }
         
-//         setupMenu();
-//         tfts.println("Hour format");
-//         tfts.println(uclock.getTwelveHour() ? "12 hour" : "24 hour"); 
-//       }
-//       // Blank leading zeros on the hours?
-//       else if (menu_state == Menu::blank_hours_zero) {
-//         if (menu_change != 0) {
-//           uclock.toggleBlankHoursZero();
-//           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
-//         }
+        setupMenu();
+        tfts.println("Hour format");
+        tfts.println(uclock.getTwelveHour() ? "12 hour" : "24 hour"); 
+      }
+      // Blank leading zeros on the hours?
+      else if (menu_state == Menu::blank_hours_zero) {
+        if (menu_change != 0) {
+          uclock.toggleBlankHoursZero();
+          tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
+        }
         
-//         setupMenu();
-//         tfts.println("Blank zero?");
-//         tfts.println(uclock.getBlankHoursZero() ? "yes" : "no");
-//       }
-//       // UTC Offset, hours
-//       else if (menu_state == Menu::utc_offset_hour) {
-//         if (menu_change != 0) {
-//           uclock.adjustTimeZoneOffset(menu_change * 3600);
+        setupMenu();
+        tfts.println("Blank zero?");
+        tfts.println(uclock.getBlankHoursZero() ? "yes" : "no");
+      }
+      // UTC Offset, hours
+      else if (menu_state == Menu::utc_offset_hour) {
+        if (menu_change != 0) {
+          uclock.adjustTimeZoneOffset(menu_change * 3600);
 
-//           EveryFullHour();
+          EveryFullHour();
 
-//           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
-//           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
-//         }
+          tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
+          tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
+        }
 
-//         setupMenu();
-//         tfts.println("UTC Offset");
-//         tfts.println(" +/- Hour");
-//         time_t offset = uclock.getTimeZoneOffset();
-//         int8_t offset_hour = offset/3600;
-//         int8_t offset_min = (offset%3600)/60;
-//         if(offset_min < 0) {
-//           offset_min = -offset_min;
-//         }
-//         tfts.printf("%d:%02d\n", offset_hour, offset_min);
-//       }
-//       // UTC Offset, 15 minutes
-//       else if (menu_state == Menu::utc_offset_15m) {
-//         if (menu_change != 0) {
-//           uclock.adjustTimeZoneOffset(menu_change * 900);
+        setupMenu();
+        tfts.println("UTC Offset");
+        tfts.println(" +/- Hour");
+        time_t offset = uclock.getTimeZoneOffset();
+        int8_t offset_hour = offset/3600;
+        int8_t offset_min = (offset%3600)/60;
+        if(offset_min < 0) {
+          offset_min = -offset_min;
+        }
+        tfts.printf("%d:%02d\n", offset_hour, offset_min);
+      }
+      // UTC Offset, 15 minutes
+      else if (menu_state == Menu::utc_offset_15m) {
+        if (menu_change != 0) {
+          uclock.adjustTimeZoneOffset(menu_change * 900);
 
-//           EveryFullHour();
+          EveryFullHour();
 
-//           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
-//           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
-//           tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), TFTs::yes);
-//           tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), TFTs::yes);
-//         }
+          tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
+          tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
+          tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), TFTs::yes);
+          tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), TFTs::yes);
+        }
 
-//         setupMenu();
-//         tfts.println("UTC Offset");
-//         tfts.println(" +/- 15m");
-//         time_t offset = uclock.getTimeZoneOffset();
-//         int8_t offset_hour = offset/3600;
-//         int8_t offset_min = (offset%3600)/60;
-//         if(offset_min < 0) {
-//           offset_min = -offset_min;
-//         }
-//         tfts.printf("%d:%02d\n", offset_hour, offset_min);
-//       }
-//       // select clock "font"
-//       else if (menu_state == Menu::selected_graphic) {
-//         if (menu_change != 0) {
-//           uclock.adjustClockGraphicsIdx(menu_change);
+        setupMenu();
+        tfts.println("UTC Offset");
+        tfts.println(" +/- 15m");
+        time_t offset = uclock.getTimeZoneOffset();
+        int8_t offset_hour = offset/3600;
+        int8_t offset_min = (offset%3600)/60;
+        if(offset_min < 0) {
+          offset_min = -offset_min;
+        }
+        tfts.printf("%d:%02d\n", offset_hour, offset_min);
+      }
+      // select clock "font"
+      else if (menu_state == Menu::selected_graphic) {
+        if (menu_change != 0) {
+          uclock.adjustClockGraphicsIdx(menu_change);
 
-//           if(tfts.current_graphic != uclock.getActiveGraphicIdx()) {
-//             tfts.current_graphic = uclock.getActiveGraphicIdx();
-//             updateClockDisplay(TFTs::force);   // redraw everything
-//           }
-//         }
+          if(tfts.current_graphic != uclock.getActiveGraphicIdx()) {
+            tfts.current_graphic = uclock.getActiveGraphicIdx();
+            updateClockDisplay(TFTs::force);   // redraw everything
+          }
+        }
 
-//         setupMenu();
-//         tfts.println("Selected");
-//         tfts.println(" graphic:");
-//         tfts.printf("    %d\n", uclock.getActiveGraphicIdx());
-//       }
+        setupMenu();
+        tfts.println("Selected");
+        tfts.println(" graphic:");
+        tfts.printf("    %d\n", uclock.getActiveGraphicIdx());
+      }
      
 
-// #ifdef WIFI_USE_WPS   ////  WPS code
-//       // connect to WiFi using wps pushbutton mode
-//       else if (menu_state == Menu::start_wps) {
-//         if (menu_change != 0) { // button was pressed
-//           if (menu_change < 0) { // left button
-//             Serial.println("WiFi WPS start request");
-//             tfts.clear();
-//             tfts.fillScreen(TFT_BLACK);
-//             tfts.setTextColor(TFT_WHITE, TFT_BLACK);
-//             tfts.setCursor(0, 0, 4);  // Font 4. 26 pixel high
-//             WiFiStartWps();
-//           }
-//         }
+#ifdef WIFI_USE_WPS   ////  WPS code
+      // connect to WiFi using wps pushbutton mode
+      else if (menu_state == Menu::start_wps) {
+        if (menu_change != 0) { // button was pressed
+          if (menu_change < 0) { // left button
+            Serial.println("WiFi WPS start request");
+            tfts.clear();
+            tfts.fillScreen(TFT_BLACK);
+            tfts.setTextColor(TFT_WHITE, TFT_BLACK);
+            tfts.setCursor(0, 0, 4);  // Font 4. 26 pixel high
+            WiFiStartWps();
+          }
+        }
         
-//         setupMenu();
-//         tfts.println("Connect to WiFi?");
-//         tfts.println("Left=WPS");
-//       }
-// #endif   
-//     }
-//   }
+        setupMenu();
+        tfts.println("Connect to WiFi?");
+        tfts.println("Left=WPS");
+      }
+#endif   
+    }
+  }
 // END MENU
 
   uint32_t time_in_loop = millis() - millis_at_top;
@@ -510,8 +447,7 @@ void loop() {
 #ifdef DEBUG_OUTPUT  
   if (time_in_loop <= 1) Serial.print(".");
   else {
-    Serial.print("time spent in loop (ms): ");
-    Serial.println(time_in_loop);
+    Serial.print("time spent in loop (ms): ");Serial.println(time_in_loop);
   }
 #endif
 }
@@ -622,7 +558,9 @@ void HandleGesture() {
 #endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 void setupMenu() {
-  //tfts.chip_select.setHoursTens();
+  
+  
+  tfts.chip_select.setHoursTens();
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
   tfts.fillRect(0, 240, 135, 240, TFT_BLACK);
   tfts.setCursor(0, 124, 4);  // Font 4. 26 pixel high
@@ -641,30 +579,30 @@ bool isNightTime(uint8_t current_hour) {
 
 void EveryFullHour(bool loopUpdate) {
   // dim the clock at night
-  // uint8_t current_hour = uclock.getHour24();
-  // FullHour = current_hour != hour_old;
-  // if (FullHour) {
-  // Serial.print("current hour = ");
-  // Serial.println(current_hour);
-  //   if (isNightTime(current_hour)) {
-  //     Serial.println("Setting night mode (dimmed)");
-  //     tfts.dimming = TFT_DIMMED_INTENSITY;
-  //     tfts.InvalidateImageInBuffer(); // invalidate; reload images with new dimming value
-  //     backlights.dimming = true;
-  //     if (menu.getState() == Menu::idle || !loopUpdate) { // otherwise erases the menu
-  //       updateClockDisplay(TFTs::force); // update all        
-  //     }
-  //   } else {
-  //     Serial.println("Setting daytime mode (normal brightness)");
-  //     tfts.dimming = 255; // 0..255
-  //     tfts.InvalidateImageInBuffer(); // invalidate; reload images with new dimming value
-  //     backlights.dimming = false;
-  //     if (menu.getState() == Menu::idle || !loopUpdate) { // otherwise erases the menu
-  //       updateClockDisplay(TFTs::force); // update all
-  //     }
-  //   }
-  //   hour_old = current_hour;
-  // }   
+  uint8_t current_hour = uclock.getHour24();
+  FullHour = current_hour != hour_old;
+  if (FullHour) {
+  Serial.print("current hour = ");
+  Serial.println(current_hour);
+    if (isNightTime(current_hour)) {
+      Serial.println("Setting night mode (dimmed)");
+      tfts.dimming = TFT_DIMMED_INTENSITY;
+      tfts.InvalidateImageInBuffer(); // invalidate; reload images with new dimming value
+      backlights.dimming = true;
+      if (menu.getState() == Menu::idle || !loopUpdate) { // otherwise erases the menu
+        updateClockDisplay(TFTs::force); // update all
+      }
+    } else {
+      Serial.println("Setting daytime mode (normal brightness)");
+      tfts.dimming = 255; // 0..255
+      tfts.InvalidateImageInBuffer(); // invalidate; reload images with new dimming value
+      backlights.dimming = false;
+      if (menu.getState() == Menu::idle || !loopUpdate) { // otherwise erases the menu
+        updateClockDisplay(TFTs::force); // update all
+      }
+    }
+    hour_old = current_hour;
+  }
 }
 
 //check Daylight-Saving-Time (Summertime)
@@ -681,38 +619,14 @@ void UpdateDstEveryNight() {
 }
 
 void updateClockDisplay(TFTs::show_t show) {
-  #ifdef DEBUG_OUTPUT
+  #ifdef DEBUG_OUTPUT_VERBOSE
     Serial.println("main::updateClockDisplay!");
   #endif
   // refresh starting on seconds
   tfts.setDigit(SECONDS_ONES, uclock.getSecondsOnes(), show);
-  #ifdef DEBUG_OUTPUT
-    Serial.println("main::updateClockDisplay: SECONDS_ONES done!");
-    Serial.println("--------------------------------------------");
-  #endif
   tfts.setDigit(SECONDS_TENS, uclock.getSecondsTens(), show);
-  #ifdef DEBUG_OUTPUT
-    Serial.println("main::updateClockDisplay: SECONDS_TENS done!");
-    Serial.println("--------------------------------------------");
-  #endif
   tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), show);
-  #ifdef DEBUG_OUTPUT
-    Serial.println("main::updateClockDisplay: MINUTES_ONES done!");
-    Serial.println("--------------------------------------------");
-  #endif  
   tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), show);
-  #ifdef DEBUG_OUTPUT
-    Serial.println("main::updateClockDisplay: MINUTES_TENS done!");
-    Serial.println("--------------------------------------------");
-  #endif
   tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), show);
-  #ifdef DEBUG_OUTPUT
-    Serial.println("main::updateClockDisplay: HOURS_ONES done!");
-    Serial.println("--------------------------------------------");
-  #endif  
   tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), show);
-  #ifdef DEBUG_OUTPUT
-    Serial.println("main::updateClockDisplay: HOURS_TENS done!");
-    Serial.println("--------------------------------------------");
-  #endif
 }

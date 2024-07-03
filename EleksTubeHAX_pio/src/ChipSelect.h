@@ -31,14 +31,7 @@ public:
   
   void setAll(bool update_=true);
   void clear(bool update_=true);
-
-  //#define TFT_CS        GPIO_NUM_15 //seconds ones
-  //#define TFT_CS        GPIO_NUM_2 //seconds tens
-  //#define TFT_CS        GPIO_NUM_27 //minutes ones
-  //#define TFT_CS        GPIO_NUM_14 //minutes tens
-  //#define TFT_CS        GPIO_NUM_12 //hours ones
-  //#define TFT_CS         GPIO_NUM_13 //hours tens
-
+  
   void setSecondsOnes()                           { setDigit(SECONDS_ONES); }
   void setSecondsTens()                           { setDigit(SECONDS_TENS); }
   void setMinutesOnes()                           { setDigit(MINUTES_ONES); }

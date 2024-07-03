@@ -26,17 +26,18 @@ public:
     utc_offset_hour,     // Change the UTC offset by an hour
     utc_offset_15m,      // Change the UTC offset by 15 minutes
     selected_graphic,    // Select clock "font" 0...9 -> first char in file name "00.bmp to 90.bmp"
-    start_wps,           // connect to WiFi using wps pushbutton mode
-  
-    // When there's more things to change in the menu, add them here.
-    
+    start_wps,           // connect to WiFi using wps pushbutton mode  
+    // When there's more things to change in the menu, add them here.    
     num_states
   };
 
+  const static String state_str[num_states];
+
   states getState()     { return(state); }
   int8_t getChange()    { return(change); }
+   
+  String getStateStr()  { return state_str[state]; }
   bool stateChanged()   { return(state_changed); }
-
 
 private:
   const uint16_t idle_timeout_ms = 10000;  // Timeout and return to idle after 10 seconds of inactivity.
