@@ -31,18 +31,26 @@ public:
   
   void setAll(bool update_=true);
   void clear(bool update_=true);
+
+  //#define TFT_CS        GPIO_NUM_15 //seconds ones
+  //#define TFT_CS        GPIO_NUM_2 //seconds tens
+  //#define TFT_CS        GPIO_NUM_27 //minutes ones
+  //#define TFT_CS        GPIO_NUM_14 //minutes tens
+  //#define TFT_CS        GPIO_NUM_12 //hours ones
+  //#define TFT_CS         GPIO_NUM_13 //hours tens
+
   void setSecondsOnes()                           { setDigit(SECONDS_ONES); }
   void setSecondsTens()                           { setDigit(SECONDS_TENS); }
   void setMinutesOnes()                           { setDigit(MINUTES_ONES); }
   void setMinutesTens()                           { setDigit(MINUTES_TENS); }
   void setHoursOnes()                             { setDigit(HOURS_ONES); }
   void setHoursTens()                             { setDigit(HOURS_TENS); }
-  // bool isSecondsOnes()                            { return (digits_map&SECONDS_ONES_MAP > 0); }
-  // bool isSecondsTens()                            { return (digits_map&SECONDS_TENS_MAP > 0); }
-  // bool isMinutesOnes()                            { return (digits_map&MINUTES_ONES_MAP > 0); }
-  // bool isMinutesTens()                            { return (digits_map&MINUTES_TENS_MAP > 0); }
-  // bool isHoursOnes()                              { return (digits_map&HOURS_ONES_MAP > 0); }
-  // bool isHoursTens()                              { return (digits_map&HOURS_TENS_MAP > 0); }
+  bool isSecondsOnes();
+  bool isSecondsTens();
+  bool isMinutesOnes();
+  bool isMinutesTens();
+  bool isHoursOnes();
+  bool isHoursTens();
 
   void enableAllCSPinsH401();
   void disableAllCSPinsH401();

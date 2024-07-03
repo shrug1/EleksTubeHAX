@@ -1,7 +1,7 @@
 #include "TFTs.h"
-// #include "WiFi_WPS.h"
-// #include "Mqtt_client_ips.h"
-// #include "TempSensor.h"
+#include "WiFi_WPS.h"
+#include "Mqtt_client_ips.h"
+#include "TempSensor.h"
 
 void TFTs::begin() {
   // Start with all displays selected.
@@ -44,7 +44,7 @@ void TFTs::reinit() {
 
 void TFTs::clear() {
   // Start with all displays selected.
-  //chip_select.setAll();
+  chip_select.setAll();
   enableAllDisplays();
 }
 
@@ -102,30 +102,33 @@ void TFTs::showTemperature() {
    }
 #ifdef DEBUG_OUTPUT
     Serial.println("Temperature to LCD");
-#endif    
+#endif
   #endif
 }
 
 void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
+  #ifdef DEBUG_OUTPUT
+    Serial.print("TFTs::setDigit! digit: ");Serial.print(digit);Serial.print("; value: ");Serial.println(value);
+  #endif
   uint8_t old_value = digits[digit];
   digits[digit] = value;
   
   if (show != no && (old_value != value || show == force)) {
     showDigit(digit);
 
-    // if (digit == SECONDS_ONES) 
-    //   if (WifiState != connected) { 
-    //     showNoWifiStatus();
-    //   }    
+    if (digit == SECONDS_ONES) 
+      if (WifiState != connected) { 
+        showNoWifiStatus();
+      }    
 
-    // if (digit == SECONDS_TENS) 
-    //   if (!MqttConnected) { 
-    //     showNoMqttStatus();
-    //   }
+    if (digit == SECONDS_TENS) 
+      if (!MqttConnected) { 
+        showNoMqttStatus();
+      }
 
-    // if (digit == HOURS_ONES) {
-    //     showTemperature();
-    //   }
+    if (digit == HOURS_ONES) {
+        showTemperature();
+      }
   }
 }
 
@@ -135,8 +138,7 @@ void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
  
 void TFTs::showDigit(uint8_t digit) {
 #ifdef DEBUG_OUTPUT
-  Serial.print("TFTs::showDigit: ");
-  Serial.println(digit);
+  Serial.print("TFTs::showDigit: ");Serial.println(digit);
 #endif
   chip_select.setDigit(digit);
 
@@ -151,7 +153,10 @@ void TFTs::showDigit(uint8_t digit) {
     if (NextNumber > 9) NextNumber = 0; // pre-load only seconds, because they are drawn first
     NextFileRequired = current_graphic * 10 + NextNumber;
   }
-}
+  #ifdef HARDWARE_IPSTUBE_H401_CLOCK
+    chip_select.update();
+  #endif
+  }
 
 void TFTs::LoadNextImage() {
   if (NextFileRequired != FileInBuffer) {

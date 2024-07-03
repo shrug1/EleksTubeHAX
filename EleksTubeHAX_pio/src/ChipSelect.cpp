@@ -1,16 +1,11 @@
 #include "ChipSelect.h"
 
-
-  //#define TFT_CS        GPIO_NUM_15 //seconds ones
-  //#define TFT_CS        GPIO_NUM_2 //seconds tens
-  //#define TFT_CS        GPIO_NUM_27 //minutes ones
-  //#define TFT_CS        GPIO_NUM_14 //minutes tens
-  //#define TFT_CS        GPIO_NUM_12 //hours ones
-  //#define TFT_CS         GPIO_NUM_13 //hours tens
-
+#ifdef HARDWARE_IPSTUBE_H401_CLOCK
 // Define the pins for each LCD's enable wire
-const int lcdEnablePins[NUM_DIGITS] = {GPIO_NUM_13,GPIO_NUM_12,GPIO_NUM_14,GPIO_NUM_27,GPIO_NUM_2,GPIO_NUM_15};
+//const int lcdEnablePins[NUM_DIGITS] = {GPIO_NUM_13,GPIO_NUM_12,GPIO_NUM_14,GPIO_NUM_27,GPIO_NUM_2,GPIO_NUM_15};
+const int lcdEnablePins[NUM_DIGITS] = {GPIO_NUM_15,GPIO_NUM_2,GPIO_NUM_27,GPIO_NUM_14,GPIO_NUM_12,GPIO_NUM_13};
 const int numLCDs = NUM_DIGITS;
+#endif
 
 void ChipSelect::begin() {
   #ifdef DEBUG_OUTPUT
@@ -26,7 +21,7 @@ void ChipSelect::begin() {
     digitalWrite(CSSR_LATCH_PIN, LOW);
     update();
   #else
-    // Initialize each LCD enable pin as OUTPUT and set it to HIGH (disabled)
+    // Initialize all six different pins for the CS of each LCD as OUTPUT and set it to HIGH (disabled)
     for (int i = 0; i < numLCDs; ++i) {
       pinMode(lcdEnablePins[i], OUTPUT);
       digitalWrite(lcdEnablePins[i], HIGH);
@@ -58,15 +53,22 @@ void ChipSelect::setAll(bool update_) {
 
 void ChipSelect::setDigit(uint8_t digit, bool update_) {
 #ifdef DEBUG_OUTPUT
-  Serial.println("ChipSelect::setDigit!");
+  Serial.print("ChipSelect::setDigit! digit: ");Serial.println(digit);
 #endif
   #ifndef HARDWARE_IPSTUBE_H401_CLOCK
     // Set the bit for the given digit in the digits_map
     setDigitMap(1 << digit, update_);
-  #else
-    // Set the bit for the given digit in the digits_map
-    currentLCD = digit; 
     if (update_) update();
+  #else
+    // Set the actual currentLCD value for the given digit and activate the corresponding LCD
+    
+    // first deactivate the current LCD
+    disableDigitCSPinsH401(currentLCD);
+    //store the current
+    currentLCD = digit;
+    //activate the new one
+    enableDigitCSPinsH401(digit);
+    // NO UPDATE, cause update enables and disables the pin, but needs to be "enabled", while eTFT_SPI is writing into it.
   #endif
 }
 
@@ -87,21 +89,84 @@ void ChipSelect::update() {
     shiftOut(CSSR_DATA_PIN, CSSR_CLOCK_PIN, LSBFIRST, to_shift);
     digitalWrite(CSSR_LATCH_PIN, HIGH);
   #else
-    // Example logic to enable/disable each LCD
-    // for (int i = 0; i < numLCDs; ++i) {
-    //   // Determine if the current LCD should be enabled or disabled
-    //   // This is where you'd add your logic, for now, we'll just cycle through them
-    //   bool enable = (i == currentLCD); // Example condition, replace with your logic
-
-      // Set the pin LOW (enable) or HIGH (disable) based on the condition
-      //Always disable all other LCDs (not the current one)
-      digitalWrite(lcdEnablePins[currentLCD], LOW);
-      delay(100);
-      //deactivate again
-      digitalWrite(lcdEnablePins[currentLCD], HIGH);
-    //}
+    #ifdef DEBUG_OUTPUT
+      Serial.print("currentLCD/digit: ");Serial.println(currentLCD);
+      Serial.print("lcdEnablePins[currentLCD]: ");Serial.println(lcdEnablePins[currentLCD]);
+    #endif
+    //this is just, to follow the "update" logic of the other hardware!
+    //for H401, the CS pin is already pulled to LOW by the "setDigit" function and stays there, till another "setDigit" is called.
+    //so all writing done by the eTFT_SPI lib functions in the time, the pin is low, will write out directly to the LCD.
+    //"Update" never will work, because, if pin was HIGH, no writing was done.
+    digitalWrite(lcdEnablePins[currentLCD], LOW);
   #endif
 }
+
+bool ChipSelect::isSecondsOnes() {
+#ifdef DEBUG_OUTPUT
+  Serial.println("ChipSelect::isSecondsOnes!");
+#endif
+#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+  return (digits_map&SECONDS_ONES_MAP > 0);
+#else
+  return true;
+#endif
+}
+
+bool ChipSelect::isSecondsTens() {
+#ifdef DEBUG_OUTPUT
+  Serial.println("ChipSelect::isSecondsTens!");
+#endif
+#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+  return (digits_map&SECONDS_TENS_MAP > 0);
+#else
+  return true;
+#endif
+}
+
+bool ChipSelect::isMinutesOnes() {
+#ifdef DEBUG_OUTPUT
+  Serial.println("ChipSelect::isMinutesOnes!");
+#endif
+#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+  return (digits_map&MINUTES_ONES_MAP > 0);
+#else
+  return true;
+#endif
+}
+
+bool ChipSelect::isMinutesTens() {
+#ifdef DEBUG_OUTPUT
+  Serial.println("ChipSelect::isMinutesTens!");
+#endif
+#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+  return (digits_map&MINUTES_TENS_MAP > 0);
+#else
+  return true;
+#endif
+}
+
+bool ChipSelect::isHoursOnes() {
+#ifdef DEBUG_OUTPUT
+  Serial.println("ChipSelect::isHoursOnes!");
+#endif
+#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+  return (digits_map&HOURS_ONES_MAP > 0);
+#else
+  return true;
+#endif
+}
+
+bool ChipSelect::isHoursTens() {
+#ifdef DEBUG_OUTPUT
+  Serial.println("ChipSelect::isHoursTens!");
+#endif
+#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+  return (digits_map&HOURS_TENS_MAP > 0);
+#else
+  return true;
+#endif
+}
+
 
 void ChipSelect::enableAllCSPinsH401() {
 #ifdef DEBUG_OUTPUT
@@ -125,7 +190,7 @@ void ChipSelect::disableAllCSPinsH401() {
 
 void ChipSelect::enableDigitCSPinsH401(uint8_t digit) {
 #ifdef DEBUG_OUTPUT
-  Serial.println("ChipSelect::enableDigitCSPinsH401!");
+  Serial.print("ChipSelect::enableDigitCSPinsH401! digit: ");Serial.println(digit);
 #endif
   // enable the LCD for the given digit
   digitalWrite(lcdEnablePins[digit], LOW);
@@ -133,7 +198,7 @@ void ChipSelect::enableDigitCSPinsH401(uint8_t digit) {
 
 void ChipSelect::disableDigitCSPinsH401(uint8_t digit) {
 #ifdef DEBUG_OUTPUT
-  Serial.println("ChipSelect::disableDigitCSPinsH401!");
+  Serial.print("ChipSelect::disableDigitCSPinsH401! digit: ");Serial.println(digit);
 #endif
   // disable the LCD for the given digit
   digitalWrite(lcdEnablePins[digit], HIGH);
