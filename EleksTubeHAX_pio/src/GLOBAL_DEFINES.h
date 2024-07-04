@@ -319,11 +319,22 @@
 
   // WS2812 (or compatible) LEDs on the back of the display modules.
   #define BACKLIGHTS_PIN (GPIO_NUM_5)
+  
+  //NOTE Switching to GPIO_NUM_4, stops all LCDs working (beside the backlight)...so the transistor (Q1) on pin 23 (GPIO_NUM_4) NEEDS to be used somehow in a way that the LCD works! and/or the backlights
+  //I never initialize the pin knowly, so it should NOT be in a defined state, but iniatal value works..
+  //TODO -> Find out, what pin 4 in doing, by switiching INPUT/OUTPUT and HIGH/LOW while displays are in use
+  //#define BACKLIGHTS_PIN (GPIO_NUM_4) //NOT working!!!
+
+  //TODO: Check if the second backlight is somehow connected to the same pin as the first one 
+  //or how to control it!
+  //#define SECOND_BACKLIGHTS_PIN (GPIO_NUM_4) // Second LED strip on the bottom of the clock
 
   // Only one Button on H401 version!!!
-  // Set the other pins to pins, which should always be HIGH!
-  // Pin 9 = CPU_PU = EN = Always LOW on this board
-  // Pin 3 = CPU_PU = EN = Always LOW on this board
+  // Set the other pins, to pins, which should always be in a defined, non changing state like Always HIGH or Always LOW!
+
+  // Pin 9 = CPU_PU = Chip enabled = Always LOW on this board
+  // Pin 3 = VDD3P3 = 3.3V analog power supply = Always LOW on this board
+  // Pin 5 = SENSOR_VP = GPIO36 = Unconnected = SHOULD be HIGH = Always HIGH
   #define BUTTON_LEFT_PIN (3)
   #define BUTTON_RIGHT_PIN (3)
   #define BUTTON_POWER_PIN (3)
@@ -333,13 +344,13 @@
   // 3-wire to DS1302 RTC
   #define DS1302_SCLK  (GPIO_NUM_22)
   #define DS1302_IO    (GPIO_NUM_19)
-  #define DS1302_CE    (GPIO_NUM_21) // or PIN34 = GPIO5
+  #define DS1302_CE    (GPIO_NUM_21)
 
   // Chip Select shift register, to select the display
   // No shift register on this board - Chip Select of the displays is directly connected to the ESP32
-  // #define CSSR_DATA_PIN ()
-  // #define CSSR_CLOCK_PIN ()
-  // #define CSSR_LATCH_PIN ()
+  // #define CSSR_DATA_PIN (-1)
+  // #define CSSR_CLOCK_PIN (-1)
+  // #define CSSR_LATCH_PIN (-1)
 
   // The H401 has the enable pin of the LCDs connectected to the VCC, so Always On.
   //#define TFT_ENABLE_PIN (GPIO_NUM_4)

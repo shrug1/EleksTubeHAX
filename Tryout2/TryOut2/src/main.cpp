@@ -33,6 +33,8 @@ IPSTube settings for ST7789 FP-114H03A in Libraries\TFT_eSPI\User_Setup.h
 
 TFT_eSPI tft = TFT_eSPI(); 
 
+int counter = 0;
+
 #define TFT_CS_1   13 //(GPIO13)
 #define TFT_CS_2   12 //(GPIO12)
 #define TFT_CS_3   14 //(GPIO14)
@@ -59,6 +61,19 @@ void setup() {
   for(int i=0; i<6; i++) {
     pinMode(cspins[i],OUTPUT);
   }
+
+  // Serial.println("Set GPIO_NUM_9 as output pin.");
+  // pinMode(GPIO_NUM_9,INPUT);
+  // digitalWrite(GPIO_NUM_9, HIGH);
+  //-----------> Causes Watchdog faliure and CPU Reset!
+
+  // Serial.println("Set GPIO_NUM_4 as output pin.");
+  // pinMode(GPIO_NUM_4,OUTPUT);
+  // digitalWrite(GPIO_NUM_4, HIGH);
+
+  // Serial.println("Set GPIO_NUM_5 as output pin.");
+  // pinMode(GPIO_NUM_5,OUTPUT);
+  // digitalWrite(GPIO_NUM_5, HIGH);
     
   //Activate and init all dispays
   Serial.println("Initialising all displays all together now. Putting all CS pins LOW.");
@@ -69,16 +84,24 @@ void setup() {
   tft.setRotation(0);
 
   tft.fillScreen(YELLOW);
+
+
   
   //Deactivate CS for all dispays
   for(int i=0; i<6; i++) {
     digitalWrite(cspins[i], HIGH);
   }
+
   delay(500);
+
+  //Serial.println("Wait 10 seconds before starting the loop.");
+  //delay(10000);
+
   Serial.println("Initialised all displays.");
   }
 
 void loop() {
+  counter++;
   for (int i=0; i<6; i++) {
 
     Serial.print("Display# is :");
@@ -88,9 +111,14 @@ void loop() {
 
     digitalWrite(cspins[i], LOW);
     delay(100);
-    tft.fillScreen(BLACK);
+    if (counter%2==0) {
+      tft.fillScreen(YELLOW);
+    } else {
+      tft.fillScreen(BLACK);
+    }   
     tft.setTextColor(WHITE,BLACK);
-    tft.setCursor (0, 128);
+    //tft.setCursor (0, 128);
+    tft.setCursor (0, 70, 2);
     tft.print("Text test on display ");
     tft.print(i);
     tft.println("!");

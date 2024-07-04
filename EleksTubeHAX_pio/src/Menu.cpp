@@ -7,6 +7,14 @@ void Menu::loop(Buttons &buttons) {
   Button::state right_state = buttons.right.getState(); // increment value
   Button::state power_state = buttons.power.getState(); // exit menu
 
+  #ifdef DEBUG_OUTPUT
+        Serial.print("Menu::loop! state: ");Serial.print(state);
+        Serial.print("; left_state: ");Serial.print(left_state);
+        Serial.print("; mode_state: ");Serial.print(mode_state);
+        Serial.print("; right_state: ");Serial.print(right_state);
+        Serial.print("; power_state: ");Serial.println(power_state);
+  #endif
+
   // Reset the change value in every case.  We don't always change the state though.
   change = 0;
   state_changed = false;
@@ -22,6 +30,9 @@ void Menu::loop(Buttons &buttons) {
     // Go idle.
     state = idle;
     state_changed = true;
+#ifdef DEBUG_OUTPUT
+        Serial.println("MENU: Go idle if the user hasn't pressed a button in a long time.");
+#endif
     return;
   }
   
@@ -31,6 +42,9 @@ void Menu::loop(Buttons &buttons) {
 
     millis_last_button_press = millis();
     state_changed = true;
+#ifdef DEBUG_OUTPUT
+        Serial.println("MENU: Menu is idle. A button is pressed, go into the menu, but don't act on the button press. It just wakes up the menu.");
+#endif
     return;
   }
 
@@ -44,6 +58,9 @@ void Menu::loop(Buttons &buttons) {
 
     millis_last_button_press = millis();
     state_changed = true;
+#ifdef DEBUG_OUTPUT
+        Serial.print("MENU: Go to the next menu option! New state: ");Serial.println(state);
+#endif
     return;
   }
 
@@ -51,10 +68,13 @@ void Menu::loop(Buttons &buttons) {
   if (state != idle && (power_state == Button::down_edge)) {
     state = idle;
     state_changed = true;
+#ifdef DEBUG_OUTPUT
+        Serial.println("MENU: Exit with a power button.");
+#endif
     return;
   }
 
-  // In a menu, and a left or right button has been pressed
+  // In a menu, and a left (negative change value) or right button (positive change value) has been pressed!
   if (state != idle && (left_state == Button::down_edge || right_state == Button::down_edge)) {
     // Pressing both left and right at the same time cancels out?  Sure, why not...
     if (left_state == Button::down_edge) {
@@ -66,6 +86,9 @@ void Menu::loop(Buttons &buttons) {
 
     millis_last_button_press = millis();
     state_changed = true;
+#ifdef DEBUG_OUTPUT
+        Serial.print("MENU: In a menu, and a left (negative change value) or right button (positive change value) has been pressed! Change: ");Serial.println(change);
+#endif
     return;
   }
   // Some other button state, but it doesn't trigger any change in state.  There are LOTS of states that will

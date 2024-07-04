@@ -33,7 +33,7 @@ void Button::loop() {
   else if (down_last_time == false && down_now == true) {
     // Just pressed
 #ifdef DEBUG_OUTPUT
-      Serial.println("MENU: Just Pressed!");
+      Serial.println("BUTTON: Just Pressed!");
 #endif
     button_state = down_edge;
     millis_at_last_transition = millis_at_last_loop;
@@ -41,17 +41,17 @@ void Button::loop() {
   else if (down_last_time == true && down_now == true) {    
     // Been pressed. For how long?
 #ifdef DEBUG_OUTPUT
-      Serial.println("MENU: Been pressed. For how long?");
+      Serial.println("BUTTON: Been pressed. For how long?");
 #endif
     if (millis_at_last_loop - millis_at_last_transition >= long_press_ms) {
       // Long pressed. Did we just transition?
 #ifdef DEBUG_OUTPUT
-      Serial.println("MENU: Long pressed. Did we just transition?");
+      Serial.println("BUTTON: Long pressed. Did we just transition?");
 #endif
       if (previous_state == down_long_edge || previous_state == down_long) {
         // No, we already detected the edge.
 #ifdef DEBUG_OUTPUT
-        Serial.println("MENU: No, we already detected the edge.");
+        Serial.println("BUTTON: No, we already detected the edge.");
 #endif
         button_state = down_long;
       }
@@ -60,7 +60,7 @@ void Button::loop() {
         // down -> down_long_edge does NOT update millis_at_last_transition.
         // We'd rather know how long it's been down than been down_long.
 #ifdef DEBUG_OUTPUT
-        Serial.println("MENU: else something! set button_stage to down_long_edge.");
+        Serial.println("BUTTON: else something! set button_stage to down_long_edge.");
 #endif
         button_state = down_long_edge;
       }
@@ -68,7 +68,7 @@ void Button::loop() {
     else {
       // Not yet long pressed
 #ifdef DEBUG_OUTPUT
-        Serial.println("MENU: Not yet long pressed! set button_stage to down.");
+        Serial.println("BUTTON: Not yet long pressed! set button_stage to down.");
 #endif
       button_state = down;
     }
@@ -76,11 +76,11 @@ void Button::loop() {
   else if (down_last_time == true && down_now == false) {
     // Just released.  From how long?
 #ifdef DEBUG_OUTPUT
-        Serial.println("MENU: Just released.  From how long?");
+        Serial.println("BUTTON: Just released.  From how long?");
 #endif
     if (previous_state == down_long_edge || previous_state == down_long) {
 #ifdef DEBUG_OUTPUT
-        Serial.println("MENU: Just released from a long press.");
+        Serial.println("BUTTON: Just released from a long press.");
 #endif
       // Just released from a long press.
       button_state = up_long_edge;
@@ -88,7 +88,7 @@ void Button::loop() {
     else {
       // Just released from a short press.
 #ifdef DEBUG_OUTPUT
-        Serial.println("MENU: Just released from a short press.");
+        Serial.println("BUTTON: Just released from a short press.");
 #endif
       button_state = up_edge;
     }

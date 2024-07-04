@@ -50,6 +50,4 @@ private:
   bool state_changed; // So we're not redrawing the screen every damn time, signal if the state has changed.
 };
 
-
-
 #endif // MENU_H
