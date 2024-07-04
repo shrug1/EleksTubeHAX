@@ -38,14 +38,14 @@ int volatile      isr_flag  = 0;
 Backlights    backlights;
 Buttons       buttons;
 
-#define BLACK 0x0000
-#define BLUE 0x001F
-#define RED 0xF800
-#define GREEN 0x07E0
-#define CYAN 0x07FF
+#define BLACK   0x0000
+#define BLUE    0x001F
+#define RED     0xF800
+#define GREEN   0x07E0
+#define CYAN    0x07FF
 #define MAGENTA 0xF81F
-#define YELLOW 0xFFE0
-#define WHITE 0xFFFF
+#define YELLOW  0xFFE0
+#define WHITE   0xFFFF
 
 Clock         uclock;
 Menu          menu;
@@ -60,12 +60,14 @@ uint8_t       yesterday       = 0;
 // Helper function, defined below.
 void updateClockDisplay(TFTs::show_t show=TFTs::yes);
 void setupMenu(void);
-void EveryFullHour(bool loopUpdate=false);
-void UpdateDstEveryNight(void);
+void checkOnEveryFullHour(bool loopUpdate=false);
+void updateDstEveryNight(void);
+void drawMenu();
+void handlePowerSwitchPressed();
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-void GestureStart();
-void HandleGestureInterupt(void); //only for NovelLife SE
-void GestureInterruptRoutine(void); //only for NovelLife SE
+void gestureStart();
+void handleGestureInterupt(void); //only for NovelLife SE
+void gestureInterruptRoutine(void); //only for NovelLife SE
 void HandleGesture(void); //only for NovelLife SE
 #endif //NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -93,7 +95,7 @@ void setup() {
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   //Init the Gesture sensor
   tfts.println("Gesture sensor start");Serial.println("Gesture sensor start");
-  GestureStart(); //TODO put into class
+  gestureStart(); //TODO put into class
 #endif
 
   // Setup WiFi connection. Must be done before setting up Clock.
@@ -211,210 +213,44 @@ void loop() {
     MqttCommandStateReceived = false;
     randomSeed(millis());
     uint8_t idx;
-    if (MqttCommandState >= 90)
-      { idx = random(1, tfts.NumberOfClockFaces+1); } else
-      { idx = (MqttCommandState / 5) -1; }  // 10..40 -> graphic 1..6
-    Serial.print("Graphic change request from MQTT; command: ");
-    Serial.print(MqttCommandState);
-    Serial.print(", index: ");
-    Serial.println(idx);
-    uclock.setClockGraphicsIdx(idx);  
+    if (MqttCommandState >= 90) { 
+      idx = random(1, tfts.NumberOfClockFaces+1); 
+    } else { 
+      idx = (MqttCommandState / 5) -1; // 10..40 -> graphic 1..6
+    } 
+    Serial.print("Graphic change request from MQTT; command: ");Serial.print(MqttCommandState);Serial.print("; index: ");Serial.println(idx);
+    uclock.setClockGraphicsIdx(idx);
     tfts.current_graphic = uclock.getActiveGraphicIdx();
-    updateClockDisplay(TFTs::force);   // redraw everything
-    /* do not save to flash everytime mqtt changes; can be frequent
-    Serial.print("Saving config...");
-    stored_config.save();
-    Serial.println(" Done.");
-    */
+    updateClockDisplay(TFTs::force);   // redraw everything        
   }
 
-  buttons.loop();         // for the states of the buttons
+  buttons.loop(); // Sets the states of the buttons, by the detected button presses, releases and gives the time of the press 
 
-#ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-  HandleGestureInterupt();
-#endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  handleGestureInterupt();
+  #endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-// Power button: If in menu, exit menu. Else turn off displays and backlight.
-  if (buttons.power.isDownEdge() && (menu.getState() == Menu::idle)) {
-    tfts.chip_select.setAll();
-    tfts.fillScreen(TFT_BLACK);
-    tfts.toggleAllDisplays();
-    if (tfts.isEnabled()) {
-#ifndef HARDWARE_SI_HAI_CLOCK
-      tfts.reinit();  // reinit (original EleksTube HW: after a few hours in OFF state the displays do not wake up properly)
-#endif
-      tfts.chip_select.setAll();
-      tfts.fillScreen(TFT_BLACK);
-      updateClockDisplay(TFTs::force);
-    }
-    backlights.togglePower();
-  }
+  handlePowerSwitchPressed();
  
-  menu.loop(buttons);     // Must be called after buttons.loop()
+  menu.loop(buttons);     // Must be called after buttons.loop() - Sets the states of the menu, by the detected button presses
   backlights.loop();
-  uclock.loop();          // read the time values from RTC, if needed
+  uclock.loop();          // Read the time values from RTC, if needed
 
-  EveryFullHour(true);   // night or daytime  
-  updateClockDisplay();  // Update the clock.  
-  UpdateDstEveryNight();
+  checkOnEveryFullHour(true);    // Check, if dimming is needed, if actual time is in the timeslot for the Nighttime.
+  updateClockDisplay();   // Update the clock face. Get actual time from RTC and set the LCDs.
+  updateDstEveryNight();  // Check for Daylight-Saving-Time (Summertime) once a day
 
-  // Menu
-  if (menu.stateChanged() && tfts.isEnabled()) {
-    Menu::states menu_state = menu.getState();
-    int8_t menu_change = menu.getChange();
+  drawMenu();             // Draw the menu on the clock face if needed
 
-    if (menu_state == Menu::idle) {
-      // We just changed into idle, so force redraw everything, and save the config.
-      updateClockDisplay(TFTs::force);
-      Serial.print("Saving config, after leaving menu...");
-      stored_config.save();
-      Serial.println(" Done.");
-    }
-    else {
-      // Backlight Pattern
-      if (menu_state == Menu::backlight_pattern) {
-        if (menu_change != 0) {
-          backlights.setNextPattern(menu_change);
-        }
-
-        setupMenu();
-        tfts.println("Pattern:");
-        tfts.println(backlights.getPatternStr());
-      }
-      // Backlight Color
-      else if (menu_state == Menu::pattern_color) {
-        if (menu_change != 0) {
-          backlights.adjustColorPhase(menu_change*16);
-        }
-        setupMenu();
-        tfts.println("Color:");
-        tfts.printf("%06X\n", backlights.getColor()); 
-      }
-      // Backlight Intensity
-      else if (menu_state == Menu::backlight_intensity) {
-        if (menu_change != 0) {
-          backlights.adjustIntensity(menu_change);
-        }
-        setupMenu();
-        tfts.println("Intensity:");
-        tfts.println(backlights.getIntensity());
-      }
-      // 12 Hour or 24 Hour mode?
-      else if (menu_state == Menu::twelve_hour) {
-        if (menu_change != 0) {
-          uclock.toggleTwelveHour();
-          tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
-          tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::force);
-        }
-        
-        setupMenu();
-        tfts.println("Hour format");
-        tfts.println(uclock.getTwelveHour() ? "12 hour" : "24 hour"); 
-      }
-      // Blank leading zeros on the hours?
-      else if (menu_state == Menu::blank_hours_zero) {
-        if (menu_change != 0) {
-          uclock.toggleBlankHoursZero();
-          tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
-        }
-        
-        setupMenu();
-        tfts.println("Blank zero?");
-        tfts.println(uclock.getBlankHoursZero() ? "yes" : "no");
-      }
-      // UTC Offset, hours
-      else if (menu_state == Menu::utc_offset_hour) {
-        if (menu_change != 0) {
-          uclock.adjustTimeZoneOffset(menu_change * 3600);
-
-          EveryFullHour();
-
-          tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
-          tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
-        }
-
-        setupMenu();
-        tfts.println("UTC Offset");
-        tfts.println(" +/- Hour");
-        time_t offset = uclock.getTimeZoneOffset();
-        int8_t offset_hour = offset/3600;
-        int8_t offset_min = (offset%3600)/60;
-        if(offset_min < 0) {
-          offset_min = -offset_min;
-        }
-        tfts.printf("%d:%02d\n", offset_hour, offset_min);
-      }
-      // UTC Offset, 15 minutes
-      else if (menu_state == Menu::utc_offset_15m) {
-        if (menu_change != 0) {
-          uclock.adjustTimeZoneOffset(menu_change * 900);
-
-          EveryFullHour();
-
-          tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
-          tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
-          tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), TFTs::yes);
-          tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), TFTs::yes);
-        }
-
-        setupMenu();
-        tfts.println("UTC Offset");
-        tfts.println(" +/- 15m");
-        time_t offset = uclock.getTimeZoneOffset();
-        int8_t offset_hour = offset/3600;
-        int8_t offset_min = (offset%3600)/60;
-        if(offset_min < 0) {
-          offset_min = -offset_min;
-        }
-        tfts.printf("%d:%02d\n", offset_hour, offset_min);
-      }
-      // select clock "font"
-      else if (menu_state == Menu::selected_graphic) {
-        if (menu_change != 0) {
-          uclock.adjustClockGraphicsIdx(menu_change);
-
-          if(tfts.current_graphic != uclock.getActiveGraphicIdx()) {
-            tfts.current_graphic = uclock.getActiveGraphicIdx();
-            updateClockDisplay(TFTs::force);   // redraw everything
-          }
-        }
-
-        setupMenu();
-        tfts.println("Selected");
-        tfts.println(" graphic:");
-        tfts.printf("    %d\n", uclock.getActiveGraphicIdx());
-      }
-     
-
-#ifdef WIFI_USE_WPS   ////  WPS code
-      // connect to WiFi using wps pushbutton mode
-      else if (menu_state == Menu::start_wps) {
-        if (menu_change != 0) { // button was pressed
-          if (menu_change < 0) { // left button
-            Serial.println("WiFi WPS start request");
-            tfts.clear();
-            tfts.fillScreen(TFT_BLACK);
-            tfts.setTextColor(TFT_WHITE, TFT_BLACK);
-            tfts.setCursor(0, 0, 4);  // Font 4. 26 pixel high
-            WiFiStartWps();
-          }
-        }
-        
-        setupMenu();
-        tfts.println("Connect to WiFi?");
-        tfts.println("Left=WPS");
-      }
-#endif   
-    }
-  }
-// END MENU
+// End of normal loop
+//------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Loop time management
 
   uint32_t time_in_loop = millis() - millis_at_top;
   if (time_in_loop < 20) {
     // we have free time, spend it for loading next image into buffer
     tfts.LoadNextImage();
-
-    // we still have extra time
+    // we still have extra time - do "usefull" things in the loop
     time_in_loop = millis() - millis_at_top;
     if (time_in_loop < 20) {
       MqttLoopInFreeTime();
@@ -425,8 +261,7 @@ void loop() {
         #endif
         tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::force);  // show latest clock digit and temperature readout together
         bTemperatureUpdated = false;
-      }
-      
+      }      
       // run once a day (= 744 times per month which is below the limit of 5k for free account)
       if (DstNeedsUpdate) { // Daylight savings time changes at 3 in the morning
         if (GetGeoLocationTimeZoneOffset()) {
@@ -452,13 +287,13 @@ void loop() {
 #endif
 }
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-void GestureStart()
+void gestureStart()
 {
     // for gesture sensor APDS9660 - Set interrupt pin on ESP32 as input
   pinMode(GESTURE_SENSOR_INPUT_PIN, INPUT);
 
   // Initialize interrupt service routine for interupt from APDS-9960 sensor
-  attachInterrupt(digitalPinToInterrupt(GESTURE_SENSOR_INPUT_PIN), GestureInterruptRoutine, FALLING);
+  attachInterrupt(digitalPinToInterrupt(GESTURE_SENSOR_INPUT_PIN), gestureInterruptRoutine, FALLING);
 
   // Initialize gesture sensor APDS-9960 (configure I2C and initial values)
   if ( apds.init() ) {
@@ -479,19 +314,19 @@ void GestureStart()
 }
 
 //Handle Interrupt from gesture sensor and simulate a short button press (state down_edge) of the corresponding button, if a gesture is detected 
-void HandleGestureInterupt()
+void handleGestureInterupt()
 {
   if( isr_flag == 1 ) {
     detachInterrupt(digitalPinToInterrupt(GESTURE_SENSOR_INPUT_PIN));
     HandleGesture();
     isr_flag = 0;
-    attachInterrupt(digitalPinToInterrupt(GESTURE_SENSOR_INPUT_PIN), GestureInterruptRoutine, FALLING);
+    attachInterrupt(digitalPinToInterrupt(GESTURE_SENSOR_INPUT_PIN), gestureInterruptRoutine, FALLING);
   }
   return;
 }
 
 //mark, that the Interrupt of the gesture sensor was signaled
-void GestureInterruptRoutine() {
+void gestureInterruptRoutine() {
   isr_flag = 1;
   return;
 }
@@ -558,11 +393,12 @@ void HandleGesture() {
 #endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 void setupMenu() {
-  
-  
+  #ifdef DEBUG_OUTPUT
+    Serial.println("main::setupMenu!");
+  #endif  
   tfts.chip_select.setHoursTens();
-  tfts.setTextColor(TFT_WHITE, TFT_BLACK);
-  tfts.fillRect(0, 240, 135, 240, TFT_BLACK);
+  tfts.setTextColor(TFT_WHITE, TFT_BLACK, true);
+  tfts.fillRect(0, 120, 135, 240, TFT_BLACK);
   tfts.setCursor(0, 124, 4);  // Font 4. 26 pixel high
 }
 
@@ -577,7 +413,7 @@ bool isNightTime(uint8_t current_hour) {
     }
 }
 
-void EveryFullHour(bool loopUpdate) {
+void checkOnEveryFullHour(bool loopUpdate) {
   // dim the clock at night
   uint8_t current_hour = uclock.getHour24();
   FullHour = current_hour != hour_old;
@@ -606,15 +442,14 @@ void EveryFullHour(bool loopUpdate) {
 }
 
 //check Daylight-Saving-Time (Summertime)
-void UpdateDstEveryNight() {
+void updateDstEveryNight() {
   uint8_t currentDay = uclock.getDay();
   // This `DstNeedsUpdate` is True between 3:00:05 and 3:00:59. Has almost one minute of time slot to fetch updates, incl. eventual retries.
   DstNeedsUpdate = (currentDay != yesterday) && (uclock.getHour24() == 3) && (uclock.getMinute() == 0) && (uclock.getSecond() > 5);
   if (DstNeedsUpdate) {
-  Serial.print("DST needs update...");
-
-  // Update day after geoloc was sucesfully updated. Otherwise this will immediatelly disable the failed update retry.
-  yesterday = currentDay;
+    Serial.print("DST needs update...");
+    // Update day after geoloc was sucesfully updated. Otherwise this will immediatelly disable the failed update retry.
+    yesterday = currentDay;
   }
 }
 
@@ -629,4 +464,171 @@ void updateClockDisplay(TFTs::show_t show) {
   tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), show);
   tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), show);
   tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), show);
+}
+
+void drawMenu() { 
+  // Begin Draw Menu
+  if (menu.stateChanged() && tfts.isEnabled()) {
+    Menu::states menu_state = menu.getState();
+    int8_t menu_change = menu.getChange();
+
+    if (menu_state == Menu::idle) {
+      // We just changed into idle, so force redraw everything, and save the config.
+      updateClockDisplay(TFTs::force);
+      Serial.print("Saving config, after leaving menu...");
+      stored_config.save();
+      Serial.println(" Done.");
+    }
+    else {
+      // Backlight Pattern
+      if (menu_state == Menu::backlight_pattern) {
+        if (menu_change != 0) {
+          backlights.setNextPattern(menu_change);
+          #ifdef DEBUG_OUTPUT
+            Serial.println("set Next Pattern!");
+          #endif
+        }
+        setupMenu();
+        tfts.println("Pattern:");
+        tfts.println(backlights.getPatternStr());
+      }
+      // Backlight Color
+      else if (menu_state == Menu::pattern_color) {
+        if (menu_change != 0) {
+          backlights.adjustColorPhase(menu_change*16);
+        }
+        setupMenu();
+        tfts.println("Color:");
+        tfts.printf("%06X\n", backlights.getColor()); 
+      }
+      // Backlight Intensity
+      else if (menu_state == Menu::backlight_intensity) {
+        if (menu_change != 0) {
+          backlights.adjustIntensity(menu_change);
+        }
+        setupMenu();
+        tfts.println("Intensity:");
+        tfts.println(backlights.getIntensity());
+      }
+      // 12 Hour or 24 Hour mode?
+      else if (menu_state == Menu::twelve_hour) {
+        if (menu_change != 0) {
+          uclock.toggleTwelveHour();
+          tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
+          tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::force);
+        }        
+        setupMenu();
+        tfts.println("Hour format");
+        tfts.println(uclock.getTwelveHour() ? "12 hour" : "24 hour"); 
+      }
+      // Blank leading zeros on the hours?
+      else if (menu_state == Menu::blank_hours_zero) {
+        if (menu_change != 0) {
+          uclock.toggleBlankHoursZero();
+          tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
+        }        
+        setupMenu();
+        tfts.println("Blank zero?");
+        tfts.println(uclock.getBlankHoursZero() ? "yes" : "no");
+      }
+      // UTC Offset, hours
+      else if (menu_state == Menu::utc_offset_hour) {
+        if (menu_change != 0) {
+          uclock.adjustTimeZoneOffset(menu_change * 3600);
+          checkOnEveryFullHour();
+          tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
+          tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
+        }
+        setupMenu();
+        tfts.println("UTC Offset");
+        tfts.println(" +/- Hour");
+        time_t offset = uclock.getTimeZoneOffset();
+        int8_t offset_hour = offset/3600;
+        int8_t offset_min = (offset%3600)/60;
+        if(offset_min < 0) {
+          offset_min = -offset_min;
+        }
+        tfts.printf("%d:%02d\n", offset_hour, offset_min);
+      }
+      // UTC Offset, 15 minutes
+      else if (menu_state == Menu::utc_offset_15m) {
+        if (menu_change != 0) {
+          uclock.adjustTimeZoneOffset(menu_change * 900);
+          checkOnEveryFullHour();
+          tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
+          tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
+          tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), TFTs::yes);
+          tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), TFTs::yes);
+        }
+        setupMenu();
+        tfts.println("UTC Offset");
+        tfts.println(" +/- 15m");
+        time_t offset = uclock.getTimeZoneOffset();
+        int8_t offset_hour = offset/3600;
+        int8_t offset_min = (offset%3600)/60;
+        if(offset_min < 0) {
+          offset_min = -offset_min;
+        }
+        tfts.printf("%d:%02d\n", offset_hour, offset_min);
+      }
+      // select clock "font"
+      else if (menu_state == Menu::selected_graphic) {
+        if (menu_change != 0) {
+          uclock.adjustClockGraphicsIdx(menu_change);
+
+          if(tfts.current_graphic != uclock.getActiveGraphicIdx()) {
+            tfts.current_graphic = uclock.getActiveGraphicIdx();
+            updateClockDisplay(TFTs::force);   // redraw everything
+          }
+        }
+        setupMenu();
+        tfts.println("Selected");
+        tfts.println(" graphic:");
+        tfts.printf("    %d\n", uclock.getActiveGraphicIdx());
+      }
+#ifdef WIFI_USE_WPS   ////  WPS code
+      // connect to WiFi using wps pushbutton mode
+      else if (menu_state == Menu::start_wps) {
+        if (menu_change != 0) { // button was pressed
+          if (menu_change < 0) { // left button
+            Serial.println("WiFi WPS start request");
+            tfts.clear();
+            tfts.fillScreen(TFT_BLACK);
+            tfts.setTextColor(TFT_WHITE, TFT_BLACK);
+            tfts.setCursor(0, 0, 4);  // Font 4. 26 pixel high
+            WiFiStartWps();
+          }
+        }
+        
+        setupMenu();
+        tfts.println("Connect to WiFi?");
+        tfts.println("Left=WPS");
+      }
+#endif   
+    }
+  } // if (menu.stateChanged() && tfts.isEnabled())  
+} //drawMenu
+
+// "Power" button pressed, do something
+void handlePowerSwitchPressed() {  
+#ifndef ONE_BUTTON_ONLY_MENU
+  // Power button pressed: If in menu, exit menu. Else turn off displays and backlight.
+  if (buttons.power.isDownEdge() && (menu.getState() == Menu::idle)) {
+    #ifdef DEBUG_OUTPUT
+      Serial.println("Power button pressed.");
+    #endif
+    tfts.chip_select.setAll();
+    tfts.fillScreen(TFT_BLACK);
+    tfts.toggleAllDisplays();
+    if (tfts.isEnabled()) {
+    #ifndef HARDWARE_SI_HAI_CLOCK
+      tfts.reinit();  // reinit (original EleksTube HW: after a few hours in OFF state the displays do not wake up properly)
+    #endif
+      tfts.chip_select.setAll();
+      tfts.fillScreen(TFT_BLACK);
+      updateClockDisplay(TFTs::force);
+    }
+    backlights.togglePower();
+  }
+  #endif
 }

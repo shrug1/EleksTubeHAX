@@ -330,14 +330,15 @@
   //#define SECOND_BACKLIGHTS_PIN (GPIO_NUM_4) // Second LED strip on the bottom of the clock
 
   // Only one Button on H401 version!!!
+  #define ONE_BUTTON_ONLY_MENU
   // Set the other pins, to pins, which should always be in a defined, non changing state like Always HIGH or Always LOW!
 
   // Pin 9 = CPU_PU = Chip enabled = Always LOW on this board
   // Pin 3 = VDD3P3 = 3.3V analog power supply = Always LOW on this board
   // Pin 5 = SENSOR_VP = GPIO36 = Unconnected = SHOULD be HIGH = Always HIGH
-  #define BUTTON_LEFT_PIN (3)
-  #define BUTTON_RIGHT_PIN (3)
-  #define BUTTON_POWER_PIN (3)
+  // #define BUTTON_LEFT_PIN  (3)
+  // #define BUTTON_RIGHT_PIN (3)
+  // #define BUTTON_POWER_PIN (3)
 
   #define BUTTON_MODE_PIN (GPIO_NUM_0) // Only ONE Button on the back of the clock
    
@@ -378,7 +379,7 @@
   //Fonts to load for TFT
   //#define LOAD_GLCD   // Font 1. Original Adafruit 8 pixel font needs ~1820 bytes in FLASH
   #define LOAD_FONT2  // Font 2. Small 16 pixel high font, needs ~3534 bytes in FLASH, 96 characters
-  //#define LOAD_FONT4  // Font 4. Medium 26 pixel high font, needs ~5848 bytes in FLASH, 96 characters
+  #define LOAD_FONT4  // Font 4. Medium 26 pixel high font, needs ~5848 bytes in FLASH, 96 characters
   //#define LOAD_FONT6  // Font 6. Large 48 pixel font, needs ~2666 bytes in FLASH, only characters 1234567890:-.apm
   //#define LOAD_FONT7  // Font 7. 7 segment 48 pixel font, needs ~2438 bytes in FLASH, only characters 1234567890:.
   //#define LOAD_FONT8  // Font 8. Large 75 pixel font needs ~3256 bytes in FLASH, only characters 1234567890:-.

@@ -4,15 +4,18 @@
 #include "TempSensor.h"
 
 void TFTs::begin() {
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("TFTs::begin");
+  #endif
   // Start with all displays selected.
   chip_select.begin();
   chip_select.setAll();
 
   // Turn power on to displays. Except for H401. Always On
   #ifndef HARDWARE_IPSTUBE_H401_CLOCK
-  pinMode(TFT_ENABLE_PIN, OUTPUT);
-  enableAllDisplays();
+  pinMode(TFT_ENABLE_PIN, OUTPUT);  
   #endif
+  enableAllDisplays();
   InvalidateImageInBuffer();
   
   // Initialize the super class.
@@ -29,20 +32,26 @@ void TFTs::begin() {
 }
 
 void TFTs::reinit() {
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("TFTs::reinit");
+  #endif
   // Start with all displays selected.
   chip_select.begin();
   chip_select.setAll();
 
   // Turn power on to displays.
   #ifndef HARDWARE_IPSTUBE_H401_CLOCK
-  pinMode(TFT_ENABLE_PIN, OUTPUT);
-  enableAllDisplays();
+  pinMode(TFT_ENABLE_PIN, OUTPUT);  
   #endif
+  enableAllDisplays();
   // Initialize the super class.
   init();
 }
 
 void TFTs::clear() {
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("TFTs::clear");
+  #endif
   // Start with all displays selected.
   chip_select.setAll();
   enableAllDisplays();
@@ -65,6 +74,9 @@ void TFTs::showNoMqttStatus() {
 }
 
 void TFTs::enableAllDisplays() {
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("TFTs::enableAllDisplays");
+  #endif
   // Turn power on to displays.
   #ifndef HARDWARE_IPSTUBE_H401_CLOCK
     digitalWrite(TFT_ENABLE_PIN, HIGH);
@@ -73,6 +85,9 @@ void TFTs::enableAllDisplays() {
 }
 
 void TFTs::disableAllDisplays() {
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("TFTs::disableAllDisplays");
+  #endif
   // Turn power off to displays.
   #ifndef HARDWARE_IPSTUBE_H401_CLOCK
     digitalWrite(TFT_ENABLE_PIN, LOW);
@@ -81,6 +96,9 @@ void TFTs::disableAllDisplays() {
 }
 
 void TFTs::toggleAllDisplays() {
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("TFTs::toggleAllDisplays");
+  #endif
   if (enabled) {
     disableAllDisplays();
   }
