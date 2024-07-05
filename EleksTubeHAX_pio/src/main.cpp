@@ -165,6 +165,10 @@ void setup() {
     Serial.println(tfts.current_graphic);
   #endif
 
+  menu.setTFTsInstance(&tfts);
+  menu.setBacklightsInstance(&backlights);
+  menu.setConfigInstance(&stored_config);
+
   tfts.println("Done with initializing setup!");
   Serial.println("Done with initializing setup!");
 
@@ -261,7 +265,7 @@ void loop() {
         #endif
         tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::force);  // show latest clock digit and temperature readout together
         bTemperatureUpdated = false;
-      }      
+      }
       // run once a day (= 744 times per month which is below the limit of 5k for free account)
       if (DstNeedsUpdate) { // Daylight savings time changes at 3 in the morning
         if (GetGeoLocationTimeZoneOffset()) {
@@ -271,7 +275,7 @@ void loop() {
           uclock.setTimeZoneOffset(GeoLocTZoffset * 3600);
           DstNeedsUpdate = false;  // done for this night; retry if not sucessfull
         }
-      }  
+      }
       // Sleep for up to 20ms, less if we've spent time doing stuff above.
       time_in_loop = millis() - millis_at_top;
       if (time_in_loop < 20) {
@@ -279,13 +283,14 @@ void loop() {
       }
     }
   }
-#ifdef DEBUG_OUTPUT  
+#ifdef DEBUG_OUTPUT
   if (time_in_loop <= 1) Serial.print(".");
   else {
     Serial.print("time spent in loop (ms): ");Serial.println(time_in_loop);
   }
 #endif
 }
+
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void gestureStart()
 {

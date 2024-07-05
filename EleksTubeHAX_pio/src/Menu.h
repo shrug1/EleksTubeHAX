@@ -8,6 +8,9 @@
  */
 #include <Arduino.h>
 #include "Buttons.h"
+#include "StoredConfig.h"
+#include <TFT_eSPI.h>
+#include "Backlights.h"
 
 
 class Menu {
@@ -30,6 +33,10 @@ public:
     // When there's more things to change in the menu, add them here.    
     num_states
   };
+  
+  TFT_eSPI *tfts;
+  StoredConfig *config;
+  Backlights *backlights;
 
   const static String state_str[num_states];
 
@@ -38,6 +45,17 @@ public:
    
   String getStateStr()  { return state_str[state]; }
   bool stateChanged()   { return(state_changed); }
+
+  void selectCurrentOption();
+  void setupMenu();
+  void drawMenu();
+
+  void setTFTsInstance (TFT_eSPI *tft_) { tfts = tft_; };
+  void setBacklightsInstance (Backlights *backlights_) { backlights = backlights_; };
+  void setConfigInstance (StoredConfig *config_) { config = config_; };
+  
+  states currentMenuState = idle;
+  Button::state currentButtonState = Button::idle;
 
 private:
   const uint16_t idle_timeout_ms = 10000;  // Timeout and return to idle after 10 seconds of inactivity.

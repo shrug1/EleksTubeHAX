@@ -39,12 +39,18 @@ public:
                 down, 
                 down_long_edge, 
                 down_long, 
+                single_press, 
+                double_press, 
+                triple_press, 
                 up_edge, 
                 up_long_edge, 
                 num_states
              };
 
   const static String state_str[num_states];
+
+  unsigned long last_press_time = 0;
+  int press_count = 0;
 
   void begin();
   void loop();

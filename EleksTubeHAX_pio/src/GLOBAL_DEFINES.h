@@ -331,6 +331,7 @@
 
   // Only one Button on H401 version!!!
   #define ONE_BUTTON_ONLY_MENU
+  #define PRESS_COUNT_RESET_MS 1000
   // Set the other pins, to pins, which should always be in a defined, non changing state like Always HIGH or Always LOW!
 
   // Pin 9 = CPU_PU = Chip enabled = Always LOW on this board
