@@ -109,7 +109,7 @@ void Menu::loop(Buttons &buttons) {
   
   // Early out for idle state, which will be most of the time.
   if (state == idle && mode_state == Button::idle) {
-    // Everything is idle.
+    // Everything is idle. Do nothing.
     return;
   }
 
@@ -125,12 +125,13 @@ void Menu::loop(Buttons &buttons) {
   }
   
   // Menu is idle. A button is pressed, go into the menu, but don't act on the button press. It just wakes up the menu.
-  if (state == idle && (mode_state == Button::down_edge)) {
+  if (state == idle && (mode_state == Button::up_edge)) {
     state = states(1);  // Start at the beginning of the menu.
+
     millis_last_button_press = millis();
     state_changed = true;
     #ifdef DEBUG_OUTPUT_MENU
-      Serial.println("MENU: Menu is idle. A button is pressed, go into the menu, but don't act on the button press. It just wakes up the menu.");
+      Serial.println("MENU: Menu was idle. A short button pressed is released.");
       Serial.print("MENU: state: ");Serial.print(state);Serial.print("; mode_state: ");Serial.println(mode_state);
     #endif
     return;
@@ -139,25 +140,19 @@ void Menu::loop(Buttons &buttons) {
   // In a menu, and button long pressed! -> simulate right button press
   ///Must be done BEFORE the next menu option
   if (state != idle && (mode_state == Button::up_long_edge)) {
-    // // Pressing both left and right at the same time cancels out?  Sure, why not...
-    // if (left_state == Button::down_edge) {
-    //   change--;
-    // }
-    // if (right_state == Button::down_edge) {
-       change++;
-    // }
+    change++;
 
     millis_last_button_press = millis();
     state_changed = true;
     #ifdef DEBUG_OUTPUT_MENU
-      Serial.print("MENU: In a menu, and button long pressed! -> simulate right button press! Change: ");Serial.println(change);
+      Serial.println("MENU: In the menu, and button released after long pressed! -> simulate right button press!");
       Serial.print("MENU: state: ");Serial.print(state);Serial.print("; mode_state: ");Serial.println(mode_state);
     #endif
     return;
   }
 
   // Go to the next menu option
-  if (state != idle && mode_state == Button::down_edge && mode_state ) {
+  if (state != idle && mode_state == Button::up_edge) {
     uint8_t new_state = (uint8_t(state) + 1) % num_states;
     if (new_state == 0) {
       new_state = 1;  // Skip over idle when incrementing through the menu.
@@ -173,24 +168,26 @@ void Menu::loop(Buttons &buttons) {
     return;
   }
 
-//   // Exit with a power button.
-//   if (state != idle && (power_state == Button::down_edge)) {
-//     state = idle;
-//     state_changed = true;
-// #ifdef DEBUG_OUTPUT_MENU
-//         Serial.println("MENU: Exit with a power button.");
-// #endif
-//     return;
-//   }
-
-
   // Some other button state, but it doesn't trigger any change in state.  There are LOTS of states that will
   // get here, but I think they're all "just do nothing."  If there's an explicit state we want to handle,
   // add an if() block above.
 }
 #endif
 
+#ifndef WIFI_USE_WPS
 const String Menu::state_str[Menu::num_states] = { 
+    "idle",
+    "backlight_pattern",
+    "pattern_color",
+    "backlight_intensity",
+    "twelve_hour",
+    "blank_hours_zero",
+    "utc_offset_hour",
+    "utc_offset_15m",
+    "selected_graphic"
+  };
+  #else
+  const String Menu::state_str[Menu::num_states] = { 
     "idle",
     "backlight_pattern",
     "pattern_color",
@@ -202,3 +199,4 @@ const String Menu::state_str[Menu::num_states] = {
     "selected_graphic",
     "start_wps"
   };
+  #endif
