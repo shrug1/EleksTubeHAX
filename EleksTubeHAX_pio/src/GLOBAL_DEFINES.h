@@ -330,17 +330,21 @@
   //#define SECOND_BACKLIGHTS_PIN (GPIO_NUM_4) // Second LED strip on the bottom of the clock
 
   // Only one Button on H401 version!!!
-  #define ONE_BUTTON_ONLY_MENU
-  // Set the other pins, to pins, which should always be in a defined, non changing state like Always HIGH or Always LOW!
+  //#define ONE_BUTTON_ONLY_MENU
 
+  // Set the other pins, to pins, which should always be in a defined, non changing state like Always HIGH or Always LOW!
   // Pin 9 = CPU_PU = Chip enabled = Always LOW on this board
   // Pin 3 = VDD3P3 = 3.3V analog power supply = Always LOW on this board
   // Pin 5 = SENSOR_VP = GPIO36 = Unconnected = SHOULD be HIGH = Always HIGH
-  // #define BUTTON_LEFT_PIN  (3)
-  // #define BUTTON_RIGHT_PIN (3)
-  // #define BUTTON_POWER_PIN (3)
-
-  #define BUTTON_MODE_PIN (GPIO_NUM_0) // Only ONE Button on the back of the clock
+  #ifdef ONE_BUTTON_ONLY_MENU
+    #define BUTTON_MODE_PIN (GPIO_NUM_0) // Only ONE Button on the back of the clock
+  #else
+    #define BUTTON_LEFT_PIN  (3)
+    #define BUTTON_RIGHT_PIN (3)
+    #define BUTTON_POWER_PIN (3)
+    #define BUTTON_MODE_PIN (GPIO_NUM_0) // Only ONE Button on the back of the clock
+  #endif
+  
    
   // 3-wire to DS1302 RTC
   #define DS1302_SCLK  (GPIO_NUM_22)

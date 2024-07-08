@@ -9,14 +9,6 @@ void Menu::loop(Buttons &buttons) {
   Button::state power_state = buttons.power.getState(); // exit menu
   Button::state mode_state = buttons.mode.getState();   // next menu
 
-  #ifdef DEBUG_OUTPUT_MENU
-        Serial.print("Menu::loop! state: ");Serial.print(state);
-        Serial.print("; left_state: ");Serial.print(left_state);        
-        Serial.print("; right_state: ");Serial.print(right_state);
-        Serial.print("; power_state: ");Serial.println(power_state);
-        Serial.print("; mode_state: ");Serial.print(mode_state);
-  #endif
-
   // Reset the change value in every case.  We don't always change the state though.
   change = 0;
   state_changed = false;
@@ -39,7 +31,7 @@ void Menu::loop(Buttons &buttons) {
   }
   
   // Menu is idle. A button is pressed, go into the menu, but don't act on the button press. It just wakes up the menu.
-  if (state == idle && (left_state == Button::down_edge || right_state == Button::down_edge || mode_state == Button::down_edge)) {
+  if (state == idle && (left_state == Button::up_edge || right_state == Button::up_edge || mode_state == Button::up_edge)) {
     state = states(1);  // Start at the beginning of the menu.
 
     millis_last_button_press = millis();
@@ -51,7 +43,7 @@ void Menu::loop(Buttons &buttons) {
   }
 
   // Go to the next menu option
-  if (state != idle && mode_state == Button::down_edge) {
+  if (state != idle && mode_state == Button::up_edge) {
     uint8_t new_state = (uint8_t(state) + 1) % num_states;
     if (new_state == 0) {
       new_state = 1;  // Skip over idle when incrementing through the menu.
@@ -67,7 +59,7 @@ void Menu::loop(Buttons &buttons) {
   }
 
   // Exit with a power button.
-  if (state != idle && (power_state == Button::down_edge)) {
+  if (state != idle && (power_state == Button::up_edge)) {
     state = idle;
     state_changed = true;
 #ifdef DEBUG_OUTPUT_MENU
@@ -77,12 +69,12 @@ void Menu::loop(Buttons &buttons) {
   }
 
   // In a menu, and a left (negative change value) or right button (positive change value) has been pressed!
-  if (state != idle && (left_state == Button::down_edge || right_state == Button::down_edge)) {
+  if (state != idle && (left_state == Button::up_edge || right_state == Button::up_edge)) {
     // Pressing both left and right at the same time cancels out?  Sure, why not...
-    if (left_state == Button::down_edge) {
+    if (left_state == Button::up_edge) {
       change--;
     }
-    if (right_state == Button::down_edge) {
+    if (right_state == Button::up_edge) {
       change++;
     }
 

@@ -64,6 +64,7 @@ void checkOnEveryFullHour(bool loopUpdate=false);
 void updateDstEveryNight(void);
 void drawMenu();
 void handlePowerSwitchPressed();
+void handleMQTTCommands();
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void gestureStart();
 void handleGestureInterupt(void); //only for NovelLife SE
@@ -189,42 +190,9 @@ void loop() {
   // Do all the maintenance work
   WifiReconnect(); // if not connected attempt to reconnect
 
-  MqttStatusPower = tfts.isEnabled();
-  MqttStatusState = (uclock.getActiveGraphicIdx()+1) * 5; // ??? Why times five?
-  MqttLoopFrequently();
-  if (MqttCommandPowerReceived) {
-    MqttCommandPowerReceived = false;
-    if (MqttCommandPower) {
-#ifndef HARDWARE_SI_HAI_CLOCK
-      if (!tfts.isEnabled()) {
-        tfts.reinit();  // reinit (original EleksTube HW: after a few hours in OFF state the displays do not wake up properly)
-        updateClockDisplay(TFTs::force);
-      }
-#endif
-      tfts.enableAllDisplays();
-      backlights.PowerOn();
-    } else {
-      tfts.disableAllDisplays();
-      backlights.PowerOff();
-    }
-  }
+  buttons.loop(); // Sets the states of the buttons, by the detected button presses, releases and gives the time of the press
 
-  if (MqttCommandStateReceived) {
-    MqttCommandStateReceived = false;
-    randomSeed(millis());
-    uint8_t idx;
-    if (MqttCommandState >= 90) { 
-      idx = random(1, tfts.NumberOfClockFaces+1); 
-    } else { 
-      idx = (MqttCommandState / 5) -1; // 10..40 -> graphic 1..6
-    } 
-    Serial.print("Graphic change request from MQTT; command: ");Serial.print(MqttCommandState);Serial.print("; index: ");Serial.println(idx);
-    uclock.setClockGraphicsIdx(idx);
-    tfts.current_graphic = uclock.getActiveGraphicIdx();
-    updateClockDisplay(TFTs::force);   // redraw everything        
-  }
-
-  buttons.loop(); // Sets the states of the buttons, by the detected button presses, releases and gives the time of the press 
+  handleMQTTCommands(); // Handle MQTT commands, afer the buttons loop, to simulate button presses from MQTT, if needed
 
   #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   handleGestureInterupt();
@@ -236,20 +204,21 @@ void loop() {
   backlights.loop();
   uclock.loop();          // Read the time values from RTC, if needed
 
-  checkOnEveryFullHour(true);    // Check, if dimming is needed, if actual time is in the timeslot for the Nighttime.
-  updateClockDisplay();   // Update the clock face. Get actual time from RTC and set the LCDs.
-  updateDstEveryNight();  // Check for Daylight-Saving-Time (Summertime) once a day
+  checkOnEveryFullHour(true);    // Check, if dimming is needed, if actual time is in the timeslot for the night time.
+  updateClockDisplay();   // Update the digits of the clock face. Get actual time from RTC and set the LCDs.
+  updateDstEveryNight();  // Check for Daylight-Saving-Time (Summertime) adjustment once a day
 
-  drawMenu();             // Draw the menu on the clock face if needed
+  drawMenu();             // Draw the menu on the clock face, if menu is requested
 
 // End of normal loop
 //------------------------------------------------------------------------------------------------------------------------------------------------------------
-// Loop time management
+// Loop time management + other things to do in "free time"
 
   uint32_t time_in_loop = millis() - millis_at_top;
   if (time_in_loop < 20) {
     // we have free time, spend it for loading next image into buffer
     tfts.LoadNextImage();
+    
     // we still have extra time - do "usefull" things in the loop
     time_in_loop = millis() - millis_at_top;
     if (time_in_loop < 20) {
@@ -261,7 +230,7 @@ void loop() {
         #endif
         tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::force);  // show latest clock digit and temperature readout together
         bTemperatureUpdated = false;
-      }      
+      }
       // run once a day (= 744 times per month which is below the limit of 5k for free account)
       if (DstNeedsUpdate) { // Daylight savings time changes at 3 in the morning
         if (GetGeoLocationTimeZoneOffset()) {
@@ -391,6 +360,93 @@ void HandleGesture() {
   return;
 }
 #endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+void handleMQTTCommands() {
+#ifdef MQTT_ENABLED
+  MqttStatusPower = tfts.isEnabled();
+  MqttStatusState = (uclock.getActiveGraphicIdx()+1) * 5; // ??? Why times five?
+  MqttLoopFrequently();
+
+  //work through the received commands
+  //Power Change
+  if (MqttCommandPowerReceived) {
+    MqttCommandPowerReceived = false;
+    if (MqttCommandPower) {
+#endif
+#if defined(HARDWARE_SI_HAI_CLOCK) && defined(MQTT_ENABLED)
+      if (!tfts.isEnabled()) {
+        tfts.reinit();  // reinit (original EleksTube HW: after a few hours in OFF state the displays do not wake up properly)
+        updateClockDisplay(TFTs::force);
+      }
+#endif
+#ifdef MQTT_ENABLED
+      tfts.enableAllDisplays();
+      backlights.PowerOn();
+    } else {
+      tfts.disableAllDisplays();
+      backlights.PowerOff();
+    }
+  }
+
+  //State Change
+  if (MqttCommandStateReceived) {
+    MqttCommandStateReceived = false;
+    randomSeed(millis());            //WHY????
+    uint8_t idx;
+    //All commands under 100 are graphic change requests now
+    if (MqttCommandState < 100) {
+      //to enhance the possible selecteable clock faces with the MQTT commands, we index the commands (base 5)
+      //I personally have NO IDEA, why this is done this way. We can select ANY topic, with ANY values we like! 
+      //So I don't get this, lets say, "interesting" way to do this.
+      idx = (MqttCommandState / 5) - 1; // e.g. state = 25; 25/5 = 5; 5-1 = 4
+      //10 == clock face 1; 15 == clock face 2; 20 == clock face 3; 25 == clock face 4; 30 == clock face 5; 35 == clock face 6; 40 == clock face 7...
+
+      int MaxIdx = tfts.NumberOfClockFaces;
+      if (idx > MaxIdx) { idx = 1; }
+      Serial.print("Clock face change request from MQTT; command: ");Serial.print(MqttCommandState);Serial.print("; so selected index: ");Serial.println(idx);
+      uclock.setClockGraphicsIdx(idx);
+      tfts.current_graphic = uclock.getActiveGraphicIdx();
+      updateClockDisplay(TFTs::force);   // redraw everything
+    } else { 
+      //button press commands
+      if (MqttCommandState >= 100 && MqttCommandState <= 120){
+        if (MqttCommandState == 100) {
+          #ifdef DEBUG_OUTPUT
+            Serial.println("MQTT button pressed command received: MODE");
+          #endif
+          buttons.mode.setUpEdgeState();
+        } else
+        #ifndef ONE_BUTTON_ONLY_MENU 
+        if (MqttCommandState == 110) {
+          #ifdef DEBUG_OUTPUT
+            Serial.println("MQTT button pressed command received: LEFT");
+          #endif
+          buttons.left.setUpEdgeState();        
+        } else if (MqttCommandState == 115) {
+          #ifdef DEBUG_OUTPUT
+            Serial.println("MQTT button pressed command received: POWER");
+          #endif
+          buttons.power.setUpEdgeState();
+        } else if (MqttCommandState == 120) {
+          #ifdef DEBUG_OUTPUT
+            Serial.println("MQTT button pressed command received: RIGHT");
+          #endif
+          buttons.right.setUpEdgeState();
+        } else {   
+          Serial.print("Unknown MQTT button pressed command received: ");Serial.println(MqttCommandState);
+        }
+        #else
+        {   
+          Serial.print("Unknown MQTT button pressed command received: ");Serial.println(MqttCommandState);
+        }
+        #endif      
+      } else { //else from button press commands (state 100-120)
+        Serial.print("Unknown MQTT command received: ");Serial.println(MqttCommandState);
+      } //end if button press commands
+    } //commands under 100
+  #endif
+  }
+} //HandleMQTTCommands
 
 void setupMenu() {
   #ifdef DEBUG_OUTPUT

@@ -50,11 +50,14 @@ public:
   void loop();
   
   // These are only updated when loop() is called, not when the getters are called.
-  state getState()          { return button_state; }
-  String getStateStr()      { return state_str[button_state]; }
-  bool stateChanged()       { return state_changed; }
-  void setDownEdgeState()   { button_state = down_edge; }
-  uint32_t millisInState()  { return millis_at_last_loop-millis_at_last_transition; }
+  state getState()            { return button_state; }
+  String getStateStr()        { return state_str[button_state]; }
+  bool stateChanged()         { return state_changed; }
+  void setDownEdgeState()     { button_state = down_edge; }
+  void setDownLongEdgeState() { button_state = down_long_edge; }
+  void setUpEdgeState()       { button_state = up_edge; }
+  void setUpLongEdgeState()   { button_state = up_long_edge; }
+  uint32_t millisInState()    { return millis_at_last_loop-millis_at_last_transition; }
 
   bool isIdle()             { return button_state == idle; }
   bool isDownEdge()         { return button_state == down_edge; }
