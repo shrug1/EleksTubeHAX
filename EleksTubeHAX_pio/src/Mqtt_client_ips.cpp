@@ -150,8 +150,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
         sprintf(message, "%s%c", message, (char)payload[i]);
     }
 #ifdef DEBUG_OUTPUT
-    Serial.print("\tMQTT message payload: ");
-    Serial.println(message);
+    Serial.print("\tMQTT message payload: ");Serial.println(message);
 #else
     Serial.print("MQTT RX: ");
     Serial.print(tokens[1]);
@@ -187,7 +186,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
     // topic 3: /MQTT_CLIENT/clockface/change ; Payload: 10-95 (means clockface number by value/5 - 1, e.g. 25/5=5-1 means 4th clockface)
     if ((strcmp(tokens[1], "directive") == 0 && ((strcmp(tokens[2], "setpoint") == 0) || (strcmp(tokens[2], "percentage") == 0))) || (strcmp(tokens[1], "clockface") == 0 && (strcmp(tokens[2], "change") == 0))){
       double valueD = atof(message);
-      if (!isnan(valueD)) {
+      if (!isnan(valueD) && valueD >= 10 && valueD <= 95) {
         MqttCommandState = (int) valueD;
         MqttCommandStateReceived = true;
         MqttReportBackEverything();
@@ -197,8 +196,8 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
     // topic 1: /MQTT_CLIENT/buttons/mode ; Payload: 1
     // topic 2: /MQTT_CLIENT/buttons/OK ; Payload: 1
     if (strcmp(tokens[1], "buttons") == 0 && (strcmp(tokens[2], "mode") == 0) || strcmp(tokens[1], "buttons") == 0 && (strcmp(tokens[2], "OK") == 0)) {
-      int intValue = std::stoi(std::string(message));
-      if (intValue == 1) {
+      double valueD = atof(message);
+      if (!isnan(valueD) && valueD > 0 && valueD < 2) {
         //set the up_edge state of the mode or OK button
         MqttCommandState = 100;
         MqttCommandStateReceived = true;
@@ -208,8 +207,8 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
     //Up
     // Topic: /MQTT_CLIENT/buttons/up ; Payload: 1
     if (strcmp(tokens[1], "buttons") == 0 && (strcmp(tokens[2], "up") == 0)) {
-      int intValue = std::stoi(std::string(message));
-      if (intValue == 1) {
+      double valueD = atof(message);
+      if (!isnan(valueD) && valueD > 0 && valueD < 2) {
         //set the up_edge state of the up button
         MqttCommandState = 105;
         MqttCommandStateReceived = true;
@@ -219,8 +218,8 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
     //left
     // Topic: /MQTT_CLIENT/buttons/left ; Payload: 1
     if (strcmp(tokens[1], "buttons") == 0 && (strcmp(tokens[2], "left") == 0)) {
-      int intValue = std::stoi(std::string(message));
-      if (intValue == 1) {        
+      double valueD = atof(message);
+      if (!isnan(valueD) && valueD > 0 && valueD < 2) {
         //set the up_edge state of the left button
         MqttCommandState = 110;
         MqttCommandStateReceived = true;
@@ -231,8 +230,8 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
     // Topic 1: /MQTT_CLIENT/buttons/power ; Payload: 1
     // Topic 2: /MQTT_CLIENT/buttons/down ; Payload: 1
     if (strcmp(tokens[1], "buttons") == 0 && (strcmp(tokens[2], "power") == 0) || strcmp(tokens[1], "buttons") == 0 && (strcmp(tokens[2], "down") == 0)) {
-      int intValue = std::stoi(std::string(message));
-      if (intValue == 1) {        
+      double valueD = atof(message);
+      if (!isnan(valueD) && valueD > 0 && valueD < 2) {
         //set the up_edge state of the power or down button
         MqttCommandState = 115;
         MqttCommandStateReceived = true;
@@ -242,8 +241,8 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
     //right
     // Topic: /MQTT_CLIENT/buttons/right ; Payload: 1
     if (strcmp(tokens[1], "buttons") == 0 && (strcmp(tokens[2], "right") == 0)) {
-      int intValue = std::stoi(std::string(message));
-      if (intValue == 1) {
+      double valueD = atof(message);
+      if (!isnan(valueD) && valueD > 0 && valueD < 2) {
         //set the up_edge state of the right button
         MqttCommandState = 120;
         MqttCommandStateReceived = true;
