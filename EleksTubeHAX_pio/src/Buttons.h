@@ -83,7 +83,7 @@ private:
   uint32_t  millis_at_last_loop;
   state     button_state;
 
-  bool isButtonDown();
+  bool isButtonDown() { return digitalRead(bpin) == active_state; }
 };
 
 #ifdef ONE_BUTTON_ONLY_MENU

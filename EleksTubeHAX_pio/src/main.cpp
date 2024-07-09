@@ -8,7 +8,6 @@
 
 #include <stdint.h>
 #include "GLOBAL_DEFINES.h"
-#include "ChipSelect.h"
 #include "Buttons.h"
 #include "Backlights.h"
 #include "TFTs.h"
@@ -19,7 +18,6 @@
 #include "Mqtt_client_ips.h"
 #include "TempSensor_inc.h"
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-//#include "Gestures.h"
 //TODO put into class
 #include <Wire.h>
 #include <SparkFun_APDS9960.h>
@@ -37,20 +35,10 @@ int volatile      isr_flag  = 0;
 
 Backlights    backlights;
 Buttons       buttons;
-
-#define BLACK   0x0000
-#define BLUE    0x001F
-#define RED     0xF800
-#define GREEN   0x07E0
-#define CYAN    0x07FF
-#define MAGENTA 0xF81F
-#define YELLOW  0xFFE0
-#define WHITE   0xFFFF
-
+TFTs          tfts;
 Clock         uclock;
 Menu          menu;
 StoredConfig  stored_config;
-TFTs          tfts;
 
 bool          FullHour        = false;
 uint8_t       hour_old        = 255;
@@ -69,12 +57,12 @@ void handleMQTTCommands();
 void gestureStart();
 void handleGestureInterupt(void); //only for NovelLife SE
 void gestureInterruptRoutine(void); //only for NovelLife SE
-void HandleGesture(void); //only for NovelLife SE
+void handleGesture(void); //only for NovelLife SE
 #endif //NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 void setup() {
   Serial.begin(115200);
-  delay(4000);  // Waiting for serial monitor to catch up.
+  delay(1000);  // Waiting for serial monitor to catch up.
   Serial.println("");
   Serial.println(FIRMWARE_VERSION);
   Serial.println("In setup().");
@@ -88,9 +76,9 @@ void setup() {
 
   // Setup the displays (TFTs) initaly and show bootup message(s)
   tfts.begin();  // and count number of clock faces available
-  tfts.fillScreen(TFT_SKYBLUE);
+  tfts.fillScreen(TFT_BLACK);
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
-  tfts.setCursor(0, 0, 2);  // Font 2. 18 pixel high (needs to be definded for loading)
+  tfts.setCursor(0, 0, 2);  // Font 2. 16 pixel high
   tfts.println("setup...");
 
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -166,8 +154,7 @@ void setup() {
     Serial.println(tfts.current_graphic);
   #endif
 
-  tfts.println("Done with initializing setup!");
-  Serial.println("Done with initializing setup!");
+  tfts.println("Done with initializing setup!");Serial.println("Done with initializing setup!");
 
   // Leave boot up messages on screen for a few seconds.
   // 0.2 s times 10 = 2s, each loop prints a > character
@@ -287,7 +274,7 @@ void handleGestureInterupt()
 {
   if( isr_flag == 1 ) {
     detachInterrupt(digitalPinToInterrupt(GESTURE_SENSOR_INPUT_PIN));
-    HandleGesture();
+    handleGesture();
     isr_flag = 0;
     attachInterrupt(digitalPinToInterrupt(GESTURE_SENSOR_INPUT_PIN), gestureInterruptRoutine, FALLING);
   }
@@ -301,8 +288,8 @@ void gestureInterruptRoutine() {
 }
 
 //check which gesture was detected
-void HandleGesture() { 
-    //Serial.println("->main::HandleGesture()");
+void handleGesture() { 
+    //Serial.println("->main::handleGesture()");
     if ( apds.isGestureAvailable() ) {
       Menu::states menu_state = Menu::idle;
       switch ( apds.readGesture() ) {
@@ -364,7 +351,7 @@ void HandleGesture() {
 void handleMQTTCommands() {
 #ifdef MQTT_ENABLED
   MqttStatusPower = tfts.isEnabled();
-  MqttStatusState = (uclock.getActiveGraphicIdx()+1) * 5; // ??? Why times five?
+  MqttStatusState = (uclock.getActiveGraphicIdx()+1) * 5;
   MqttLoopFrequently();
 
   //work through the received commands
@@ -540,9 +527,6 @@ void drawMenu() {
       if (menu_state == Menu::backlight_pattern) {
         if (menu_change != 0) {
           backlights.setNextPattern(menu_change);
-          #ifdef DEBUG_OUTPUT
-            Serial.println("set Next Pattern!");
-          #endif
         }
         setupMenu();
         tfts.println("Pattern:");
@@ -686,5 +670,5 @@ void handlePowerSwitchPressed() {
     }
     backlights.togglePower();
   }
-  #endif
+#endif
 }

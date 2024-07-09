@@ -17,7 +17,7 @@ void TFTs::begin() {
   #endif
   enableAllDisplays();
   InvalidateImageInBuffer();
-  
+
   // Initialize the super class.
   init();
 

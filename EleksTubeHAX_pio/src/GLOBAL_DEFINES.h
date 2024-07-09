@@ -49,7 +49,7 @@
 // Common indexing scheme, used to identify the digit
 #define NUM_DIGITS   (6)
 
-#ifdef HARDWARE_PunkCyber_CLOCK 
+#ifdef HARDWARE_PunkCyber_CLOCK
   #define SECONDS_ONES (5)
   #define SECONDS_TENS (4)
   #define MINUTES_ONES (3)

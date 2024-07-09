@@ -3,6 +3,7 @@
 void Button::begin() {
   millis_at_last_transition = millis();
   millis_at_last_loop = millis_at_last_transition;
+
 #ifdef DEBUG_OUTPUT
     Serial.print("init button: ");Serial.println(bpin);
 #endif
@@ -38,7 +39,7 @@ void Button::loop() {
     button_state = down_edge;
     millis_at_last_transition = millis_at_last_loop;
   } 
-  else if (down_last_time == true && down_now == true) {    
+  else if (down_last_time == true && down_now == true) {
     // Been pressed. For how long?
     #ifdef DEBUG_OUTPUT_BUTTONS 
       Serial.println("BUTTON: Been pressed. For how long?");
@@ -99,15 +100,8 @@ void Button::loop() {
   down_last_time = down_now;
 }
 
-bool Button::isButtonDown() {
-  // #ifdef DEBUG_OUTPUT
-  //   Serial.print("Button::isButtonDown! pin: ");Serial.print(bpin);Serial.print("; DigitalRead: ");Serial.print(digitalRead(bpin));Serial.print("; Active_State: ");Serial.println(active_state);
-  // #endif
-  return digitalRead(bpin) == active_state;
-}
-
-const String Button::state_str[Button::num_states] = { 
-    "idle", 
+const String Button::state_str[Button::num_states] = 
+  { "idle", 
     "down_edge", 
     "down", 
     "down_long_edge", 

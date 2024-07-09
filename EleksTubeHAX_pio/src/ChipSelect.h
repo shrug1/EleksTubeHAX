@@ -20,7 +20,7 @@ public:
   // So 0 is disabled, 1 is enabled (even though CS is active low, this gets mapped.)
   // So bit 0 (LSB), is index 0, is SECONDS_ONES
   // Translation to what the 74HC595 uses is done in update()
-  void setDigitMap(uint8_t map, bool update_=true)   { if (update_) update(); }//digits_map = map;  }
+  void setDigitMap(uint8_t map, bool update_=true)   { digits_map = map; if (update_) update(); }
   uint8_t getDigitMap()                        { return digits_map; }
 
   // Helper functions

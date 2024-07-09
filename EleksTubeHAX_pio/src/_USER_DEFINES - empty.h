@@ -10,9 +10,12 @@
 #define USER_DEFINES_H_
 
 
-//uncomment for Debug logs via serial interfaces
+//uncomment for Debug logs via serial interface
 #define DEBUG_OUTPUT 1
-#define DEBUG_OUTPUT_TFT 1
+//#define DEBUG_OUTPUT_TFT 1
+//#define DEBUG_OUTPUT_VERBOSE 1
+//#define DEBUG_OUTPUT_MENU 1
+//#define DEBUG_OUTPUT_BUTTONS 1
 //#define DEBUG_OUTPUT_MQTT 1
 
 
