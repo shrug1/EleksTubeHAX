@@ -210,6 +210,14 @@ int8_t TFTs::CountNumberOfClockFaces() {
   int8_t i, found;
   char filename[10];
 
+  //TODO: Better way to get the clock faces! 
+  // Should not be needed, to have this strange way of naming convention, starting with 10.bmp...
+  // Files of the same set should just start with the same prefix, like White7Segement and then 
+  // have the number of the file in the set. like 0 or 00 or 000. i.e. White7Segement000.bmp, White7Segement001.bmp, White7Segement002.bmp, ... or VarySymbol0.bmp, VarySymbol1.bmp, VarySymbol2.bmp, ...
+  // check should be done for the full set, not only the first file of the set!
+  // check should be done, if all files are valid image files in the right size!
+  // if not, the set should be ignored but not the whole counting/detecting stopped!
+
   Serial.print("Searching for BMP clock files... ");
   found = 0;
   for (i=1; i < 10; i++) {
