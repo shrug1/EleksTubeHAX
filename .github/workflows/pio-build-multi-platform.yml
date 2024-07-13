@@ -2,7 +2,7 @@ name: EleksTubeHAX builds with PlatformIO on multiple platforms
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]
   pull_request:
     branches: [ "main" ]
 
