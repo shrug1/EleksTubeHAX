@@ -430,9 +430,9 @@ void handleMQTTCommands() {
       } else { //else from button press commands (state 100-120)
         Serial.print("Unknown MQTT command received: ");Serial.println(MqttCommandState);
       } //end if button press commands
-    } //commands under 100
-  #endif
+    } //commands under 100  
   }
+  #endif //MQTT_ENABLED
 } //HandleMQTTCommands
 
 void setupMenu() {
