@@ -10,7 +10,15 @@
 #define USER_DEFINES_H_
 
 
-//#define DEBUG_OUTPUT
+//uncomment for Debug logs via serial interface
+#define DEBUG_OUTPUT 1
+
+//#define DEBUG_OUTPUT_TFT 1
+//#define DEBUG_OUTPUT_MENU 1
+//#define DEBUG_OUTPUT_BUTTONS 1
+//#define DEBUG_OUTPUT_MQTT 1
+//#define DEBUG_OUTPUT_BACKLIGHTS 1
+//#define DEBUG_OUTPUT_CHIPSELECT 1
 
 
 // ************* Type of the clock hardware  *************

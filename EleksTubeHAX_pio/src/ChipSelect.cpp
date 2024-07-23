@@ -1,6 +1,9 @@
 #include "ChipSelect.h"
 
 void ChipSelect::begin() {
+  #ifdef DEBUG_OUTPUT_CHIPSELECT
+    Serial.println("ChipSelect::begin!");
+  #endif	
   pinMode(CSSR_LATCH_PIN, OUTPUT);
   pinMode(CSSR_DATA_PIN, OUTPUT);
   pinMode(CSSR_CLOCK_PIN, OUTPUT);
@@ -12,6 +15,9 @@ void ChipSelect::begin() {
 }
 
 void ChipSelect::update() {
+  #ifdef DEBUG_OUTPUT_CHIPSELECT
+    Serial.println("ChipSelect::update!");
+  #endif
   // Documented in README.md.  Q7 and Q6 are unused. Q5 is Seconds Ones, Q0 is Hours Tens.
   // Q7 is the first bit written, Q0 is the last.  So we push two dummy bits, then start with
   // Seconds Ones and end with Hours Tens.

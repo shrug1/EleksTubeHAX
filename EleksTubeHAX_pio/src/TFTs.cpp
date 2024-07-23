@@ -4,6 +4,9 @@
 #include "TempSensor.h"
 
 void TFTs::begin() {
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("TFTs::begin");
+  #endif
   // Start with all displays selected.
   chip_select.begin();
   chip_select.setAll();
@@ -18,15 +21,27 @@ void TFTs::begin() {
 
   // Set SPIFFS ready
   if (!SPIFFS.begin()) {
-    Serial.println("SPIFFS initialization failed!");
+    Serial.println("SPIFFS initialization FAILED! Set NuberOfClockFaces to 0");
     NumberOfClockFaces = 0;
     return;
   }
+  else{
+    Serial.println("SPIFFS initialization successfull!");
+  }
 
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("Call CountNumberOfClockFaces()");
+  #endif
   NumberOfClockFaces = CountNumberOfClockFaces();
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.print("NumberOfClockFaces: ");Serial.println(NumberOfClockFaces);
+  #endif
 }
 
 void TFTs::reinit() {
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("TFTs::reinit");
+  #endif
   // Start with all displays selected.
   chip_select.begin();
   chip_select.setAll();
@@ -40,6 +55,9 @@ void TFTs::reinit() {
 }
 
 void TFTs::clear() {
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("TFTs::clear");
+  #endif
   // Start with all displays selected.
   chip_select.setAll();
   enableAllDisplays();
@@ -51,7 +69,7 @@ void TFTs::showNoWifiStatus() {
   fillRect(0, TFT_HEIGHT - 27, TFT_WIDTH, 27, TFT_BLACK);
   setCursor(5, TFT_HEIGHT - 27, 4);  // Font 4. 26 pixel high
   print("NO WIFI !");
-  }
+}
 
 void TFTs::showNoMqttStatus() {
   chip_select.setSecondsTens();
@@ -74,11 +92,14 @@ void TFTs::showTemperature() {
    }
 #ifdef DEBUG_OUTPUT
     Serial.println("Temperature to LCD");
-#endif    
+#endif
   #endif
 }
 
 void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.print("TFTs::setDigit! digit: ");Serial.print(digit);Serial.print("; value: ");Serial.println(value);
+  #endif
   uint8_t old_value = digits[digit];
   digits[digit] = value;
   
@@ -106,6 +127,9 @@ void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
  */
  
 void TFTs::showDigit(uint8_t digit) {
+#ifdef DEBUG_OUTPUT_TFT
+  Serial.print("TFTs::showDigit: ");Serial.println(digit);
+#endif
   chip_select.setDigit(digit);
 
   if (digits[digit] == blanked) {
@@ -123,7 +147,7 @@ void TFTs::showDigit(uint8_t digit) {
 
 void TFTs::LoadNextImage() {
   if (NextFileRequired != FileInBuffer) {
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_TFT
     Serial.println("Preload next img");
 #endif
     LoadImageIntoBuffer(NextFileRequired);
@@ -152,15 +176,27 @@ uint16_t TFTs::UnpackedImageBuffer[TFT_HEIGHT][TFT_WIDTH];
 #ifndef USE_CLK_FILES
 
 int8_t TFTs::CountNumberOfClockFaces() {
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("TFTs::CountNumberOfClockFaces");
+  #endif
   int8_t i, found;
   char filename[10];
 
-  Serial.print("Searching for BMP clock files... ");
+  Serial.print("Searching for clock face file sets...");
   found = 0;
   for (i=1; i < 10; i++) {
     sprintf(filename, "/%d.bmp", i*10); // search for files 10.bmp, 20.bmp,...
+    #ifdef DEBUG_OUTPUT_TFT
+      Serial.print("Checking for: ");Serial.println(filename);
+    #endif
     if (!FileExists(filename)) {
+      #ifdef DEBUG_OUTPUT_TFT
+        Serial.print("File NOT found: ");Serial.println(filename);
+      #endif
       found = i-1;
+      #ifdef DEBUG_OUTPUT_TFT
+        Serial.print("found = i-1 -> found is now: ");Serial.println(found);
+      #endif
       break;
     }
   }
@@ -177,7 +213,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   char filename[10];
   sprintf(filename, "/%d.bmp", file_index);
 
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_TFT
   Serial.print("Loading: ");
   Serial.println(filename);
 #endif
@@ -226,7 +262,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   int16_t x = (TFT_WIDTH - w) / 2;
   int16_t y = (TFT_HEIGHT - h) / 2;
   
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_TFT
   Serial.print(" image W, H, BPP: ");
   Serial.print(w); 
   Serial.print(", "); 
@@ -301,9 +337,8 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   FileInBuffer = file_index;
   
   bmpFS.close();
-#ifdef DEBUG_OUTPUT
-  Serial.print("img load time: ");
-  Serial.println(millis() - StartTime);  
+#ifdef DEBUG_OUTPUT_TFT
+  Serial.print("img load time: ");Serial.println(millis() - StartTime);
 #endif
   return (true);
 }
@@ -338,7 +373,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   char filename[10];
   sprintf(filename, "/%d.clk", file_index);
 
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_TFT
   Serial.print("Loading: ");
   Serial.println(filename);
 #endif
@@ -380,7 +415,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   int16_t x = (TFT_WIDTH - w) / 2;
   int16_t y = (TFT_HEIGHT - h) / 2;
   
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_TFT
   Serial.print(" image W, H: ");
   Serial.print(w); 
   Serial.print(", "); 
@@ -425,7 +460,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   FileInBuffer = file_index;
   
   bmpFS.close();
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_TFT
   Serial.print("img load time: ");
   Serial.println(millis() - StartTime);  
 #endif
@@ -436,14 +471,14 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
 void TFTs::DrawImage(uint8_t file_index) {
 
   uint32_t StartTime = millis();
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_TFT
   Serial.println("");  
   Serial.print("Drawing image: ");  
   Serial.println(file_index);  
 #endif  
   // check if file is already loaded into buffer; skip loading if it is. Saves 50 to 150 msec of time.
   if (file_index != FileInBuffer) {
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_TFT
   Serial.println("Not preloaded; loading now...");  
 #endif  
     LoadImageIntoBuffer(file_index);
@@ -454,7 +489,7 @@ void TFTs::DrawImage(uint8_t file_index) {
   pushImage(0,0, TFT_WIDTH, TFT_HEIGHT, (uint16_t *)UnpackedImageBuffer);
   setSwapBytes(oldSwapBytes);
 
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_TFT
   Serial.print("img transfer time: ");  
   Serial.println(millis() - StartTime);  
 #endif
@@ -480,4 +515,4 @@ uint32_t TFTs::read32(fs::File &f) {
   ((uint8_t *)&result)[3] = f.read(); // MSB
   return result;
 }
-//// END STOLEN CODE
+// END STOLEN CODE

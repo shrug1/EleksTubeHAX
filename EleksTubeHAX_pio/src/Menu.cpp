@@ -22,6 +22,9 @@ void Menu::loop(Buttons &buttons) {
     // Go idle.
     state = idle;
     state_changed = true;
+#ifdef DEBUG_OUTPUT_MENU
+        Serial.println("MENU: Go idle if the user hasn't pressed a button in a long time.");
+#endif
     return;
   }
   
@@ -31,6 +34,9 @@ void Menu::loop(Buttons &buttons) {
 
     millis_last_button_press = millis();
     state_changed = true;
+#ifdef DEBUG_OUTPUT_MENU
+        Serial.println("MENU: Menu is idle. A button is pressed, go into the menu, but don't act on the button press. It just wakes up the menu.");
+#endif
     return;
   }
 
@@ -44,6 +50,9 @@ void Menu::loop(Buttons &buttons) {
 
     millis_last_button_press = millis();
     state_changed = true;
+#ifdef DEBUG_OUTPUT_MENU
+        Serial.print("MENU: Go to the next menu option! New state: ");Serial.println(state);
+#endif
     return;
   }
 
@@ -51,6 +60,9 @@ void Menu::loop(Buttons &buttons) {
   if (state != idle && (power_state == Button::down_edge)) {
     state = idle;
     state_changed = true;
+#ifdef DEBUG_OUTPUT_MENU
+        Serial.println("MENU: Exit with a power button.");
+#endif
     return;
   }
 
@@ -66,6 +78,9 @@ void Menu::loop(Buttons &buttons) {
 
     millis_last_button_press = millis();
     state_changed = true;
+#ifdef DEBUG_OUTPUT_MENU
+        Serial.print("MENU: In a menu, and a left (negative change value) or right button (positive change value) has been pressed! Change: ");Serial.println(change);
+#endif
     return;
   }
   // Some other button state, but it doesn't trigger any change in state.  There are LOTS of states that will

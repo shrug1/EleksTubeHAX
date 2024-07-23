@@ -63,7 +63,7 @@ void setup() {
   delay(1000);  // Waiting for serial monitor to catch up.
   Serial.println("");
   Serial.println(FIRMWARE_VERSION);
-  Serial.println("In setup().");  
+  Serial.println("In setup().");
 
   stored_config.begin();
   stored_config.load();
@@ -79,57 +79,65 @@ void setup() {
 #endif
 
   // Setup the displays (TFTs) initaly and show bootup message(s)
-  tfts.begin();  // and count number of clock faces available
+  tfts.begin();  // Init all things for the TFT LCDs. Call Init() method of the super class, init SPIFFS and count number of clock faces available.
   tfts.fillScreen(TFT_BLACK);
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
   tfts.setCursor(0, 0, 2);  // Font 2. 16 pixel high
-  tfts.println("setup...");
+  tfts.println("Setup...");
 
   // Setup WiFi connection. Must be done before setting up Clock.
   // This is done outside Clock so the network can be used for other things.
-//  WiFiBegin(&stored_config.config.wifi);
-  tfts.println("WiFi start");
+  tfts.println("WiFi start");Serial.println("WiFi start");
   WifiBegin();
   
-  // wait for a bit before querying NTP
+  // Wait a bit (500ms) to let Wifi settle before querying NTP
   for (uint8_t ndx=0; ndx < 5; ndx++) {
     tfts.print(">");
     delay(100);
   }
   tfts.println("");
 
-  // Setup the clock.  It needs WiFi to be established already.
-  tfts.println("Clock start");
+  // Setup all around the clock. It needs WiFi to be established already.
+  tfts.println("Clock start");Serial.println("Clock start");
   uclock.begin(&stored_config.config.uclock);
 
   // Setup MQTT
-  tfts.println("MQTT start");
+  tfts.println("MQTT start");Serial.println("MQTT start");
   MqttStart();
 
 #ifdef GEOLOCATION_ENABLED
-  tfts.println("Geoloc query");
+  tfts.println("Use internet based geo locaction query to get the actual timezone to be used!");
+  Serial.println("Use internet based geo locaction query to get the actual timezone to be used!");
   if (GetGeoLocationTimeZoneOffset()) {
     tfts.print("TZ: ");
     tfts.println(GeoLocTZoffset);
     uclock.setTimeZoneOffset(GeoLocTZoffset * 3600);
-    Serial.print("Saving config...");
+    Serial.print("Saving config, triggered by timezone change...");
     stored_config.save();
     Serial.println(" Done.");
   } else {
-    Serial.println("Geolocation failed.");    
+    Serial.println("Geolocation failed.");
     tfts.println("Geo FAILED");
   }
 #endif
 
+  // Check if the selected clock face is within the available range of clock faces (some clock faces which was existing before, could be deleted now)
   if (uclock.getActiveGraphicIdx() > tfts.NumberOfClockFaces) {
     uclock.setActiveGraphicIdx(tfts.NumberOfClockFaces);
-    Serial.println("Last selected index of clock face is larger than currently available number of image sets.");
+    Serial.println("Last selected index of clock face is larger than currently available number of image sets. Set to last available.");
   }
+  
+  // Set actual clock face in the instance of the TFTs class to the selected one from the clock 
   tfts.current_graphic = uclock.getActiveGraphicIdx();
+  #ifdef DEBUG_OUTPUT
+    Serial.print("Current active graphic index in tfts after correction: ");Serial.println(tfts.current_graphic);
+  #endif
 
-  tfts.println("Done with setup.");
+  // Done with initalizing the hardware
+  tfts.println("Done with initializing setup!");Serial.println("Done with initializing setup!");
 
   // Leave boot up messages on screen for a few seconds.
+  // 0.2 s times 10 = 2s, each loop prints a > character
   for (uint8_t ndx=0; ndx < 10; ndx++) {
     tfts.print(">");
     delay(200);
@@ -137,11 +145,13 @@ void setup() {
 
   // Start up the clock displays.
   tfts.fillScreen(TFT_BLACK);
-  uclock.loop();
-  updateClockDisplay(TFTs::force);
-  Serial.println("Setup finished.");
+  uclock.loop();                    // Get the actual time into memory, if not initialized already
+  updateClockDisplay(TFTs::force);  // Update the digits of the clock face. Get actual time from RTC and set the LCDs.
+
+  Serial.println("Setup finished!");
 }
 
+//main loop
 void loop() {
   uint32_t millis_at_top = millis();
   // Do all the maintenance work
@@ -174,7 +184,9 @@ void loop() {
     if (MqttCommandState >= 90)
       { idx = random(1, tfts.NumberOfClockFaces+1); } else
       { idx = (MqttCommandState / 5) -1; }  // 10..40 -> graphic 1..6
-    Serial.print("Graphic change request from MQTT; command: ");
+    #ifdef DEBUG_OUTPUT_MQTT
+      Serial.print("Clock face change request from MQTT; command: ");Serial.print(MqttCommandState);Serial.print("; so selected index: ");Serial.println(idx);
+    #endif
     Serial.print(MqttCommandState);
     Serial.print(", index: ");
     Serial.println(idx);
@@ -231,9 +243,9 @@ void loop() {
     if (menu_state == Menu::idle) {
       // We just changed into idle, so force redraw everything, and save the config.
       updateClockDisplay(TFTs::force);
-      Serial.print("Saving config...");
+      Serial.print("Saving config, after leaving menu...");
       stored_config.save();
-      Serial.println(" Done.");
+      Serial.println("Done.");
     }
     else {
       // Backlight Pattern
@@ -300,7 +312,7 @@ void loop() {
 
         setupMenu();
         tfts.println("UTC Offset");
-        tfts.println(" +/- Hour");
+        tfts.println("+/- 1h");
         time_t offset = uclock.getTimeZoneOffset();
         int8_t offset_hour = offset/3600;
         int8_t offset_min = (offset%3600)/60;
@@ -324,7 +336,7 @@ void loop() {
 
         setupMenu();
         tfts.println("UTC Offset");
-        tfts.println(" +/- 15m");
+        tfts.println("+/- 15m");
         time_t offset = uclock.getTimeZoneOffset();
         int8_t offset_hour = offset/3600;
         int8_t offset_min = (offset%3600)/60;
@@ -346,7 +358,7 @@ void loop() {
 
         setupMenu();
         tfts.println("Selected");
-        tfts.println(" graphic:");
+        tfts.println("graphic:");
         tfts.printf("    %d\n", uclock.getActiveGraphicIdx());
       }
      
@@ -372,6 +384,10 @@ void loop() {
 #endif   
     }
   }
+
+// End of normal loop
+//------------------------------------------------------------------------------------------------------------------------------------------------------------
+// Loop time management + other things to do in "free time"
 
   uint32_t time_in_loop = millis() - millis_at_top;
   if (time_in_loop < 20) {
@@ -551,6 +567,9 @@ void UpdateDstEveryNight() {
 }
 
 void updateClockDisplay(TFTs::show_t show) {
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("main::updateClockDisplay!");
+  #endif	
   // refresh starting on seconds
   tfts.setDigit(SECONDS_ONES, uclock.getSecondsOnes(), show);
   tfts.setDigit(SECONDS_TENS, uclock.getSecondsTens(), show);
