@@ -437,7 +437,7 @@ void GestureStart()
   }
 }
 
-//Handle Interrupt from gesture sensor and simulate a short button press (state down_edge) of the corresponding button, if a gesture is detected 
+//Handle Interrupt from gesture sensor and simulate a short button press of the corresponding button, if a gesture is detected 
 void HandleGestureInterupt()
 {
   if( isr_flag == 1 ) {
@@ -456,17 +456,43 @@ void GestureInterruptRoutine() {
 }
 
 //check which gesture was detected
-void HandleGesture() { 
-    //Serial.println("->main::HandleGesture()");
-    if ( apds.isGestureAvailable() ) {
+void HandleGesture() {
+  #ifdef DEBUG_OUTPUT
+    Serial.println("->main::HandleGesture()");
+  #endif
+  if ( apds.isGestureAvailable() ) {
+    Menu::states menu_state = Menu::idle;
     switch ( apds.readGesture() ) {
       case DIR_UP:
-        buttons.left.setDownEdgeState();
         Serial.println("Gesture detected! LEFT");
+        menu_state = menu.getState();
+        if (menu_state == Menu::idle) { //not in the menu, so set the clock face instead
+          Serial.println("Adjust clock face index! Decreasing by 1.");
+          uclock.adjustClockGraphicsIdx(-1);
+          if(tfts.current_graphic != uclock.getActiveGraphicIdx()) {
+            tfts.current_graphic = uclock.getActiveGraphicIdx();
+          updateClockDisplay(TFTs::force);   // redraw everything
+          }
+        }
+        else {
+          buttons.left.setDownEdgeState(); // in the menu, so "press" the left button
+        }
         break;
       case DIR_DOWN:
-        buttons.right.setDownEdgeState();
         Serial.println("Gesture detected! RIGHT");
+        menu_state = menu.getState();
+        Serial.println(menu_state);
+        if (menu_state == Menu::idle) { //not in the menu, so set the clock face instead
+          Serial.println("Adjust clock face index! Increasing by 1.");
+          uclock.adjustClockGraphicsIdx(1);
+          if(tfts.current_graphic != uclock.getActiveGraphicIdx()) {
+            tfts.current_graphic = uclock.getActiveGraphicIdx();
+          updateClockDisplay(TFTs::force);   // redraw everything
+          }
+        }
+        else {
+          buttons.right.setDownEdgeState(); // in the menu, so "press" the right button
+        }
         break;
       case DIR_LEFT:
         buttons.power.setDownEdgeState();
@@ -484,10 +510,10 @@ void HandleGesture() {
         buttons.power.setDownEdgeState();
         Serial.println("Gesture detected! FAR");
         break;
-      default:        
+      default:
         Serial.println("Movement detected but NO gesture detected!");
-    }
-  }
+    } //switch apds.readGesture()
+  } //if apds.isGestureAvailable()
   return;
 }
 #endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
