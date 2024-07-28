@@ -60,6 +60,7 @@ private:
   bool enabled;
 
   bool FileExists(const char* path);
+  bool FileExists(String path);
   int8_t CountNumberOfClockFaces();
   bool LoadImageIntoBuffer(uint8_t file_index);
   void DrawImage(uint8_t file_index);

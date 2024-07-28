@@ -196,6 +196,14 @@ bool TFTs::FileExists(const char* path) {
     return Exists;
 }
 
+bool TFTs::FileExists(String path) {    
+    fs::File f = SPIFFS.open(path, "r");
+    bool Exists = ((f == true) && !f.isDirectory());
+    f.close();
+    return Exists;
+}
+
+
 // These BMP functions are stolen directly from the TFT_SPIFFS_BMP example in the TFT_eSPI library.
 // Unfortunately, they aren't part of the library itself, so I had to copy them.
 // I've modified DrawImage to buffer the whole image at once instead of doing it line-by-line.
@@ -206,9 +214,12 @@ uint16_t TFTs::UnpackedImageBuffer[TFT_HEIGHT][TFT_WIDTH];
 
 #ifndef USE_CLK_FILES
 
-int8_t TFTs::CountNumberOfClockFaces() {
+int8_t TFTs::CountNumberOfClockFaces() {  
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("TFTs::CountNumberOfClockFaces");
+  #endif
   int8_t i, found;
-  char filename[10];
+  String filename;
 
   //TODO: Better way to get the clock faces! 
   // Should not be needed, to have this strange way of naming convention, starting with 10.bmp...
@@ -218,17 +229,38 @@ int8_t TFTs::CountNumberOfClockFaces() {
   // check should be done, if all files are valid image files in the right size!
   // if not, the set should be ignored but not the whole counting/detecting stopped!
 
-  Serial.print("Searching for BMP clock files... ");
+  Serial.print("Searching for clock face file sets...");
   found = 0;
-  for (i=1; i < 10; i++) {
-    sprintf(filename, "/%d.bmp", i*10); // search for files 10.bmp, 20.bmp,...
+
+  // this works only till 90.bmp - onyl 8 different clock face sets can be used!
+  // this only checks the first file of a set, not the full set!
+  for (i=1; i<10; i++) {
+    filename = "/" + String(i*10) + ".bmp"; // search for files 10.bmp, 20.bmp,...90.bmp
+    //sprintf(filename, "/%d.bmp", i*10); // search for files 10.bmp, 20.bmp,...90.bmp
+    #ifdef DEBUG_OUTPUT_TFT
+      Serial.print("Checking for: ");Serial.println(filename);
+    #endif
     if (!FileExists(filename)) {
+      #ifdef DEBUG_OUTPUT_TFT
+        Serial.print("File NOT found: ");Serial.println(filename);
+      #endif
+      //I guess, this is an "emergency stop", if the first file of the actual set (based on i*10) is not found, they ASSuME, that the whole set is not there and set the "last found" set as the last one.
+      //This only works, if there are LESS then then 8 sets (i<10) -> if there are 8 sets -> "found" IS NEVER SET to a usefull value and stays 0! 
+      //Workaround: Iincrement "found" if first image of the actual searched set is found!
       found = i-1;
+      #ifdef DEBUG_OUTPUT_TFT
+        Serial.print("found = i-1 -> found is now: ");Serial.println(found);
+      #endif
       break;
-    }
+    } else { //!FileExists(filename)
+      #ifdef DEBUG_OUTPUT_TFT
+        Serial.print("File FOUND: ");Serial.println(filename);
+      #endif
+      found++;
+    } //!FileExists(filename)
   }
   Serial.print(found);
-  Serial.println(" fonts found.");
+  Serial.println(" clock faces found.");
   return found;
 }
 
