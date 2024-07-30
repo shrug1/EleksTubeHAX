@@ -143,16 +143,29 @@ void setup() {
   Serial.println(" Done.");
 #endif
 
+  #ifdef DEBUG_OUTPUT
+  Serial.print("Current active graphic index in uclock after init with config load: ");Serial.println(uclock.getActiveGraphicIdx());
+  Serial.print("Number of clock faces in tfts after init: ");Serial.println(tfts.NumberOfClockFaces);
+  #endif
+
+  //Fallback, if number of clock faces is not counted correctly, set at least to 1 (can happen, if the SPIFFS is not mounted correctly)
+  if (tfts.NumberOfClockFaces <= 0) {
+    tfts.NumberOfClockFaces = 1;
+    Serial.println("Number of clock faces is not counted correctly, set to 1.");
+  }
+
+  // Check if the selected clock face is within the available range of clock faces (some clock faces which was existing before, could be deleted now)
   if (uclock.getActiveGraphicIdx() > tfts.NumberOfClockFaces) {
     uclock.setActiveGraphicIdx(tfts.NumberOfClockFaces);
-    Serial.println("Last selected index of clock face is larger than currently available number of image sets.");
+    Serial.println("Last selected index of clock face is larger than currently available number of image sets. Set to last available.");
   }
   
+  // Set actual clock face in the instance of the TFTs class to the selected one from the clock 
   tfts.current_graphic = uclock.getActiveGraphicIdx();
   #ifdef DEBUG_OUTPUT
-    Serial.print("Current active graphic index: ");
-    Serial.println(tfts.current_graphic);
+    Serial.print("Current active graphic index in tfts after correction: ");Serial.println(tfts.current_graphic);
   #endif
+
 
   tfts.println("Done with initializing setup!");Serial.println("Done with initializing setup!");
 
