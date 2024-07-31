@@ -2,14 +2,18 @@
 
 #ifdef HARDWARE_IPSTUBE_H401_CLOCK
 // Define the pins for each LCD's enable wire
+// The order is from left to right, so the first pin is for the seconds ones, the last for the hours tens
+// LCD2 is the leftmost one         - seconds one - pin 21 as GPIO15
+// LCD3 is the second from the left - seconds ten - pin 22 as GPIO2
+// LCD4 is the third from the left  - minutes one - pin 23 as GPIO27
+// LCD5 is the fourth from the left - minutes ten - pin 17 as GPIO14
+// LCD6 is the fifth from the left  - hours one   - pin 18 as GPIO12
+// LCD7 is the rightmost one        - hours ten   - pin 20 as GPIO13
 const int lcdEnablePins[NUM_DIGITS] = {GPIO_NUM_15,GPIO_NUM_2,GPIO_NUM_27,GPIO_NUM_14,GPIO_NUM_12,GPIO_NUM_13};
 const int numLCDs = NUM_DIGITS;
 #endif
 
 void ChipSelect::begin() {
-  #ifdef DEBUG_OUTPUT_VERBOSE
-    Serial.println("ChipSelect::begin!");
-  #endif
   #ifndef HARDWARE_IPSTUBE_H401_CLOCK
     pinMode(CSSR_LATCH_PIN, OUTPUT);
     pinMode(CSSR_DATA_PIN, OUTPUT);
@@ -29,9 +33,6 @@ void ChipSelect::begin() {
 }
 
 void ChipSelect::clear(bool update_) {
-#ifdef DEBUG_OUTPUT_VERBOSE
-  Serial.println("ChipSelect::clear!");
-#endif
 #ifndef HARDWARE_IPSTUBE_H401_CLOCK
   setDigitMap(all_off, update_);
 #else
@@ -40,9 +41,6 @@ void ChipSelect::clear(bool update_) {
 }
 
 void ChipSelect::setAll(bool update_) {
-#ifdef DEBUG_OUTPUT_VERBOSE 
-  Serial.println("ChipSelect::setAll!");
-#endif
 #ifndef HARDWARE_IPSTUBE_H401_CLOCK
   setDigitMap(all_on,  update_);
 #else
@@ -51,9 +49,6 @@ void ChipSelect::setAll(bool update_) {
 }
 
 void ChipSelect::setDigit(uint8_t digit, bool update_) {
-#ifdef DEBUG_OUTPUT_VERBOSE
-  Serial.print("ChipSelect::setDigit! digit: ");Serial.println(digit);
-#endif
   #ifndef HARDWARE_IPSTUBE_H401_CLOCK
     // Set the bit for the given digit in the digits_map
     setDigitMap(1 << digit, update_);
@@ -71,11 +66,7 @@ void ChipSelect::setDigit(uint8_t digit, bool update_) {
   #endif
 }
 
-void ChipSelect::update() {
-  #ifdef DEBUG_OUTPUT_VERBOSE
-    Serial.println("ChipSelect::update!");
-  #endif
-
+void ChipSelect::update() {  
   #ifndef HARDWARE_IPSTUBE_H401_CLOCK
     // Documented in README.md.  Q7 and Q6 are unused. Q5 is Seconds Ones, Q0 is Hours Tens.
     // Q7 is the first bit written, Q0 is the last.  So we push two dummy bits, then start with
@@ -87,11 +78,7 @@ void ChipSelect::update() {
     digitalWrite(CSSR_LATCH_PIN, LOW);
     shiftOut(CSSR_DATA_PIN, CSSR_CLOCK_PIN, LSBFIRST, to_shift);
     digitalWrite(CSSR_LATCH_PIN, HIGH);
-  #else
-    #ifdef DEBUG_OUTPUT_VERBOSE
-      Serial.print("currentLCD/digit: ");Serial.println(currentLCD);
-      Serial.print("lcdEnablePins[currentLCD]: ");Serial.println(lcdEnablePins[currentLCD]);
-    #endif
+  #else    
     //this is just, to follow the "update" logic of the other hardware!
     //for H401, the CS pin is already pulled to LOW by the "setDigit" function and stays there, till another "setDigit" is called.
     //so all writing done by the eTFT_SPI lib functions in the time, the pin is low, will write out directly to the LCD.
@@ -101,9 +88,6 @@ void ChipSelect::update() {
 }
 
 bool ChipSelect::isSecondsOnes() {
-#ifdef DEBUG_OUTPUT_VERBOSE
-  Serial.println("ChipSelect::isSecondsOnes!");
-#endif
 #ifndef HARDWARE_IPSTUBE_H401_CLOCK
   return (digits_map&SECONDS_ONES_MAP > 0);
 #else
@@ -112,9 +96,6 @@ bool ChipSelect::isSecondsOnes() {
 }
 
 bool ChipSelect::isSecondsTens() {
-#ifdef DEBUG_OUTPUT_VERBOSE
-  Serial.println("ChipSelect::isSecondsTens!");
-#endif
 #ifndef HARDWARE_IPSTUBE_H401_CLOCK
   return (digits_map&SECONDS_TENS_MAP > 0);
 #else
@@ -123,9 +104,6 @@ bool ChipSelect::isSecondsTens() {
 }
 
 bool ChipSelect::isMinutesOnes() {
-#ifdef DEBUG_OUTPUT_VERBOSE
-  Serial.println("ChipSelect::isMinutesOnes!");
-#endif
 #ifndef HARDWARE_IPSTUBE_H401_CLOCK
   return (digits_map&MINUTES_ONES_MAP > 0);
 #else
@@ -134,9 +112,6 @@ bool ChipSelect::isMinutesOnes() {
 }
 
 bool ChipSelect::isMinutesTens() {
-#ifdef DEBUG_OUTPUT_VERBOSE
-  Serial.println("ChipSelect::isMinutesTens!");
-#endif
 #ifndef HARDWARE_IPSTUBE_H401_CLOCK
   return (digits_map&MINUTES_TENS_MAP > 0);
 #else
@@ -145,9 +120,6 @@ bool ChipSelect::isMinutesTens() {
 }
 
 bool ChipSelect::isHoursOnes() {
-#ifdef DEBUG_OUTPUT_VERBOSE
-  Serial.println("ChipSelect::isHoursOnes!");
-#endif
 #ifndef HARDWARE_IPSTUBE_H401_CLOCK
   return (digits_map&HOURS_ONES_MAP > 0);
 #else
@@ -156,9 +128,6 @@ bool ChipSelect::isHoursOnes() {
 }
 
 bool ChipSelect::isHoursTens() {
-#ifdef DEBUG_OUTPUT_VERBOSE
-  Serial.println("ChipSelect::isHoursTens!");
-#endif
 #ifndef HARDWARE_IPSTUBE_H401_CLOCK
   return (digits_map&HOURS_TENS_MAP > 0);
 #else
@@ -168,9 +137,6 @@ bool ChipSelect::isHoursTens() {
 
 
 void ChipSelect::enableAllCSPinsH401() {
-#ifdef DEBUG_OUTPUT_VERBOSE
-  Serial.println("ChipSelect::enableAllCSPinsH401!");
-#endif
 #ifdef HARDWARE_IPSTUBE_H401_CLOCK
   // enable each LCD
   for (int i = 0; i < numLCDs; ++i) {
@@ -180,9 +146,6 @@ void ChipSelect::enableAllCSPinsH401() {
 }
 
 void ChipSelect::disableAllCSPinsH401() {
-#ifdef DEBUG_OUTPUT_VERBOSE
-  Serial.println("ChipSelect::disableAllCSPinsH401!");
-#endif
 #ifdef HARDWARE_IPSTUBE_H401_CLOCK
   // disable each LCD
   for (int i = 0; i < numLCDs; ++i) {
@@ -192,9 +155,6 @@ void ChipSelect::disableAllCSPinsH401() {
 }
 
 void ChipSelect::enableDigitCSPinsH401(uint8_t digit) {
-#ifdef DEBUG_OUTPUT_VERBOSE
-  Serial.print("ChipSelect::enableDigitCSPinsH401! digit: ");Serial.println(digit);
-#endif
 #ifdef HARDWARE_IPSTUBE_H401_CLOCK
   // enable the LCD for the given digit
   digitalWrite(lcdEnablePins[digit], LOW);
@@ -202,12 +162,8 @@ void ChipSelect::enableDigitCSPinsH401(uint8_t digit) {
 }
 
 void ChipSelect::disableDigitCSPinsH401(uint8_t digit) {
-#ifdef DEBUG_OUTPUT_VERBOSE
-  Serial.print("ChipSelect::disableDigitCSPinsH401! digit: ");Serial.println(digit);
-#endif
 #ifdef HARDWARE_IPSTUBE_H401_CLOCK
   // disable the LCD for the given digit
   digitalWrite(lcdEnablePins[digit], HIGH);
 #endif
 }
-
