@@ -1,6 +1,6 @@
 # EleksTubeHAX - An aftermarket custom firmware for the desk clock
 
-![EleksTube IPS clock](/images/EleksTube_IPS_Classic_Edition.jpg)
+![EleksTube IPS clock](/documentation/ImagesMD/EleksTube_IPS_Classic_Edition.jpg)
 
 ## Supported hardware models
 
@@ -28,15 +28,15 @@ If you find another clone/version of this kind of clocks, please create an issue
 ## Mainboard/PCB views
 
 EleksTube IPS - Orginal Version - with hardware modification
-![EleksTube IPS clock](/images/EleksTube_original_PCB.jpg)
+![EleksTube IPS clock](/documentation/ImagesMD/EleksTube_original_PCB.jpg)
 SI HAI IPS
-![SI HAI IPS clock](/images/SI_HAI_ips_clock.jpg)
+![SI HAI IPS clock](/documentation/ImagesMD/SI_HAI_ips_clock.jpg)
 NovelLife SE
-![NovelLife SE clock](/images/NovelLife_SE.jpg)
+![NovelLife SE clock](/documentation/ImagesMD/NovelLife_SE.jpg)
 PunkCyber
-![PunkCyber / RGB Glow tube](/images/PunkCyber_ips_clock.jpg)
+![PunkCyber / RGB Glow tube](/documentation/ImagesMD/PunkCyber_ips_clock.jpg)
 IPSTUBE - H401
-![IPSTUBE clock - Model H401](/images/IPSTUBE_H401_PCB2.jpg)
+![IPSTUBE clock - Model H401](/documentation/ImagesMD/IPSTUBE_H401_PCB2.jpg)
 
 ## Main clock features
 
@@ -225,15 +225,15 @@ Some clocks needs a button pressed while the powering phase (plugging the USB ca
 
 Compile the code via the "Build" command of PlatformIO extension and upload the code via the "Upload" command in the matching environment for your clock (esp32dev is right for all clocks, except from IPSTUBE)
 
-![alt text](/images/PlatformIOBuild.png)
+![alt text](/documentation/ImagesMD/PlatformIOBuild.png)
 
 At this point, it should build cleanly and upload successfully.
 
 Building:
-![alt text](/images/PlatformIOBuildOutput.png)
+![alt text](/documentation/ImagesMD/PlatformIOBuildOutput.png)
 
 Uploading:
-![alt text](/images/PlatformIOUploadOutput.png)
+![alt text](/documentation/ImagesMD/PlatformIOUploadOutput.png)
 
 Note: For IPSTUBE clocks use "esp32dev8MB" environment
 
@@ -257,7 +257,7 @@ Note: All files in the `data` directory will be packed into the SPIFFS flash ima
 In PlatformIO extension go to "Project Tasks" and expand: esp32dev -> Platform
 Select "Build Filesystem Image" first, then connect the clock and click "Upload Filesystem Image".
 
-![alt text](/images/PlatformIOBuildFilesystem.png)
+![alt text](/documentation/ImagesMD/PlatformIOBuildFilesystem.png)
 
 This will upload the files to the SPIFFS filesystem on the ESP32 (flash of the clock).
 They'll stay there, even if you re-upload the firmware to the app partition, because the data partition is not overriden or modified by that.
@@ -268,7 +268,7 @@ Note: For IPSTUBE clocks use "esp32dev8MB" environment
 
 If you want to change the uploaded clock faces for the clock:
 
-- Create your own set of BMP files or select and copy some from the provided sets in the folders of this repo or download some from the internet (see below).
+- Create your own set of BMP files or select and copy some from the provided sets in the `data - other graphics` folder of this repo or download some from the internet (see below).
 - Max resolution of each image is 135 x 240 pixels (HxW). They can be smaller, then the picture will be centered on the display.
 - Max color depth is 24 bit RGB. But recommended is paletized Bitmaps with 256 colors palette.
 - Name them `10.bmp` (for digit Zero) through `19.bmp` (for digit Nine); `20.bmp` to `29.bmp`, and so on. Note: There is no set 00-09.bmp!
@@ -319,7 +319,7 @@ See [Old Readme File](/README_OLD.md) for details.
 [Original documentation and software from EleksMaker.](https://wiki.eleksmaker.com/doku.php?id=ips)
 
 For Elekstube OV and SI HAI:
-Hardware pinout and notes are in the document  `Hardware pinout.xlsx`
+Hardware pinout and notes are in the document `Hardware pinout.xlsx` in the `documentation` folder
 
 There was an offical "manual" and software package avaiable for the original Elekstube clock.
 The website is not maintained anymore, so just for archive purpose:
@@ -332,7 +332,7 @@ The "Original Version" of the EleksTube clock has a few problems in the hardware
 _Conversion:_
 The CH340 chip, used for USB-UART conversion, can operate both on 5V and 3.3V. On the board it is powered by 5V. Cut one trace on the bottom side of the board that supplies the chip with 5V and route the 3.3V over the resistors / capacitors to VDD and VREF.
 
-![Hardware modification](/images/EleksTube_IPS_CH340C_mod.jpg)
+![Hardware modification](/documentation/ImagesMD/EleksTube_IPS_CH340C_mod.jpg)
 
 ## Main Contributors
 
