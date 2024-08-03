@@ -4,26 +4,38 @@
 
 ## Supported hardware models
 
-- **"EleksTube IPS clock" Original Version**
-- **"EleksTube IPS clock" Gen2 - now officially called "EleksTube IPS Classic Edition"**
-- **"SI HAI IPS clock"**
-- **"NovelLife SE clock" - with and without gesture sensor**
-- **"PunkCyber clock/RGB Glow Tube DIY clock" from pcbway**
-- **"IPSTUBE clock - Model H401" - with and without bottom LED stripe**
+### Original EleksTube Models
 
-Note: All "Original EleksTube" clocks, sold after July 2022 are "Gen2" versions. See [Note on EleksTube website](https://elekstube.com/blogs/news/instructions-on-elekstube-clock-for-gen2-systems)
+1. **EleksTube IPS Clock (Original Version)**
+2. **EleksTube IPS Clock Gen2** (now officially called "**EleksTube IPS Classic Edition**")
 
-Buy your own clock under the name "EleksTube IPS clock" on eBay, Banggood, AliExpress, on the EleksTube website, etc.
-Look for places that offer 30-day guarantee, otherwise it can be a fake product!
+### Other Supported Models
 
-This firmware supports and was tested on different clocks!
+3. **SI HAI IPS Clock**
+4. **NovelLife SE Clock**
+   - With gesture sensor
+   - Without gesture sensor
+5. **PunkCyber Clock/RGB Glow Tube DIY Clock** from PCBWay
+6. **IPSTUBE Clock - Model H401**
+   - With bottom LED stripe
+   - Without bottom LED stripe
 
-Note that "EleksTube IPS" is the original, from the inventor of this type of the clock in 2021.
-Later more and more similarly looking clock designs appeared, copies of the original with more or less modified hardware. Also newer versions from EleksTube itself are on the market (i.e. PR1 and PR2).
+### Notes
 
-With this project we try to support the most popular models.
+- All "Original EleksTube" clocks sold after July 2022 are "Gen2" versions. Refer to the [Blog post on EleksTube website](https://elekstube.com/blogs/news/instructions-on-elekstube-clock-for-gen2-systems) for more details .
+- **EleksTube IPS Clock** is the original model created by the inventor in 2021. There are now many similar designs and clones on the market with varying hardware modifications.
+- Newer versions from EleksTube, such as PR1 and PR2, are also available.
 
-If you find another clone/version of this kind of clocks, please create an issue in the "Issues" section of this GitHub project and tells us details.
+### Purchasing Information
+
+You can buy the "EleksTube IPS Clock" or its clones from eBay, Banggood, AliExpress, the EleksTube website, and other retailers.
+
+Ensure the seller offers at least a 30-day guarantee to avoid purchasing fake products.
+
+### Firmware Compatibility
+
+- This firmware supports and has been tested on various clock models listed above.
+- If you discover a new clone or version of these types of clocks, please report it by creating an issue in the "Issues" section of the GitHub project. Provide as many details as possible to help expand compatibility.
 
 ## Mainboard/PCB views
 
