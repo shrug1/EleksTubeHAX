@@ -62,10 +62,15 @@ IPSTUBE - H401
 
 ## How to use this firmware
 
-If you just want to use new firmware without setting up all the tools and libraries and everything, navigate to folder `\pre-built-firmware\` and modify `_ESP32 write flash.cmd` to upload the firmware version for your clock. 
-If you want more features and configure the firmware, continue reading below.
+### Pre-Build images
 
-## Backup first
+If you just want to use this firmware without setting up all the tools and libraries and everything, navigate to folder `pre-built-firmware` and modify `_ESP32 write flash.cmd` to upload the firmware version for your clock.
+
+See also the `README.MD` in the `pre-built-firmware` subfolder of the repo.
+
+If you want more features and configure the firmware, check also section "How to build this firmware".
+
+### Backup first
 
 If you mess-up your clock, it's only your fault!
 
@@ -86,14 +91,14 @@ Linux
 
 - On an up-to-date Linux it works out of the box.
 
-### Save your original FW
+### Save your original firmware
 
 Windows users:
 
-- In the folder "pre-built-firmware" of this repo you have the `ESPTool.exe`, which is used to talk to the ESP32 in your clock over the USB-Serial chip on the board of the clock.
+- In the folder "pre-built-firmware" of this repo you have the `esptool.exe`, which is used to talk to the ESP32 in your clock over the USB-Serial chip on the board of the clock.
 - Open Device Manager and find out which virtual COM port represents your clock.
 - Modify file `_ESP32 save flash 4MB.cmd` with your COM port number (or 8MB version for the IPSTUBE).
-- Run the CMD file. 
+- Run the CMD file.
 - It will generate a file named `backup1.bin`. Save it to a safe place!
 - This is your precious backup.
 
