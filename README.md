@@ -4,12 +4,12 @@
 
 ## Supported hardware models
 
-**"EleksTube IPS clock" Original Version**
-**"EleksTube IPS clock" Gen2 - now officially called "EleksTube IPS Classic Edition"**
-**"SI HAI IPS clock"**
-**"NovelLife SE clock" - with and without gesture sensor**
-**"PunkCyber clock/RGB Glow Tube DIY clock" from pcbway**
-**"IPSTUBE clock - Model H401" - with and without bottom LED stripe**
+- **"EleksTube IPS clock" Original Version**
+- **"EleksTube IPS clock" Gen2 - now officially called "EleksTube IPS Classic Edition"**
+- **"SI HAI IPS clock"**
+- **"NovelLife SE clock" - with and without gesture sensor**
+- **"PunkCyber clock/RGB Glow Tube DIY clock" from pcbway**
+- **"IPSTUBE clock - Model H401" - with and without bottom LED stripe**
 
 Note: All "Original EleksTube" clocks, sold after July 2022 are "Gen2" versions. See [Note on EleksTube website](https://elekstube.com/blogs/news/instructions-on-elekstube-clock-for-gen2-systems)
 
@@ -47,7 +47,7 @@ IPSTUBE - H401
 - RGB backlights (wall lights) for nice ambient light with multiple modes ("Off", "Test", "Constant", "Rainbow", "Pulse", "Breath")
 - Dimming of the clock and backlights during the night time (configurable in code)
 - Switching the displays on and off (not supported on all clocks)
-- Different bitmap image files supported (BMP classic or paletized) and proprietary compressed files (CLK)
+- Different bitmap image files supported (BMP classic or palettized) and proprietary compressed files (CLK)
 - Max image size is 135x240 (WxH) pixels
 - Supports smaller images - will be automatically centered
 - Advanced error handling for best user experience
@@ -270,20 +270,20 @@ If you want to change the uploaded clock faces for the clock:
 
 - Create your own set of BMP files or select and copy some from the provided sets in the `data - other graphics` folder of this repo or download some from the internet (see below).
 - Max resolution of each image is 135 x 240 pixels (HxW). They can be smaller, then the picture will be centered on the display.
-- Max color depth is 24 bit RGB. But recommended is paletized Bitmaps with 256 colors palette.
+- Max color depth is 24 bit RGB. But recommended is palettized Bitmaps with 256 colors palette.
 - Name them `10.bmp` (for digit Zero) through `19.bmp` (for digit Nine); `20.bmp` to `29.bmp`, and so on. Note: There is no set 00-09.bmp!
 - You can add max 8 clock face sets in the moment (Due to a problem in the detection meachanism - will be fixed soon).
 
 Tips:
 
 - Cut away any black border, this only eats away valuable flash storage space!
-- Run your preferred image editor and play with reduced bit depths / paletization of the image!
+- Run your preferred image editor and play with reduced bit depths / palettization of the image!
 - Very good results are with Dithering and 256-color palette. Size reduction is approx 70%.
 - With very simple images (like 7-segment digits) even 16-color palette is enough and reduces size even further.
 
 #### CLK files as alternative
 
-Before supporting paletized Bitmaps, there was a special format used to store images, to safe some space on the flash of the clock. You can still switch to use CLK (Clock) files only, but there is no space saving anymore, if palatized Bitmaps are used!
+Before supporting palettized Bitmaps, there was a special format used to store images, to safe some space on the flash of the clock. You can still switch to use CLK (Clock) files only, but there is no space saving anymore, if palattized Bitmaps are used!
 
 To convert existing image files to CLK format:
 
