@@ -105,7 +105,7 @@ Some clock models have specific functionatlities which are only available for th
 
 ##### One button menu
 
-- The clock only has one button.
+- The clock has only one button.
 - So there is a special menu mode active for this model.
 - Short pressing the button brings up the menu.
 - Short pressing while in the menu changes the menu scope.
@@ -146,8 +146,8 @@ For other clocks it MAY work, but don't assume it!
 
 Windows
 
-- On Windows, plug-in the cable into the clock and connect it to an USB port of your PC. Then run Windows Update. It will find and install the driver and generate an virtual COM port.
-Windows device manager COM port example:
+- On Windows, plug-in the cable into the clock and connect it to an USB port of your PC. Then run Windows Update. It will find and install the driver and generate an virtual COM port.<br>
+Windows device manager COM port example:<br>
 ![Windows device manager COM port example](/documentation/ImagesMD/WindowsDeviceManagerCOMport.png)
 - Only if Windows Update is not working for you, see the chinese manufacturers website for newest [CH340 driver](https://www.wch-ic.com/downloads/CH341SER_ZIP.html) for Windows and install them manually.
 
@@ -157,6 +157,9 @@ Linux
 - If it is not working, see this [tutorial](https://learn.sparkfun.com/tutorials/how-to-install-ch340-drivers/linux) and see the chinese manufacturers website for newest [CH340 driver](https://www.wch-ic.com/downloads/CH341SER_ZIP.html) for Linux.
 
 ### Save your original firmware
+
+To read from (or write to) the clock, it needs to be in the "download mode". Most clocks will go into this mode automatically, when the ESPTool tries to read or write to them.
+Some clocks needs a button pressed while the powering phase (plugging the USB cable), like the IPSTUBEs.
 
 Windows users:
 
@@ -172,6 +175,15 @@ Linux users:
 - You probably already know where to get `Esptool` and how to use it. :)
 - If not, this guide from the Tasmota project is very easy to follow: [ESPTool](https://tasmota.github.io/docs/Esptool/#put-device-in-firmware-upload-mode)
 - Adopt the settings for your connected clock and save the firmware file to your device.
+
+### Restore backup
+
+You can write back your original firmware by modyfing the file `_ESP32 write flash.cmd`.
+
+- Set correct COM port and the name of your firmware backup file
+- If needed, set the size to be written
+- Run the CMD file and flash the firmware file
+- Check if clock is working
 
 ## How to build this firmware
 
@@ -391,13 +403,25 @@ If you have your own clock face that'll work and want it listed here, please fil
 
 ## Known problems
 
-No RTC for SI HAi
+##### No RTC for SI HAI IPS Clock
 
-One Button menu
+There is no battery on the SI HAI IPS clock, so the clock will loose the time, if powered of.
 
-No display turn off for IPSTUBE
+##### One Button menu
 
-Precision gesture sensor
+The value always changes "to the right", on a long button press.
+Values smaller then the starting value ("to the left") can never be seleted (like in for timezone values or absolut color values).
+
+##### No display turn off for IPSTUBE clock
+
+The TFT LCDs can not turned on or turned off on the device by software without modifing the hardware!
+The pin 1 and pin 7 of each FPC for each TFT LCD are connected together directly to the +V3.3 line of the PCB.
+Pin 1 is the general VCC power (LED Anode) and pin 7 is the VDD (Power Supply for Analog).
+So there is no way to control the VDD on pin 7 seperately or to turn on or turn off power to pin 1.
+
+##### Precision gesture sensor
+
+The accuracy of the gesture sensor on the Novellife clock is not very good. It needs some 'training' to be able to control the clock.
 
 ## Development Process/History
 
