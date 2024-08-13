@@ -2,6 +2,7 @@
 #include "WiFi_WPS.h"
 #include "Mqtt_client_ips.h"
 #include "TempSensor.h"
+#include <dirent.h>
 
 void TFTs::begin() {
   // Start with all displays selected.
@@ -175,6 +176,33 @@ int8_t TFTs::CountNumberOfClockFaces() {
 
   Serial.print("Searching for clock face file sets...");
   found = 0;
+
+  int ClockFaceCount = 0;
+
+  // Check for all files in the root directory 
+  DIR* dir = opendir("/spiffs");
+  if (dir == NULL) {
+      Serial.println("Could not open directory");
+  }
+
+  while (true) {
+      struct dirent* de = readdir(dir);
+      if (!de) {
+          break;
+      }
+      printf("Found file: %s\n", de->d_name);
+  }
+  closedir(dir);
+
+  // Dir dir = SPIFFS.openDir("");
+  // while (dir.next()) {
+  //   Serial.print("File: ");
+  //   Serial.print(dir.fileName());
+  //   fs::File f = dir.openFile("r");    
+  //   Serial.println(' with fileSize of +  ' + String(f.size()));    
+  //   f.close();
+  // }
+  // SPIFFS.closeDir(dir);
 
   // this works only till 90.bmp - onyl 8 different clock face sets can be used!
   // this only checks the first file of a set, not the full set!
