@@ -143,7 +143,7 @@ void setup() {
   Serial.println(" Done.");
 #endif
 
-  #ifdef DEBUG_OUTPUT
+  #ifdef DEBUG_OUTPUT_TFT
   Serial.print("Current active graphic index in uclock after init with config load: ");Serial.println(uclock.getActiveGraphicIdx());
   Serial.print("Number of clock faces in tfts after init: ");Serial.println(tfts.NumberOfClockFaces);
   #endif
@@ -162,7 +162,7 @@ void setup() {
   
   // Set actual clock face in the instance of the TFTs class to the selected one from the clock 
   tfts.current_graphic = uclock.getActiveGraphicIdx();
-  #ifdef DEBUG_OUTPUT
+  #ifdef DEBUG_OUTPUT_TFT
     Serial.print("Current active graphic index in tfts after correction: ");Serial.println(tfts.current_graphic);
   #endif
 
