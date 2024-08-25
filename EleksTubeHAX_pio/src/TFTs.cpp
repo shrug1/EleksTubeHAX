@@ -2,6 +2,8 @@
 #include "WiFi_WPS.h"
 #include "Mqtt_client_ips.h"
 #include "TempSensor.h"
+#include <dirent.h>
+
 
 void TFTs::begin() {
   #ifdef DEBUG_OUTPUT_TFT
@@ -229,8 +231,37 @@ int8_t TFTs::CountNumberOfClockFaces() {
   // check should be done, if all files are valid image files in the right size!
   // if not, the set should be ignored but not the whole counting/detecting stopped!
 
-  Serial.print("Searching for clock face file sets...");
+  Serial.println("Searching for clock face file sets...");
   found = 0;
+
+  int ClockFaceCount = 0;
+
+  // Open the root directory
+  Serial.println("Trying to open directory /spiffs as dir");
+  DIR* dir = opendir("/spiffs");
+  if (dir == NULL) {
+    Serial.println("Could not open directory");
+  }else{
+    Serial.println("Opened dir");
+    // Read and print the directory entries
+    struct dirent* de;
+    while ((de = readdir(dir)) != NULL) {
+      Serial.printf("Found file: %s\n", de->d_name);
+    }
+  }
+  // Close the directory
+  closedir(dir);
+  Serial.println("Closed dir");
+
+  // Dir dir = SPIFFS.openDir("");
+  // while (dir.next()) {
+  //   Serial.print("File: ");
+  //   Serial.print(dir.fileName());
+  //   fs::File f = dir.openFile("r");    
+  //   Serial.println(' with fileSize of +  ' + String(f.size()));    
+  //   f.close();
+  // }
+  // SPIFFS.closeDir(dir);
 
   // this works only till 90.bmp - onyl 8 different clock face sets can be used!
   // this only checks the first file of a set, not the full set!

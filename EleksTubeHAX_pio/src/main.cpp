@@ -62,7 +62,7 @@ void handleGesture(void); //only for NovelLife SE
 
 void setup() {
   Serial.begin(115200);
-  delay(1000);  // Waiting for serial monitor to catch up.
+  delay(10000);  // Waiting for serial monitor to catch up.
   Serial.println("");
   Serial.println(FIRMWARE_VERSION);
   Serial.println("In setup().");
