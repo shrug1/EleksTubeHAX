@@ -14,9 +14,7 @@ void TFTs::begin() {
   chip_select.setAll();
 
   // Turn power on to displays. Except for H401. Always On
-  #ifndef HARDWARE_IPSTUBE_H401_CLOCK
-  pinMode(TFT_ENABLE_PIN, OUTPUT);  
-  #endif
+  pinMode(TFT_ENABLE_PIN, OUTPUT);
   enableAllDisplays();
   InvalidateImageInBuffer();
 
@@ -41,10 +39,8 @@ void TFTs::reinit() {
   chip_select.begin();
   chip_select.setAll();
 
-  // Turn power on to displays.
-  #ifndef HARDWARE_IPSTUBE_H401_CLOCK
-  pinMode(TFT_ENABLE_PIN, OUTPUT);  
-  #endif
+  // Turn power on to displays.  
+  pinMode(TFT_ENABLE_PIN, OUTPUT);
   enableAllDisplays();
   // Initialize the super class.
   init();
@@ -80,9 +76,7 @@ void TFTs::enableAllDisplays() {
     Serial.println("TFTs::enableAllDisplays");
   #endif
   // Turn power on to displays.
-  #ifndef HARDWARE_IPSTUBE_H401_CLOCK
-    digitalWrite(TFT_ENABLE_PIN, HIGH);
-  #endif
+  digitalWrite(TFT_ENABLE_PIN, ACTIVATEDISPLAYS);
   enabled = true;
 }
 
@@ -91,9 +85,7 @@ void TFTs::disableAllDisplays() {
     Serial.println("TFTs::disableAllDisplays");
   #endif
   // Turn power off to displays.
-  #ifndef HARDWARE_IPSTUBE_H401_CLOCK
-    digitalWrite(TFT_ENABLE_PIN, LOW);
-  #endif
+  digitalWrite(TFT_ENABLE_PIN, DEACTIVATEDISPLAYS);
   enabled = false;
 }
 
