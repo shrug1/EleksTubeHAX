@@ -21,7 +21,7 @@
 
 // ************* Version Infomation  *************
 #define DEVICE_NAME       "IPS-clock"
-#define FIRMWARE_VERSION  "SmittyHalibut & aly-fly IPS clock v1.0"
+#define FIRMWARE_VERSION  "SmittyHalibut & aly-fly IPS clock v1.0.1"
 #define SAVED_CONFIG_NAMESPACE  "configs"
 
 
@@ -71,6 +71,15 @@
 #define MINUTES_TENS_MAP (0x01 << MINUTES_TENS)
 #define HOURS_ONES_MAP   (0x01 << HOURS_ONES)
 #define HOURS_TENS_MAP   (0x01 << HOURS_TENS)
+
+// Define the activate and deactivate state for the diplay power transistor
+#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+  #define ACTIVATEDISPLAYS      HIGH    // Activate is HIGH for the IPSTUBEs
+  #define DEACTIVATEDISPLAYS    LOW     // Deactivate is LOW for the IPSTUBEs
+#else
+  #define ACTIVATEDISPLAYS      LOW     // Activate is LOW for the Elekstube
+  #define DEACTIVATEDISPLAYS    HIGH    // Deactivate is HIGH for the Elekstube
+#endif
 
 #ifdef HARDWARE_SI_HAI_CLOCK // SI HAI IPS Clock XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -330,7 +339,7 @@
   //#define SECOND_BACKLIGHTS_PIN (GPIO_NUM_4) // Second LED strip on the bottom of the clock
 
   // Only one Button on H401 version!!!
-  //#define ONE_BUTTON_ONLY_MENU
+  #define ONE_BUTTON_ONLY_MENU
 
   // Set the other pins, to pins, which should always be in a defined, non changing state like Always HIGH or Always LOW!
   // Pin 9 = CPU_PU = Chip enabled = Always LOW on this board
@@ -358,7 +367,10 @@
   // #define CSSR_LATCH_PIN (-1)
 
   // The H401 has the enable pin of the LCDs connectected to the VCC, so Always On.
-  //#define TFT_ENABLE_PIN (GPIO_NUM_4)
+  // Power for all TFT displays are grounded through a MOSFET so they can all be turned off.
+
+
+  #define TFT_ENABLE_PIN (GPIO_NUM_4) // pin 24 is GPIO4
 
   // configure library \TFT_eSPI\User_Setup.h
   // ST7789 135 x 240 display with no chip select line
