@@ -59,12 +59,42 @@
 
 
 // ************* MQTT config *************
-//#define MQTT_ENABLED  // enable after creating an account, setting up the Thermostat device on www.smartnest.cz and filling in all the data below:
-#define MQTT_BROKER "smartnest.cz"             // Broker host
-#define MQTT_PORT 1883                         // Broker port
-#define MQTT_USERNAME "__enter_your_username_here__"             // Username from Smartnest
-#define MQTT_PASSWORD "__enter_your_api_key_here__"              // Password from Smartnest or API key (under MY Account)
-#define MQTT_CLIENT "__enter_your_device_id_here__"              // Device Id from Smartnest
+// Just for naming 
+#if defined(HARDWARE_Elekstube_CLOCK)
+    #define MQTT_SUFFIX "_Elekstube"
+#elif defined(HARDWARE_Elekstube_CLOCK_Gen2)
+    #define MQTT_SUFFIX "_ElekstubeGen2"
+#elif defined(HARDWARE_SI_HAI_CLOCK)
+    #define MQTT_SUFFIX "_SI_HAI"
+#elif defined(HARDWARE_NovelLife_SE_CLOCK)
+    #define MQTT_SUFFIX "_NovelLifeSE"
+#elif defined(HARDWARE_PunkCyber_CLOCK)
+    #define MQTT_SUFFIX "_PunkCyber"
+#elif defined(HARDWARE_IPSTUBE_CLOCK)
+    #define MQTT_SUFFIX "_IPSTUBE"
+#else
+    #define MQTT_SUFFIX "_Unknown"
+#endif
+
+#define MQTT_BASE_NAME  "EleksHAXTubeClock"
+
+#define MQTT_HOME_ASSISTANT                                     // enable if you want Home Assistant support
+#define MQTT_HOME_ASSISTANT_DISCOVERY
+#define MQTT_HOME_ASSISTANT_DISCOVERY_DEVICE_MANUFACTURER "EleksMaker"
+#define MQTT_HOME_ASSISTANT_DISCOVERY_DEVICE_MODEL MQTT_BASE_NAME MQTT_SUFFIX
+#define MQTT_HOME_ASSISTANT_DISCOVERY_SW_VERSION FIRMWARE_VERSION
+#define MQTT_HOME_ASSISTANT_DISCOVERY_HW_VERSION "X.X.XX"
+
+// You can either use an internet-based MQTT broker (smartnest.cz) or a local one (e.g. Mosquitto).
+// If you choose an internet based one, you will need to create an account, setting up the device there and filling in the data below then.
+// If you choose a local one, you will need to set up the broker on your local network and fill in the data below.
+#define MQTT_ENABLED                                            // Enable MQTT if you want to control the clock via published messages
+#define MQTT_BROKER     "192.168.0.100"                         // Broker host (or IP address) - can also be your local MQTT server!
+#define MQTT_PORT       1883                                    // Broker port
+#define MQTT_USERNAME   "__enter_your_username_here__"          // Username (i.e. from Smartnest or your local MQTT server)
+#define MQTT_PASSWORD   "__enter_your_api_key_here__"           // Password (i.e. from Smartnest or the API key under "My Account" or from your local MQTT server)
+#define MQTT_SAVE_PREFERENCES_AFTER_SEC 60
+#define MQTT_CLIENT     MQTT_BASE_NAME MQTT_SUFFIX              // Device ID (i.e. from Smartnest) - This will be used as Root for each Topic - Local can be anything, like "EleksTubeHAXClock"
 
 
 // ************* Optional temperature sensor *************
