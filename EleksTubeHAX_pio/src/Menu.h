@@ -26,6 +26,8 @@ public:
     blank_hours_zero,    // Whether to blank the leading zero in the hours column.
     utc_offset_hour,     // Change the UTC offset by an hour.
     utc_offset_15m,      // Change the UTC offset by 15 minutes.
+    dimming_begin,       // Change the dimming begin hour.
+    dimming_end,         // Change the dimming end hour.
     selected_graphic,    // Select clock "font" 0...9 -> first char in file name "00.bmp to 90.bmp".    
     // When there's more things to change in the menu, add them here.
     num_states
@@ -40,6 +42,8 @@ public:
     blank_hours_zero,    // Whether to blank the leading zero in the hours column.
     utc_offset_hour,     // Change the UTC offset by an hour.
     utc_offset_15m,      // Change the UTC offset by 15 minutes.
+    dimming_begin,       // Change the dimming begin hour.
+    dimming_end,         // Change the dimming end hour.
     selected_graphic,    // Select clock "font" 0...9 -> first char in file name "00.bmp to 90.bmp".
     start_wps,           // connect to WiFi using wps pushbutton mode
     // When there's more things to change in the menu, add them here.
@@ -63,6 +67,8 @@ private:
   int8_t  change;     // 0 == no action, positive == right button, negative == left button. 
                       // For now, these are only +1 and -1. But we might enable acceleration or similar later.
   uint32_t millis_last_button_press;
+  uint32_t double_click_ms=300;
+  
   bool state_changed; // So we're not redrawing the screen every damn time, signal if the state has changed.
 };
 

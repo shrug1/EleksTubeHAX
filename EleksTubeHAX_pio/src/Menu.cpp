@@ -92,7 +92,7 @@ void Menu::loop(Buttons &buttons) {
 #endif
 
 #ifdef ONE_BUTTON_ONLY_MENU
-void Menu::loop(Buttons &buttons) {  
+void Menu::loop(Buttons &buttons) {
   Button::state mode_state = buttons.mode.getState();   // next menu
 
   // Reset the change value in every case.  We don't always change the state though.
@@ -117,6 +117,8 @@ void Menu::loop(Buttons &buttons) {
   }
   
   // Menu is idle. A button is pressed, go into the menu, but don't act on the button press. It just wakes up the menu.
+  //check 
+  // (millis_last_button_press + double_click_ms) < millis() && mode_state == Button::up_edge
   if (state == idle && (mode_state == Button::up_edge)) {
     state = states(1);  // Start at the beginning of the menu.
 
@@ -130,8 +132,22 @@ void Menu::loop(Buttons &buttons) {
   }
 
   // In a menu, and button long pressed! -> simulate right button press
-  ///Must be done BEFORE the next menu option
-  if (state != idle && (mode_state == Button::up_long_edge)) {
+  // Must be done BEFORE the next menu option
+  // if (state != idle && (mode_state == Button::up_long_edge)) {
+  //   change++;
+
+  //   millis_last_button_press = millis();
+  //   state_changed = true;
+  //   #ifdef DEBUG_OUTPUT_MENU
+  //     Serial.println("MENU: In the menu, and button released after long pressed! -> simulate right button press!");
+  //     Serial.print("MENU: state: ");Serial.print(state);Serial.print("; mode_state: ");Serial.println(mode_state);
+  //   #endif
+  //   return;
+  // }
+
+  // In the menu, and the button is double pressed! -> simulate right button press
+  // Must be done BEFORE the next menu option
+  if (state != idle && (mode_state == Button::double_click)) {
     change++;
 
     millis_last_button_press = millis();
