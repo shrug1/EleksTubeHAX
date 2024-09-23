@@ -133,7 +133,7 @@ void checkMqtt() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {  //A new message has been received
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_MQTT
     Serial.print("Received MQTT topic: ");
     Serial.println(topic);                       // long output
 #endif    
@@ -141,7 +141,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
     char* tokens[tokensNumber];
     char message[length + 1];
     tokensNumber = splitTopic(topic, tokens, tokensNumber);
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_MQTT
     Serial.print("\tNumber of tokens from the topic: ");
     Serial.println(tokensNumber);
 #endif
@@ -149,7 +149,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
     for (int i = 1; i < length; i++) {
         sprintf(message, "%s%c", message, (char)payload[i]);
     }
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_MQTT
     Serial.print("\tMQTT message payload: ");Serial.println(message);
 #else
     Serial.print("MQTT RX: ");
@@ -249,7 +249,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
         MqttReportBackEverything();
       }
     } else {
-#ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_MQTT
       Serial.println("Unknown MQTT message! Can't process! Exiting...");
 #endif
       return;

@@ -295,7 +295,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   char filename[10];
   sprintf(filename, "/%d.bmp", file_index);
 
-#ifdef DEBUG_OUTPUT_VERBOSE
+#ifdef DEBUG_OUTPUT_VERBOSE2
   Serial.print("Loading: ");
   Serial.println(filename);
 #endif

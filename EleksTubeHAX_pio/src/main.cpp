@@ -102,7 +102,7 @@ void setup() {
   // Setup the clock.  It needs WiFi to be established already.
   tfts.println("Clock start");Serial.println("Clock start");
   uclock.begin(&stored_config.config.uclock);
-  #ifdef DEBUG_OUTPUT
+  #ifdef DEBUG_OUTPUT_VERBOSE
     Serial.print("Blank hours zero: ");
     Serial.println(uclock.getBlankHoursZero());
     Serial.print("Twelve hour: ");
@@ -411,24 +411,24 @@ void handleMQTTCommands() {
       //button press commands
       if (MqttCommandState >= 100 && MqttCommandState <= 120){
         if (MqttCommandState == 100) {
-          #ifdef DEBUG_OUTPUT
+          #ifdef DEBUG_OUTPUT_MQTT
             Serial.println("MQTT button pressed command received: MODE");
           #endif
           buttons.mode.setUpEdgeState();
         } else
         #ifndef ONE_BUTTON_ONLY_MENU 
         if (MqttCommandState == 110) {
-          #ifdef DEBUG_OUTPUT
+          #ifdef DEBUG_OUTPUT_MQTT
             Serial.println("MQTT button pressed command received: LEFT");
           #endif
           buttons.left.setUpEdgeState();        
         } else if (MqttCommandState == 115) {
-          #ifdef DEBUG_OUTPUT
+          #ifdef DEBUG_OUTPUT_MQTT
             Serial.println("MQTT button pressed command received: POWER");
           #endif
           buttons.power.setUpEdgeState();
         } else if (MqttCommandState == 120) {
-          #ifdef DEBUG_OUTPUT
+          #ifdef DEBUG_OUTPUT_MQTT
             Serial.println("MQTT button pressed command received: RIGHT");
           #endif
           buttons.right.setUpEdgeState();
@@ -449,7 +449,7 @@ void handleMQTTCommands() {
 } //HandleMQTTCommands
 
 void setupMenu() {
-  #ifdef DEBUG_OUTPUT
+  #ifdef DEBUG_OUTPUT_VERBOSE
     Serial.println("main::setupMenu!");
   #endif  
   tfts.chip_select.setHoursTens();
@@ -667,7 +667,7 @@ void handlePowerSwitchPressed() {
 #ifndef ONE_BUTTON_ONLY_MENU
   // Power button pressed: If in menu, exit menu. Else turn off displays and backlight.
   if (buttons.power.isDownEdge() && (menu.getState() == Menu::idle)) {
-    #ifdef DEBUG_OUTPUT
+    #ifdef DEBUG_OUTPUT_BUTTONS
       Serial.println("Power button pressed.");
     #endif
     tfts.chip_select.setAll();
