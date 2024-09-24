@@ -624,6 +624,26 @@ void drawMenu() {
         }
         tfts.printf("%d:%02d\n", offset_hour, offset_min);
       }
+      // dimming start hour
+      else if (menu_state == Menu::dimming_begin) {
+        if (menu_change != 0) {
+          //backlights.setDimmingBegin(menu_change);
+        }                
+        setupMenu();
+        tfts.println("Diming start");
+        tfts.println(" +/- 1h");        
+        tfts.printf("FAKE");
+      }
+      // dimming end hour
+      else if (menu_state == Menu::dimming_end) {
+        if (menu_change != 0) {
+          //backlights.setDimmingEnd(menu_change);
+        }                
+        setupMenu();
+        tfts.println("Diming end");
+        tfts.println(" +/- 1h");        
+        tfts.printf("FAKE");
+      }
       // select clock "font"
       else if (menu_state == Menu::selected_graphic) {
         if (menu_change != 0) {

@@ -42,11 +42,14 @@ public:
                 down_long, 
                 up_edge, 
                 up_long_edge, 
+                single_click, // Add single_click state
                 double_click, // Add double_click state
+                triple_click, // Add triple_click state
+                long_click, // Add long_click state
                 num_states
              };
 
-  const static String state_str[num_states];
+  static const String state_str[num_states];
   void begin();
   void loop();
   
@@ -66,7 +69,10 @@ public:
   bool isDownLong()           { return button_state == down_long; }
   bool isUpEdge()             { return button_state == up_edge; }
   bool isUpLongEdge()         { return button_state == up_long_edge; }
+  bool isSingleClick()        { return button_state == single_click; } // Add isSingleClick method
   bool isDoubleClick()        { return button_state == double_click; } // Add isDoubleClick method
+  bool isTripleClick()        { return button_state == triple_click; } // Add isTripleClick method
+  bool isLongClick()          { return button_state == long_click; }   // Add isLongClick method
   bool isDownLongy()          { return button_state == down_long_edge || button_state == down_long; }
   bool isDowny()              { return button_state == down_edge || button_state == down || isDownLongy(); }
   bool isUpy()                { return button_state == idle || button_state == up_edge || button_state == up_long_edge; }
@@ -83,6 +89,8 @@ private:
   bool              state_changed;
   uint32_t          millis_at_last_transition;
   uint32_t          millis_at_last_release; // Add millis_at_last_release member
+  uint32_t          millis_at_last_press; // Add millis_at_last_press member
+  bool              single_click_pending; // Add single_click_pending flag
   uint32_t          millis_at_last_loop;
   state             button_state;
 

@@ -24,9 +24,9 @@ void Button::loop() {
   millis_at_last_loop = millis();
   //Check every loop if the button is pressed or not and store it in the variable down_now (true or false)
   bool down_now = isButtonDown();
-#ifdef DEBUG_OUTPUT_BUTTONS
+ #ifdef DEBUG_OUTPUT_BUTTONS
   if (down_now) { Serial.print("[BUTTON: "); Serial.print(bpin); Serial.println("]"); }
-#endif
+ #endif
 
   //set the previous state from the member variabel button_state
   state previous_state = button_state;
@@ -37,6 +37,15 @@ void Button::loop() {
   if (down_last_time == false && down_now == false) {
     // set the member button state to "idle"
     button_state = idle;
+    //check if we have a single click pending and the time between the last loop and the last press is greater than the double click wait time
+    if (single_click_pending && (millis_at_last_loop - millis_at_last_press > double_click_ms)) {
+    #ifdef DEBUG_OUTPUT_BUTTONS
+      Serial.println("BUTTON: single_click_pending was true, but now it is SINGLE_CLICK!");
+    #endif
+      //if yes, we have a single click
+      button_state = single_click;      
+      single_click_pending = false;
+    }
   }
   //check, if the button was NOT pressed while in the last loop and is also IS pressed now
   else if (down_last_time == false && down_now == true) {
@@ -48,6 +57,7 @@ void Button::loop() {
     button_state = down_edge;
     //store the starting tick count in milliseconds in the member variable millis_at_last_transition
     millis_at_last_transition = millis_at_last_loop;
+    millis_at_last_press = millis_at_last_loop;
   }
   //check, if the button WAS pressed while in the last loop and IS also pressed now
   else if (down_last_time == true && down_now == true) {
@@ -104,6 +114,7 @@ void Button::loop() {
       #endif
       // Just released from a long press.
       button_state = up_long_edge;
+      button_state = long_click; // Set long_click state
     } 
     else {
       //check, if the time between the last release and the starting tick count is less or equal to the double click time
@@ -115,12 +126,20 @@ void Button::loop() {
           Serial.println("BUTTON: Double Click.");
         #endif
         button_state = double_click;
-      } else {
-        // Just released from a short press.
+        single_click_pending = false;
+      } else if (millis_at_last_loop - millis_at_last_release <= double_click_ms * 2) {
+        // Triple click.
         #ifdef DEBUG_OUTPUT_BUTTONS
-          Serial.println("BUTTON: Just released from a short press.");
+          Serial.println("BUTTON: Triple Click.");
         #endif
-        button_state = up_edge;
+        button_state = triple_click;
+        single_click_pending = false;
+      } else {
+        // Just released from a short press. Pending single click!
+        #ifdef DEBUG_OUTPUT_BUTTONS
+          Serial.println("BUTTON: Just released from a short press. Pending single click!");
+        #endif
+        single_click_pending = true;
       }
     }
     millis_at_last_release = millis_at_last_loop;
@@ -142,7 +161,9 @@ const String Button::state_str[Button::num_states] =
     "down_long_edge", 
     "down_long", 
     "up_edge", 
-    "up_long_edge"
+    "up_long_edge",    
+    "single_click",
+    "double_click"
   };
 
 //--------------------------------------------
