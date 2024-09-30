@@ -296,6 +296,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   sprintf(filename, "/%d.bmp", file_index);
 
 #ifdef DEBUG_OUTPUT_VERBOSE2
+  Serial.println("--------------------------------------");
   Serial.print("Loading: ");
   Serial.println(filename);
 #endif
@@ -358,6 +359,8 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   Serial.print(", "); 
   Serial.println(y);
 #endif
+ //check if image is compressed -> can't decode in this version
+ //Check also for unsupported bit depths
 compression = read32(bmpFS);
   if (compression != 0 || (bitDepth != 32 && bitDepth != 24 && bitDepth != 1 && bitDepth != 4 && bitDepth != 8)) {
     Serial.println("BMP format not recognized! Maybe compressed BMP or unsupported bitdepth!");
@@ -368,7 +371,7 @@ compression = read32(bmpFS);
   uint32_t palette[256];
   if (bitDepth <= 8) // 1,4,8 bit bitmap: read color palette
   {
-    read32(bmpFS); read32(bmpFS); read32(bmpFS); // size, w resolution, h resolution
+    read32(bmpFS); read32(bmpFS); read32(bmpFS); // size, w resolution (pixel per meter) -> not needed, h resolution (pixel per meter) -> not needed
     paletteSize = read32(bmpFS);
     if (paletteSize == 0) paletteSize = pow(2, bitDepth); // if 0, size is 2^bitDepth
     bmpFS.seek(14 + headerSize); // start of color palette
@@ -377,11 +380,15 @@ compression = read32(bmpFS);
     }
   }
 
+  // Jump to the start of the image data
   bmpFS.seek(seekOffset);
 
+  //calculate the size for one line of pixels of the image in bytes (rounded up to 4 bytes)
   uint32_t lineSize = ((bitDepth * w +31) >> 5) * 4;
+  //allocate buffer for one line of pixels
   uint8_t lineBuffer[lineSize];
   
+  //run through the image line by line (row by row)
   // row is decremented as the BMP image is drawn bottom up
   for (row = h-1; row >= 0; row--) {
     bmpFS.read(lineBuffer, sizeof(lineBuffer));
@@ -399,16 +406,17 @@ compression = read32(bmpFS);
         g = *bptr++;
         r = *bptr++;
       } else {
-        uint32_t c = 0;
-        if (bitDepth == 8) {
+        uint32_t c = 0;        
+        if (bitDepth == 8) { // read the color from the pallete index for the actual postion in the image data for 8 bit images
           c = palette[*bptr++];
-        } else if (bitDepth == 4) {
+        } else if (bitDepth == 4) { // read the color from the pallete index for the actual postion in the image data for 4 bit images
           c = palette[(*bptr >> ((col & 0x01)?0:4)) & 0x0F];
           if (col & 0x01) bptr++;
-        } else { // bitDepth == 1
+        } else { // read the color from the pallete index for the actual postion in the image data for 1 bit images
           c = palette[(*bptr >> (7 - (col & 0x07))) & 0x01];
           if ((col & 0x07) == 0x07) bptr++;
         }
+        // extract the color components for palletized images
         b = c; g = c >> 8; r = c >> 16;
       }
 
@@ -417,6 +425,7 @@ compression = read32(bmpFS);
           color = alphaBlend(dimming, color, TFT_BLACK);
         } // dimming
 
+        // write the extracted color info to the right position in the output buffer
         UnpackedImageBuffer[row+y][col+x] = color;
     } // col
   } // row
