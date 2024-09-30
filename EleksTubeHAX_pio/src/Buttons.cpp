@@ -47,7 +47,7 @@ void Button::loop() {
       single_click_pending = false;
     }
   }
-  //check, if the button was NOT pressed while in the last loop and is also IS pressed now
+  //check, if the button was NOT pressed while in the last loop and IS pressed now
   else if (down_last_time == false && down_now == true) {
     // Just pressed
     #ifdef DEBUG_OUTPUT_BUTTONS
@@ -104,7 +104,7 @@ void Button::loop() {
   else if (down_last_time == true && down_now == false) {
     // Just released.  From how long?
     #ifdef DEBUG_OUTPUT_BUTTONS
-      Serial.println("BUTTON: Just released.  From how long?");
+      Serial.println("BUTTON: Just released. From how long?");
     #endif
     //check, if the previous state was "down_long_edge" or "down_long"
     //so if the button was long pressed
@@ -112,8 +112,7 @@ void Button::loop() {
       #ifdef DEBUG_OUTPUT_BUTTONS
         Serial.println("BUTTON: Just released from a long press.");
       #endif
-      // Just released from a long press.
-      button_state = up_long_edge;
+      // Just released from a long press.      
       button_state = long_click; // Set long_click state
     } 
     else {
@@ -150,6 +149,14 @@ void Button::loop() {
   //this means, that the button state has changed in this loop
   //so set the member variable state_changed to true
   state_changed = previous_state != button_state;
+  #ifdef DEBUG_OUTPUT_BUTTONS
+    if (state_changed) {
+      Serial.print("BUTTON: State changed from ");
+      Serial.print(state_str[previous_state]);
+      Serial.print(" to ");
+      Serial.println(state_str[button_state]);
+    }
+  #endif
   //store the current down state in the member variable down_last_time (true or false)
   down_last_time = down_now;
 }

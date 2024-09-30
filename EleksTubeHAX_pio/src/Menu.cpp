@@ -114,7 +114,7 @@ void Menu::loop(Buttons &buttons) {
       Serial.println("MENU: Go idle if the user hasn't pressed a button in a long time.");
     #endif
     return;
-  }
+  } 
   
   // Menu is idle. A button is pressed, go into the menu, but don't act on the button press. It just wakes up the menu.
   //check 
