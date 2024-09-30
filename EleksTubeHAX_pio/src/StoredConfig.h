@@ -28,7 +28,7 @@ public:
 
   struct Config {
     struct Backlights {
-      uint8_t  pattern;
+      uint8_t  pattern = -1;
       uint16_t color_phase;
       uint8_t  intensity;
       uint8_t  pulse_bpm;
@@ -37,10 +37,12 @@ public:
     } backlights;
   
     struct Clock {
-      bool     twelve_hour;
-      time_t   time_zone_offset;
-      bool     blank_hours_zero;
-      int8_t   selected_graphic;
+      bool     twelve_hour = true;
+      time_t   time_zone_offset = 0;
+      bool     blank_hours_zero = false;
+      int8_t   selected_graphic = -1;
+      int8_t   dimming_start = -1;
+      int8_t   dimming_end = -1;
       uint8_t  is_valid;       // Write StoredConfig::valid here when valid data is loaded.
     } uclock;
   

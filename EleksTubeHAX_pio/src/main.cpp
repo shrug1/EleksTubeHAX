@@ -40,10 +40,10 @@ Clock         uclock;
 Menu          menu;
 StoredConfig  stored_config;
 
-bool          FullHour        = false;
-uint8_t       hour_old        = 255;
-bool          DstNeedsUpdate  = false;
-uint8_t       yesterday       = 0;
+bool          FullHour          = false;
+uint8_t       hour_old          = 255;
+bool          DstNeedsUpdate    = false;
+uint8_t       yesterday         = 0;
 
 // Helper function, defined below.
 void updateClockDisplay(TFTs::show_t show=TFTs::yes);
@@ -62,13 +62,33 @@ void handleGesture(void); //only for NovelLife SE
 
 void setup() {
   Serial.begin(115200);
-  delay(10000);  // Waiting for serial monitor to catch up.
+  delay(1000);  // Waiting for serial monitor to catch up.
   Serial.println("");
   Serial.println(FIRMWARE_VERSION);
   Serial.println("In setup().");
 
   stored_config.begin();
   stored_config.load();
+
+  #ifdef DEBUG_OUTPUT
+    Serial.print("Current Dimming Start time after load from config: ");Serial.println(stored_config.config.uclock.dimming_start);
+  #endif
+
+  #ifdef DEBUG_OUTPUT
+    Serial.print("Current Dimming End time after load from config: ");Serial.println(stored_config.config.uclock.dimming_end);
+  #endif
+
+  //check if the dimming times are set in the config, if not, set them to the default values
+  if (stored_config.config.uclock.dimming_start == -1) {
+    Serial.print("Dimming start time not set in config, setting to default value:");Serial.println(NIGHT_TIME);
+    stored_config.config.uclock.dimming_start = NIGHT_TIME;
+    stored_config.save();
+  }
+  if (stored_config.config.uclock.dimming_end == -1) {
+    Serial.print("Dimming end time not set in config, setting to default value.");Serial.println(DAY_TIME);
+    stored_config.config.uclock.dimming_end = DAY_TIME;
+    stored_config.save();
+  }
 
   backlights.begin(&stored_config.config.backlights);
   buttons.begin();
@@ -79,7 +99,7 @@ void setup() {
   tfts.fillScreen(TFT_BLACK);
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
   tfts.setCursor(0, 0, 2);  // Font 2. 16 pixel high
-  tfts.println("setup...");
+  tfts.println("Setup...");
 
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   //Init the Gesture sensor
@@ -458,15 +478,15 @@ void setupMenu() {
   tfts.setCursor(0, 124, 4);  // Font 4. 26 pixel high
 }
 
-bool isNightTime(uint8_t current_hour) {
-    if (DAY_TIME < NIGHT_TIME) {
-      // "Night" spans across midnight
-      return (current_hour < DAY_TIME) || (current_hour >= NIGHT_TIME);
-    }
-    else {
-      // "Night" starts after midnight, entirely contained within the day
-      return (current_hour >= NIGHT_TIME) && (current_hour < DAY_TIME);  
-    }
+bool isNightTime(uint8_t current_hour) {  
+  if (stored_config.config.uclock.dimming_end < stored_config.config.uclock.dimming_start) {
+    // "Night" spans across midnight    
+    return (current_hour < stored_config.config.uclock.dimming_end) || (current_hour >= stored_config.config.uclock.dimming_start);
+  }
+  else {
+    // "Night" starts after midnight, entirely contained within the day
+    return (current_hour >= stored_config.config.uclock.dimming_start) && (current_hour < stored_config.config.uclock.dimming_end);
+  }
 }
 
 void checkOnEveryFullHour(bool loopUpdate) {
@@ -474,8 +494,9 @@ void checkOnEveryFullHour(bool loopUpdate) {
   uint8_t current_hour = uclock.getHour24();
   FullHour = current_hour != hour_old;
   if (FullHour) {
-  Serial.print("current hour = ");
-  Serial.println(current_hour);
+    Serial.println("Check if dimming is needed on every full hour!");
+    Serial.print("Current hour = ");
+    Serial.println(current_hour);
     if (isNightTime(current_hour)) {
       Serial.println("Setting night mode (dimmed)");
       tfts.dimming = TFT_DIMMED_INTENSITY;
@@ -594,7 +615,7 @@ void drawMenu() {
         }
         setupMenu();
         tfts.println("UTC Offset");
-        tfts.println(" +/- Hour");
+        tfts.println("+/- Hour");
         time_t offset = uclock.getTimeZoneOffset();
         int8_t offset_hour = offset/3600;
         int8_t offset_min = (offset%3600)/60;
@@ -615,7 +636,7 @@ void drawMenu() {
         }
         setupMenu();
         tfts.println("UTC Offset");
-        tfts.println(" +/- 15m");
+        tfts.println("+/- 15m");
         time_t offset = uclock.getTimeZoneOffset();
         int8_t offset_hour = offset/3600;
         int8_t offset_min = (offset%3600)/60;
@@ -627,22 +648,44 @@ void drawMenu() {
       // dimming start hour
       else if (menu_state == Menu::dimming_begin) {
         if (menu_change != 0) {
-          //backlights.setDimmingBegin(menu_change);
-        }                
+          if (menu_change < 0) {
+            stored_config.config.uclock.dimming_start--;
+            if (stored_config.config.uclock.dimming_start < 0) {
+              stored_config.config.uclock.dimming_start = 23;
+            }
+          } else {            
+            stored_config.config.uclock.dimming_start++;
+            if (stored_config.config.uclock.dimming_start > 23) {
+              stored_config.config.uclock.dimming_start = 0;
+            }
+          }
+        }
         setupMenu();
-        tfts.println("Diming start");
-        tfts.println(" +/- 1h");        
-        tfts.printf("FAKE");
+        tfts.println("Dimming");
+        tfts.println("start time");
+        tfts.println("+/- 1h");
+        tfts.printf("%d\n", stored_config.config.uclock.dimming_start);        
       }
       // dimming end hour
       else if (menu_state == Menu::dimming_end) {
         if (menu_change != 0) {
-          //backlights.setDimmingEnd(menu_change);
-        }                
+          if (menu_change < 0) {
+            stored_config.config.uclock.dimming_end--;
+            if (stored_config.config.uclock.dimming_end < 0) {
+              stored_config.config.uclock.dimming_end = 23;
+            }
+          } else {
+            stored_config.config.uclock.dimming_end++;
+            if (stored_config.config.uclock.dimming_end > 23) {
+              stored_config.config.uclock.dimming_end = 0;
+            }
+          }
+        }
         setupMenu();
-        tfts.println("Diming end");
-        tfts.println(" +/- 1h");        
-        tfts.printf("FAKE");
+        tfts.println("Dimming");
+        tfts.println("end time");
+        tfts.println("+/- 1h");
+        tfts.printf("%d\n", stored_config.config.uclock.dimming_end);
       }
       // select clock "font"
       else if (menu_state == Menu::selected_graphic) {
@@ -656,8 +699,8 @@ void drawMenu() {
         }
         setupMenu();
         tfts.println("Selected");
-        tfts.println(" graphic:");
-        tfts.printf("    %d\n", uclock.getActiveGraphicIdx());
+        tfts.println("graphic:");
+        tfts.printf("   %d\n", uclock.getActiveGraphicIdx());
       }
 #ifdef WIFI_USE_WPS   ////  WPS code
       // connect to WiFi using wps pushbutton mode
