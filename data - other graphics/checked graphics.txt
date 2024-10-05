@@ -1,50 +1,72 @@
-01 dark tube			 		works, but 2,6 and 9 looks ugly
-	256							works, but 2,6 and 9 looks ugly
-02 realistic mesh tube			works
-	256							works
-03 yellow dots					works
-	256							works
-04 flip clock					works
-	256							works
-05 violet modern				works
-	256							works
-06 white paint					works
-	256							works
-07 blue red white shift 		works
-	256							works
-08 lego							works
-	256							works
-09 metal						works
-	256							works
-10 neon							works
-	256							works
-11 white edge					works
-	256							works
-12 white floating				works
-	256							works
-13 white graphic				works
-	256							works
-14 white 7 segment				works
-	256							works
-15 colorful round				works
-	256							works
-16 blue-turquoise 3D cylinder	works
-	256							works
-17 pink-orange folded			works
-	256							works
-18 red-blue broken				works
-	256							works
-19 white interconnected dots	works
-	256							works
-20 violet-pink 3D cylinder		unstable center
-	256							unstable center
-21 blue folded					works
-	256							works
-22 white connected dots			works
-	256							works
-23 brown round					works
-	256							works
-	
-	
-34 yellow and blue dots		
-	256							works
+01 dark tube			 							works, but 2,6 and 9 looks ugly
+	256												works, but 2,6 and 9 looks ugly
+02 realistic mesh tube								works
+	256												works
+03 yellow dots										works
+	256												works
+04 flip clock										works
+	256												works
+05 violet modern									works
+	256												works
+06 white paint										works -> check again
+	256												works -> check again
+07 blue red white shift 							works
+	256												works
+08 lego												works
+	256												works
+09 metal											works -> check again 5
+	256												works -> check again
+10 neon												works -> Full size needed, because bluring colours
+	256												works -> Full size needed, because bluring colours
+11 white edge										works -> check again 7
+	256												works
+12 white floating									works -> check again
+	256												works -> check again
+13 white graphic									works -> check again
+	256												works -> check again
+14 white 7 segment									works
+	256												works
+15 colorful round									works -> check again
+	256												works -> check again
+16 blue-turquoise 3D cylinder						works -> check again unstable center
+	256												works -> check again unstable center
+17 pink-orange folded								works
+	256												works
+18 red-blue broken									works
+	256												works
+19 white interconnected dots						works -> check again
+	256												works -> check again
+20 violet-pink 3D cylinder							unstable center
+	256												unstable center
+21 blue folded										works
+	256												works
+22 white connected dots								works -> check again
+	256												works -> check again
+23 brown round										works -> check again
+	256												works -> check again
+24 red 7 segment									no source in 24bit available
+	256												works
+25 Christmas theme									unstable center - white background missing
+	256												unstable center - white background missing
+26 Luminous wire_Net								works
+	256												works
+27 Luminous_wire_Ver1.0								works
+	256												works
+28 Luminous_wire_with_mesh							works
+	256												works
+29 Kraftwerk										works
+	256												works
+30 Nixie-Classic_V1.0_IPS							works
+	256												works
+31 digits_nixie_small_grid_blue						works
+	256												works
+32 soap_bubble_rainbow - lavender gray background	works
+	256												works
+33 varysimbol										works
+	256												works
+34 yellow and blue dots								works
+	256												works
+35 white 7 segment with shadow						works
+	256												works
+36 soap bubble rainbow - black background 			no source in 24bit available
+	256												works

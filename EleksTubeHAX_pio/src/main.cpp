@@ -49,7 +49,10 @@ uint8_t       yesterday         = 0;
 void updateClockDisplay(TFTs::show_t show=TFTs::yes);
 void setupMenu(void);
 void checkOnEveryFullHour(bool loopUpdate=false);
+//for now, switch it off, because I dont want to use the geolocation service
+#ifdef GEOLOCATION_ENABLED
 void updateDstEveryNight(void);
+#endif
 void drawMenuAndHandleButtons();
 void handlePowerSwitchPressed();
 void handleMQTTCommands();
@@ -98,7 +101,7 @@ void setup() {
   #ifdef DEBUG_OUTPUT_TFT
     Serial.println("Setup TFTs");
   #endif
-  tfts.begin();  // and count number of clock faces available  
+  tfts.begin();  // and count number of clock faces available
   tfts.fillScreen(TFT_BLACK);
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
   tfts.setCursor(0, 0, 2);  // Font 2. 16 pixel high
@@ -117,7 +120,7 @@ void setup() {
   // This is done outside Clock so the network can be used for other things.
   tfts.println("WiFi start");Serial.println("WiFi start");
   WifiBegin();
-  
+
   // wait for a bit before querying NTP
   for (uint8_t ndx=0; ndx < 5; ndx++) {
     tfts.print(">");
@@ -185,15 +188,15 @@ void setup() {
     uclock.setActiveGraphicIdx(tfts.NumberOfClockFaces);
     Serial.println("Last selected index of clock face is larger than currently available number of image sets. Set to last available.");
   }
-  
-  // Set actual clock face in the instance of the TFTs class to the selected one from the clock 
+
+  // Set actual clock face in the instance of the TFTs class to the selected one from the clock
   tfts.current_graphic = uclock.getActiveGraphicIdx();
   #ifdef DEBUG_OUTPUT_TFT
     Serial.print("Current active graphic index in tfts after correction: ");Serial.println(tfts.current_graphic);
   #endif
 
 
-  tfts.println("Done with initializing setup!");Serial.println("Done with initializing setup!");
+  tfts.println("Done with initializing setup!");Serial.println("Done with initializing!");
 
   // Leave boot up messages on screen for a few seconds.
   // 0.2 s times 10 = 2s, each loop prints a > character
@@ -225,14 +228,17 @@ void loop() {
   #endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
   handlePowerSwitchPressed();
- 
+
   menu.loop(buttons);     // Must be called after buttons.loop() - Sets the states of the menu, by the detected button presses
   backlights.loop();
   uclock.loop();          // Read the time values from RTC, if needed
 
   checkOnEveryFullHour(true);    // Check, if dimming is needed, if actual time is in the timeslot for the night time.
   updateClockDisplay();   // Update the digits of the clock face. Get actual time from RTC and set the LCDs.
+//for now, switch it off, because I dont want to use the geolocation service
+#ifdef GEOLOCATION_ENABLED
   updateDstEveryNight();  // Check for Daylight-Saving-Time (Summertime) adjustment once a day
+#endif
 
   drawMenuAndHandleButtons();    // Draw the menu on the clock face, if menu is requested and handle the button presses in the menu
 
@@ -244,29 +250,44 @@ void loop() {
   if (time_in_loop < 20) {
     // we have free time, spend it for loading next image into buffer
     tfts.LoadNextImage();
-    
+
     // we still have extra time - do "usefull" things in the loop
     time_in_loop = millis() - millis_at_top;
     if (time_in_loop < 20) {
       MqttLoopInFreeTime();
+#ifdef ONE_WIRE_BUS_PIN
       PeriodicReadTemperature();
       if (bTemperatureUpdated) {
-        #ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT
           Serial.println("Temperature updated!");
-        #endif
+#endif
         tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::force);  // show latest clock digit and temperature readout together
         bTemperatureUpdated = false;
       }
+#endif
+      
+      //Check if we need to update the timezone offset , because daylight saving time is active or vice versa      
+      //this work ONLY if the geolocation is enabled, because the timezone offset is set by the geolocation
+
+//for now, switch it off, because I dont want to use the geolocation service
+#ifdef GEOLOCATION_ENABLED
       // run once a day (= 744 times per month which is below the limit of 5k for free account)
       if (DstNeedsUpdate) { // Daylight savings time changes at 3 in the morning
+        //This will always return false, if the geolocation is not enabled!
         if (GetGeoLocationTimeZoneOffset()) {
-          #ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT
             Serial.print("Set TimeZone offset once per hour: ");Serial.println(GeoLocTZoffset);
-          #endif
+#endif
           uclock.setTimeZoneOffset(GeoLocTZoffset * 3600);
           DstNeedsUpdate = false;  // done for this night; retry if not sucessfull
         }
-      }  
+        else {
+          Serial.println("Geolocation is not enabled or failed!.");
+          Serial.println("We are missing the information to update the timezone offset for daylight saving time.");
+          Serial.println("SWITCH TIMEZONE MANUALLY!");
+        }
+      }
+#endif
       // Sleep for up to 20ms, less if we've spent time doing stuff above.
       time_in_loop = millis() - millis_at_top;
       if (time_in_loop < 20) {
@@ -274,7 +295,7 @@ void loop() {
       }
     }
   }
-#ifdef DEBUG_OUTPUT  
+#ifdef DEBUG_OUTPUT
   if (time_in_loop <= 1) Serial.print(".");
   else {
     Serial.print("time spent in loop (ms): ");Serial.println(time_in_loop);
@@ -292,23 +313,31 @@ void gestureStart()
 
   // Initialize gesture sensor APDS-9960 (configure I2C and initial values)
   if ( apds.init() ) {
+#ifdef DEBUG_OUTPUT      
     Serial.println(F("APDS-9960 initialization complete"));
+#endif
 
     //Set Gain to 1x, bacause the cheap chinese fake APDS sensor can't handle more (also remember to extend ID check in Sparkfun libary to 0x3B!)
     apds.setGestureGain(GGAIN_1X);
-          
+
     // Start running the APDS-9960 gesture sensor engine
     if ( apds.enableGestureSensor(true) ) {
+#ifdef DEBUG_OUTPUT      
       Serial.println(F("Gesture sensor is now running"));
+#endif
     } else {
-      Serial.println(F("Something went wrong during gesture sensor enablimg in the APDS-9960 library!"));
+#ifdef DEBUG_OUTPUT
+      Serial.println(F("Something went wrong during gesture sensor enabling in the APDS-9960 library!"));
+#endif
     }
   } else {
+#ifdef DEBUG_OUTPUT
     Serial.println(F("Something went wrong during APDS-9960 init!"));
+#endif
   }
 }
 
-//Handle Interrupt from gesture sensor and simulate a short button press (state down_edge) of the corresponding button, if a gesture is detected 
+//Handle Interrupt from gesture sensor and simulate a short button press (state down_edge) of the corresponding button, if a gesture is detected
 void handleGestureInterupt()
 {
   if( isr_flag == 1 ) {
@@ -327,16 +356,22 @@ void gestureInterruptRoutine() {
 }
 
 //check which gesture was detected
-void handleGesture() { 
-    //Serial.println("->main::handleGesture()");
+void handleGesture() {
+#ifdef DEBUG_OUTPUT_VERBOSE
+    Serial.println("->main::handleGesture()");
+#endif
     if ( apds.isGestureAvailable() ) {
       Menu::states menu_state = Menu::idle;
       switch ( apds.readGesture() ) {
         case DIR_UP:
+#ifdef DEBUG_OUTPUT
           Serial.println("Gesture detected! LEFT");
+#endif
           menu_state = menu.getState();
           if (menu_state == Menu::idle) { //not in the menu, so set the clock face instead
+#ifdef DEBUG_OUTPUT
             Serial.println("Adjust Clock Graphics down 1");
+#endif
             uclock.adjustClockGraphicsIdx(-1);
             if(tfts.current_graphic != uclock.getActiveGraphicIdx()) {
               tfts.current_graphic = uclock.getActiveGraphicIdx();
@@ -348,11 +383,17 @@ void handleGesture() {
           }
           break;
         case DIR_DOWN:
+#ifdef DEBUG_OUTPUT
           Serial.println("Gesture detected! RIGHT");
+#endif
           menu_state = menu.getState();
+#ifdef DEBUG_OUTPUT
           Serial.println(menu_state);
+#endif
           if (menu_state == Menu::idle) { //not in the menu, so set the clock face instead
+#ifdef DEBUG_OUTPUT
             Serial.println("Adjust Clock Graphics up 1");
+#endif
             uclock.adjustClockGraphicsIdx(1);
             if(tfts.current_graphic != uclock.getActiveGraphicIdx()) {
               tfts.current_graphic = uclock.getActiveGraphicIdx();
@@ -365,22 +406,32 @@ void handleGesture() {
           break;
         case DIR_LEFT:
           buttons.power.setDownEdgeState();
+#ifdef DEBUG_OUTPUT
           Serial.println("Gesture detected! DOWN");
+#endif
           break;
-        case DIR_RIGHT:
+        case DIR_RIGHT:        
           buttons.mode.setDownEdgeState();
+#ifdef DEBUG_OUTPUT
           Serial.println("Gesture detected! UP");
+#endif
           break;
         case DIR_NEAR:
           buttons.mode.setDownEdgeState();
+#ifdef DEBUG_OUTPUT          
           Serial.println("Gesture detected! NEAR");
+#endif
           break;
         case DIR_FAR:
           buttons.power.setDownEdgeState();
+#ifdef DEBUG_OUTPUT
           Serial.println("Gesture detected! FAR");
+#endif
           break;
-        default:        
+        default:
+#ifdef DEBUG_OUTPUT
           Serial.println("Movement detected but NO gesture detected!");
+#endif
       } //switch apds.readGesture()
     } //if apds.isGestureAvailable()
   return;
@@ -422,18 +473,20 @@ void handleMQTTCommands() {
     //All commands under 100 are graphic change requests now
     if (MqttCommandState < 100) {
       //to enhance the possible selecteable clock faces with the MQTT commands, we index the commands (base 5)
-      //I personally have NO IDEA, why this is done this way. We can select ANY topic, with ANY values we like! 
+      //I personally have NO IDEA, why this is done this way. We can select ANY topic, with ANY values we like!
       //So I don't get this, lets say, "interesting" way to do this.
       idx = (MqttCommandState / 5) - 1; // e.g. state = 25; 25/5 = 5; 5-1 = 4
       //10 == clock face 1; 15 == clock face 2; 20 == clock face 3; 25 == clock face 4; 30 == clock face 5; 35 == clock face 6; 40 == clock face 7...
 
       int MaxIdx = tfts.NumberOfClockFaces;
       if (idx > MaxIdx) { idx = 1; }
+#ifdef DEBUG_OUTPUT_MQTT
       Serial.print("Clock face change request from MQTT; command: ");Serial.print(MqttCommandState);Serial.print("; so selected index: ");Serial.println(idx);
+#endif
       uclock.setClockGraphicsIdx(idx);
       tfts.current_graphic = uclock.getActiveGraphicIdx();
       updateClockDisplay(TFTs::force);   // redraw everything
-    } else { 
+    } else {
       //button press commands
       if (MqttCommandState >= 100 && MqttCommandState <= 120){
         if (MqttCommandState == 100) {
@@ -442,34 +495,40 @@ void handleMQTTCommands() {
           #endif
           buttons.mode.setUpEdgeState();
         } else
-        #ifndef ONE_BUTTON_ONLY_MENU 
+        #ifndef ONE_BUTTON_ONLY_MENU
         if (MqttCommandState == 110) {
-          #ifdef DEBUG_OUTPUT_MQTT
+#ifdef DEBUG_OUTPUT_MQTT
             Serial.println("MQTT button pressed command received: LEFT");
-          #endif
-          buttons.left.setUpEdgeState();        
+#endif
+          buttons.left.setUpEdgeState();
         } else if (MqttCommandState == 115) {
-          #ifdef DEBUG_OUTPUT_MQTT
+#ifdef DEBUG_OUTPUT_MQTT
             Serial.println("MQTT button pressed command received: POWER");
-          #endif
+#endif
           buttons.power.setUpEdgeState();
         } else if (MqttCommandState == 120) {
-          #ifdef DEBUG_OUTPUT_MQTT
+#ifdef DEBUG_OUTPUT_MQTT
             Serial.println("MQTT button pressed command received: RIGHT");
-          #endif
+#endif
           buttons.right.setUpEdgeState();
-        } else {   
+        } else {
+#ifdef DEBUG_OUTPUT_MQTT
           Serial.print("Unknown MQTT button pressed command received: ");Serial.println(MqttCommandState);
+#endif
         }
         #else
-        {   
+        {
+#ifdef DEBUG_OUTPUT_MQTT
           Serial.print("Unknown MQTT button pressed command received: ");Serial.println(MqttCommandState);
+#endif
         }
-        #endif      
+        #endif
       } else { //else from button press commands (state 100-120)
+#ifdef DEBUG_OUTPUT_MQTT      
         Serial.print("Unknown MQTT command received: ");Serial.println(MqttCommandState);
+#endif
       } //end if button press commands
-    } //commands under 100  
+    } //commands under 100
   }
   #endif //MQTT_ENABLED
 } //HandleMQTTCommands
@@ -477,16 +536,16 @@ void handleMQTTCommands() {
 void setupMenu() {
   #ifdef DEBUG_OUTPUT_VERBOSE
     Serial.println("main::setupMenu!");
-  #endif  
+  #endif
   tfts.chip_select.setHoursTens();
   tfts.setTextColor(TFT_WHITE, TFT_BLACK, true);
   tfts.fillRect(0, 120, 135, 240, TFT_BLACK);
   tfts.setCursor(0, 124, 4);  // Font 4. 26 pixel high
 }
 
-bool isNightTime(uint8_t current_hour) {  
+bool isNightTime(uint8_t current_hour) {
   if (stored_config.config.uclock.dimming_end < stored_config.config.uclock.dimming_start) {
-    // "Night" spans across midnight    
+    // "Night" spans across midnight
     return (current_hour < stored_config.config.uclock.dimming_end) || (current_hour >= stored_config.config.uclock.dimming_start);
   }
   else {
@@ -500,11 +559,15 @@ void checkOnEveryFullHour(bool loopUpdate) {
   uint8_t current_hour = uclock.getHour24();
   FullHour = current_hour != hour_old;
   if (FullHour) {
+#ifdef DEBUG_OUTPUT
     Serial.println("Check if dimming is needed on every full hour!");
     Serial.print("Current hour = ");
     Serial.println(current_hour);
+#endif
     if (isNightTime(current_hour)) {
+#ifdef DEBUG_OUTPUT
       Serial.println("Setting night mode (dimmed)");
+#endif
       tfts.dimming = TFT_DIMMED_INTENSITY;
       tfts.InvalidateImageInBuffer(); // invalidate; reload images with new dimming value
       backlights.dimming = true;
@@ -512,7 +575,9 @@ void checkOnEveryFullHour(bool loopUpdate) {
         updateClockDisplay(TFTs::force); // update all
       }
     } else {
+#ifdef DEBUG_OUTPUT
       Serial.println("Setting daytime mode (normal brightness)");
+#endif
       tfts.dimming = 255; // 0..255
       tfts.InvalidateImageInBuffer(); // invalidate; reload images with new dimming value
       backlights.dimming = false;
@@ -524,37 +589,51 @@ void checkOnEveryFullHour(bool loopUpdate) {
   }
 }
 
+//for now, switch it off, because I dont want to use the geolocation service
+#ifdef GEOLOCATION_ENABLED
 //check Daylight-Saving-Time (Summertime)
 void updateDstEveryNight() {
   uint8_t currentDay = uclock.getDay();
   // This `DstNeedsUpdate` is True between 3:00:05 and 3:00:59. Has almost one minute of time slot to fetch updates, incl. eventual retries.
+  // It is either switching back from 3 am to 2 am (to summer time) or from 2 am to 3 am (to normal/winter time).
+  //so check is done EVERY DAY shortly after the time switch, to know, we need to get the correct time
+  //Needed, because the time switch is not always on the same day, so we need to check every day, if the time switch is done
   DstNeedsUpdate = (currentDay != yesterday) && (uclock.getHour24() == 3) && (uclock.getMinute() == 0) && (uclock.getSecond() > 5);
   if (DstNeedsUpdate) {
-    Serial.print("DST needs update...");
+    Serial.println("Daylight-Saving-Time (Summertime) needs update...");
+    Serial.println("Will be done in the next 'free time' of the loop()...");
     // Update day after geoloc was sucesfully updated. Otherwise this will immediatelly disable the failed update retry.
+    //NOTHING IN HERE!
+    //WHAT IS IT GOOD FOR?
+    //just set the flag, that the update is needed, but do the update in the loop, if the geolocation was updated successfully
+    //set the day to the current day, so we know, we already checked for the update today
     yesterday = currentDay;
   }
 }
+#endif
 
 void updateClockDisplay(TFTs::show_t show) {
   #ifdef DEBUG_OUTPUT_VERBOSE
     Serial.println("main::updateClockDisplay!");
   #endif
   // refresh starting on seconds
-  // tfts.setDigit(SECONDS_ONES, uclock.getSecondsOnes(), show);
-  // tfts.setDigit(SECONDS_TENS, uclock.getSecondsTens(), show);
-  // tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), show);
-  // tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), show);
-  // tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), show);
-  // tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), show);
-  //refreshing starting on hours
-  tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), show);
-  tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), show);
-  tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), show);
-  tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), show);
-  tfts.setDigit(SECONDS_TENS, uclock.getSecondsTens(), show);
   tfts.setDigit(SECONDS_ONES, uclock.getSecondsOnes(), show);
+  tfts.setDigit(SECONDS_TENS, uclock.getSecondsTens(), show);
+  tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), show);
+  tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), show);
+  tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), show);
+  tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), show);
+  //refreshing starting on hours -> Stupid idea
+  // tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), show);
+  // tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), show);
+  // tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), show);
+  // tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), show);
+  // tfts.setDigit(SECONDS_TENS, uclock.getSecondsTens(), show);
+  // tfts.setDigit(SECONDS_ONES, uclock.getSecondsOnes(), show);
 }
+
+
+
 
 //It is not only about "drawing" the menu here
 //It is also about handling the menu states and the changes to the config/clock settings out of the actual menu states
@@ -564,12 +643,19 @@ void updateClockDisplay(TFTs::show_t show) {
 //Zero means, no change was requested, so nothing to do
 //Positive means, the user wants to increase the value, so the belonging function to increase the value is called
 //Negative means, the user wants to decrease the value, so the belonging function to decrease the value is called
-void drawMenuAndHandleButtons() { 
+void drawMenuAndHandleButtons() {
   // Begin Draw Menu
-  if (menu.stateChanged() && tfts.isEnabled()) {
-    Menu::states menu_state = menu.getState();
-    int8_t menu_change = menu.getChange();
+  Menu::states menu_state = menu.getState();
+  bool bMenuStateChanged = menu.menuStateChanged();
 
+  if (bMenuStateChanged && tfts.isEnabled()) {
+#ifdef DEBUG_OUTPUT_MENU
+  Serial.print("MENU: bMenuStateChanged is true! and menu_state is: ");Serial.println(menu_state);
+#endif
+    int8_t menu_change = menu.getChange();
+#ifdef DEBUG_OUTPUT_MENU
+    Serial.print("MENU: Value stored in variable menu_change is: ");Serial.println(menu_change);
+#endif
     if (menu_state == Menu::idle) {
       // We just changed into idle, so force redraw everything, and save the config.
       updateClockDisplay(TFTs::force);
@@ -594,7 +680,7 @@ void drawMenuAndHandleButtons() {
         }
         setupMenu();
         tfts.println("Color:");
-        tfts.printf("%06X\n", backlights.getColor()); 
+        tfts.printf("%06X\n", backlights.getColor());
       }
       // Backlight Intensity
       else if (menu_state == Menu::backlight_intensity) {
@@ -611,17 +697,17 @@ void drawMenuAndHandleButtons() {
           uclock.toggleTwelveHour();
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::force);
-        }        
+        }
         setupMenu();
         tfts.println("Hour format");
-        tfts.println(uclock.getTwelveHour() ? "12 hour" : "24 hour"); 
+        tfts.println(uclock.getTwelveHour() ? "12 hour" : "24 hour");
       }
       // Blank leading zeros on the hours?
       else if (menu_state == Menu::blank_hours_zero) {
         if (menu_change != 0) {
           uclock.toggleBlankHoursZero();
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
-        }        
+        }
         setupMenu();
         tfts.println("Blank zero?");
         tfts.println(uclock.getBlankHoursZero() ? "yes" : "no");
@@ -674,7 +760,7 @@ void drawMenuAndHandleButtons() {
             if (stored_config.config.uclock.dimming_start < 0) {
               stored_config.config.uclock.dimming_start = 23;
             }
-          } else {            
+          } else {
             stored_config.config.uclock.dimming_start++;
             if (stored_config.config.uclock.dimming_start > 23) {
               stored_config.config.uclock.dimming_start = 0;
@@ -685,7 +771,7 @@ void drawMenuAndHandleButtons() {
         tfts.println("Dimming");
         tfts.println("start time");
         tfts.println("+/- 1h");
-        tfts.printf("%d\n", stored_config.config.uclock.dimming_start);        
+        tfts.printf("%d\n", stored_config.config.uclock.dimming_start);
       }
       // dimming end hour
       else if (menu_state == Menu::dimming_end) {
@@ -736,18 +822,62 @@ void drawMenuAndHandleButtons() {
             WiFiStartWps();
           }
         }
-        
+
         setupMenu();
         tfts.println("Connect to WiFi?");
         tfts.println("Left=WPS");
       }
-#endif   
+#endif
     }
-  } // if (menu.stateChanged() && tfts.isEnabled())  
+  } // if (menu.stateChanged() && tfts.isEnabled())
+  //else {
+    //We will pass every loop here, if the menu is not active -> we can check, if the button states are changed...
+// #ifdef DEBUG_OUTPUT_MENU
+//     Serial.println("No change in menu state detected!");
+// #endif
+//     if(bMenuStateChanged == Menu::idle) {
+//       //Only do something, if the menu is not active
+// #ifdef DEBUG_OUTPUT_MENU
+//       Serial.println("Menu is not active!");
+// #endif
+
+//vermutlich BULLSHIT
+//       #ifdef ONE_BUTTON_ONLY_MENU
+//     // Not in menu, so check for double click or long press
+//     if (buttons.mode.isDoubleClick()) {
+//       //Switch the clock face index by incrementing it
+// //#ifdef DEBUG_OUTPUT
+//         Serial.println("Adjust clock graphics index up 1");
+// //#endif
+//       uclock.adjustClockGraphicsIdx(1);
+//       if(tfts.current_graphic != uclock.getActiveGraphicIdx()) {
+//         tfts.current_graphic = uclock.getActiveGraphicIdx();
+//         updateClockDisplay(TFTs::force);   // redraw everything
+//       }
+//       //buttons.mode.resetState();
+//     }
+//     else if (buttons.mode.isDownLongy()) {
+//       //Switch the clock face index by decrementing it
+// //#ifdef DEBUG_OUTPUT
+//         Serial.println("Adjust clock graphics index down 1");
+// //#endif
+//       uclock.adjustClockGraphicsIdx(-1);
+//       if(tfts.current_graphic != uclock.getActiveGraphicIdx()) {
+//         tfts.current_graphic = uclock.getActiveGraphicIdx();
+//         updateClockDisplay(TFTs::force);   // redraw everything
+//       }
+//       //buttons.mode.resetState();
+//     }
+// #endif
+
+
+
+ //   }
+ // }
 } //drawMenu
 
 // "Power" button pressed, do something
-void handlePowerSwitchPressed() {  
+void handlePowerSwitchPressed() {
 #ifndef ONE_BUTTON_ONLY_MENU
   // Power button pressed: If in menu, exit menu. Else turn off displays and backlight.
   if (buttons.power.isDownEdge() && (menu.getState() == Menu::idle)) {

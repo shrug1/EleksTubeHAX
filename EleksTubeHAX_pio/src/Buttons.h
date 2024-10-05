@@ -12,13 +12,15 @@
 // For HIGH and LOW
 #include <Arduino.h>
 
+const unsigned long debounce_delay = 50; // 50 milliseconds debounce delay
+
 class Button {
 public:
   Button( 
       uint8_t bpin,
       uint8_t active_state=LOW,
-      uint32_t long_press_ms=500,
-      uint32_t double_click_ms=300) // Add double_click_ms parameter
+      uint32_t long_press_ms=600,
+      uint32_t double_click_ms=300)
     : bpin(bpin), active_state(active_state), long_press_ms(long_press_ms), double_click_ms(double_click_ms),
       down_last_time(false), state_changed(false), millis_at_last_transition(0), millis_at_last_release(0), button_state(idle) {}
 
@@ -44,7 +46,6 @@ public:
                 up_long_edge, 
                 single_click, // Add single_click state
                 double_click, // Add double_click state
-                triple_click, // Add triple_click state
                 long_click, // Add long_click state
                 num_states
              };
@@ -94,6 +95,8 @@ private:
   bool              single_click_pending; // Add single_click_pending flag
   uint32_t          millis_at_last_loop;
   state             button_state;
+  unsigned long     last_debounce_time = 0;
+  
 
   bool isButtonDown() { return digitalRead(bpin) == active_state; }
 };
@@ -110,7 +113,7 @@ public:
     
   // Just making them public, so we don't have to proxy everything.
   Button mode;
-private: 
+private:
 };
 
 #endif
@@ -130,7 +133,7 @@ public:
     
   // Just making them public, so we don't have to proxy everything.
   Button left, mode, right, power;
-private: 
+private:
 };
 
 #endif

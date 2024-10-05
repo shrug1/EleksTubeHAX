@@ -53,11 +53,12 @@ public:
 
   const static String state_str[num_states];
 
-  states  getState()      { return(menu_state); }
-  int8_t  getChange()     { return(change); }
+  states  getState()          { return(menu_state); }
+  int8_t  getChange()         { return(change); }
    
-  String  getStateStr()   { return state_str[menu_state]; }
-  bool    stateChanged()  { return(state_changed); }
+  String  getStateStr()       { return state_str[menu_state]; }
+  bool    menuStateChanged()  { return(menu_state_changed);
+}
 
 private:
   const uint16_t idle_timeout_ms = 10000;  // Timeout and return to idle after 10 seconds of inactivity.
@@ -67,9 +68,9 @@ private:
   int8_t  change;     // 0 == no action, positive == right button, negative == left button. 
                       // For now, these are only +1 and -1. But we might enable acceleration or similar later.
   uint32_t millis_last_button_press;
-  uint32_t double_click_ms=300;
+  //uint32_t double_click_ms=500;
   
-  bool state_changed; // So we're not redrawing the screen every damn time, signal if the state has changed.
+  bool menu_state_changed; // So we're not redrawing the screen every damn time, signal if the state has changed.
 
 };
 
