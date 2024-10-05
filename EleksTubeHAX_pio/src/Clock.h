@@ -40,21 +40,9 @@ public:
   void adjustTimeZoneOffset(time_t adj) { config->time_zone_offset += adj; }
   void  setActiveGraphicIdx(int8_t idx) { config->selected_graphic = idx;}
   int8_t getActiveGraphicIdx()          { return config->selected_graphic; }
-  void adjustClockGraphicsIdx(int8_t adj) {
-    int8_t newGraphic = getActiveGraphicIdx();
-    newGraphic += adj;
-    
-    if (newGraphic > tfts.NumberOfClockFaces) { newGraphic = 1; Serial.println("Underrun!");}
-    if (newGraphic < 1) { newGraphic = tfts.NumberOfClockFaces; Serial.println("Overrun!");}
 
-    this->setClockGraphicsIdx(newGraphic);
-  }
-  void setClockGraphicsIdx(int8_t set) {
-    if (set > tfts.NumberOfClockFaces) { set = tfts.NumberOfClockFaces; }
-    if (set < 1) { set = 1; }
-
-    config->selected_graphic = set;
-  }
+  void adjustClockGraphicsIdx(int8_t adj);
+  void setClockGraphicsIdx(int8_t set);
 
   // Proxy C functions from TimeLib.h
   // I really wish it were a class we could just subclass, but here we are.

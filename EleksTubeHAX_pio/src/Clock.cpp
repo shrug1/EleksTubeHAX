@@ -96,6 +96,36 @@ void Clock::loop() {
   }
 }
 
+void Clock::adjustClockGraphicsIdx(int8_t adj) {
+  int8_t newGraphicIndex = getActiveGraphicIdx();
+  newGraphicIndex += adj;
+
+  if (newGraphicIndex > tfts.NumberOfClockFaces) {
+    newGraphicIndex = 1;
+#ifdef DEBUG_OUTPUT
+    Serial.println("Underrun GrahicIndex!");
+#endif
+  }
+  if (newGraphicIndex < 1) {
+    newGraphicIndex = tfts.NumberOfClockFaces;
+#ifdef DEBUG_OUTPUT
+    Serial.println("Overrun GrahicIndex!");
+#endif
+  }
+
+  this->setClockGraphicsIdx(newGraphicIndex);
+}
+
+void Clock::setClockGraphicsIdx(int8_t set) {
+  if (set > tfts.NumberOfClockFaces) {
+    set = tfts.NumberOfClockFaces;
+  }
+  if (set < 1) {
+    set = 1;
+  }
+
+  config->selected_graphic = set;
+}
 
 // Static methods used for sync provider to TimeLib library.
 time_t Clock::syncProvider() {

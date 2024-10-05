@@ -161,6 +161,19 @@ void Button::loop() {
   down_last_time = down_now;
 }
 
+void Button::resetState() {
+  #ifdef DEBUG_OUTPUT_BUTTONS
+    Serial.print("BUTTON: Reset state of button: "); Serial.println(bpin);
+  #endif
+  button_state = idle;
+  single_click_pending = false;
+  state_changed = false;
+  down_last_time = false;
+  millis_at_last_press = 0;
+  millis_at_last_release = 0;
+  millis_at_last_transition = 0;
+}
+
 const String Button::state_str[Button::num_states] = 
   { "idle", 
     "down_edge", 

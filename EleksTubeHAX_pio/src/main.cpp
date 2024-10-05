@@ -50,7 +50,7 @@ void updateClockDisplay(TFTs::show_t show=TFTs::yes);
 void setupMenu(void);
 void checkOnEveryFullHour(bool loopUpdate=false);
 void updateDstEveryNight(void);
-void drawMenu();
+void drawMenuAndHandleButtons();
 void handlePowerSwitchPressed();
 void handleMQTTCommands();
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
@@ -95,11 +95,17 @@ void setup() {
   menu.begin();
 
   // Setup the displays (TFTs) initaly and show bootup message(s)
-  tfts.begin();  // and count number of clock faces available
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("Setup TFTs");
+  #endif
+  tfts.begin();  // and count number of clock faces available  
   tfts.fillScreen(TFT_BLACK);
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
   tfts.setCursor(0, 0, 2);  // Font 2. 16 pixel high
   tfts.println("Setup...");
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("Finished setup TFTs");
+  #endif
 
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   //Init the Gesture sensor
@@ -228,7 +234,7 @@ void loop() {
   updateClockDisplay();   // Update the digits of the clock face. Get actual time from RTC and set the LCDs.
   updateDstEveryNight();  // Check for Daylight-Saving-Time (Summertime) adjustment once a day
 
-  drawMenu();             // Draw the menu on the clock face, if menu is requested
+  drawMenuAndHandleButtons();    // Draw the menu on the clock face, if menu is requested and handle the button presses in the menu
 
 // End of normal loop
 //------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -535,15 +541,30 @@ void updateClockDisplay(TFTs::show_t show) {
     Serial.println("main::updateClockDisplay!");
   #endif
   // refresh starting on seconds
-  tfts.setDigit(SECONDS_ONES, uclock.getSecondsOnes(), show);
-  tfts.setDigit(SECONDS_TENS, uclock.getSecondsTens(), show);
-  tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), show);
-  tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), show);
-  tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), show);
+  // tfts.setDigit(SECONDS_ONES, uclock.getSecondsOnes(), show);
+  // tfts.setDigit(SECONDS_TENS, uclock.getSecondsTens(), show);
+  // tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), show);
+  // tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), show);
+  // tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), show);
+  // tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), show);
+  //refreshing starting on hours
   tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), show);
+  tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), show);
+  tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), show);
+  tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), show);
+  tfts.setDigit(SECONDS_TENS, uclock.getSecondsTens(), show);
+  tfts.setDigit(SECONDS_ONES, uclock.getSecondsOnes(), show);
 }
 
-void drawMenu() { 
+//It is not only about "drawing" the menu here
+//It is also about handling the menu states and the changes to the config/clock settings out of the actual menu states
+//So it is a bit more than just drawing the menu
+//If the menu was already active and the user choosed to change a value in the actual shown/selected menu, the function to do the change is called from here
+//A change is detected by getting the menu.getChange() value from the menu class and then checking if the value is negativ, positive or zero
+//Zero means, no change was requested, so nothing to do
+//Positive means, the user wants to increase the value, so the belonging function to increase the value is called
+//Negative means, the user wants to decrease the value, so the belonging function to decrease the value is called
+void drawMenuAndHandleButtons() { 
   // Begin Draw Menu
   if (menu.stateChanged() && tfts.isEnabled()) {
     Menu::states menu_state = menu.getState();

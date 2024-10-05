@@ -19,7 +19,7 @@ public:
 #ifndef WIFI_USE_WPS
   enum states { 
     idle=0,              // idle == out of menu.
-    backlight_pattern,   // Change the backlight patterns.
+    selected_graphic,   // Change the backlight patterns.
     pattern_color,       // Change the backlight pattern color. TODO pattern speeds?
     backlight_intensity, // Change how bright the backlight LEDs are.
     twelve_hour,         // Select 12 hour or 24 hour format.
@@ -28,14 +28,14 @@ public:
     utc_offset_15m,      // Change the UTC offset by 15 minutes.
     dimming_begin,       // Change the dimming begin hour.
     dimming_end,         // Change the dimming end hour.
-    selected_graphic,    // Select clock "font" 0...9 -> first char in file name "00.bmp to 90.bmp".    
+    backlight_pattern,    // Select clock "font" 0...9 -> first char in file name "00.bmp to 90.bmp".    
     // When there's more things to change in the menu, add them here.
     num_states
   };
   #else
     enum states { 
     idle=0,              // idle == out of menu.
-    backlight_pattern,   // Change the backlight patterns.
+    selected_graphic,   // Change the backlight patterns.
     pattern_color,       // Change the backlight pattern color. TODO pattern speeds?
     backlight_intensity, // Change how bright the backlight LEDs are.
     twelve_hour,         // Select 12 hour or 24 hour format.
@@ -44,7 +44,7 @@ public:
     utc_offset_15m,      // Change the UTC offset by 15 minutes.
     dimming_begin,       // Change the dimming begin hour.
     dimming_end,         // Change the dimming end hour.
-    selected_graphic,    // Select clock "font" 0...9 -> first char in file name "00.bmp to 90.bmp".
+    backlight_pattern,    // Select clock "font" 0...9 -> first char in file name "00.bmp to 90.bmp".
     start_wps,           // connect to WiFi using wps pushbutton mode
     // When there's more things to change in the menu, add them here.
     num_states

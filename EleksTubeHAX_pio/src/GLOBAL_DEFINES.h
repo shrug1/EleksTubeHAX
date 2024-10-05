@@ -404,11 +404,11 @@
 
   #define SMOOTH_FONT
 
-  #define SPI_FREQUENCY  40000000
-  //#define SPI_FREQUENCY  55000000
+  //#define SPI_FREQUENCY  40000000
+  #define SPI_FREQUENCY  55000000
   
-  #define SPI_READ_FREQUENCY  20000000
-  //#define SPI_READ_FREQUENCY 40000000
+  //#define SPI_READ_FREQUENCY  20000000
+  #define SPI_READ_FREQUENCY 40000000
   /*
    * To make the Library not over-write all this:
    */

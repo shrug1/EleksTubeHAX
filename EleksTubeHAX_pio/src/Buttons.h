@@ -76,6 +76,7 @@ public:
   bool isDownLongy()          { return button_state == down_long_edge || button_state == down_long; }
   bool isDowny()              { return button_state == down_edge || button_state == down || isDownLongy(); }
   bool isUpy()                { return button_state == idle || button_state == up_edge || button_state == up_long_edge; }
+  void resetState();
   
 private:
   // Config

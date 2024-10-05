@@ -6,7 +6,7 @@
 
 
 void TFTs::begin() {
-  #ifdef DEBUG_OUTPUT_TFT
+  #ifdef DEBUG_OUTPUT_TFT 
     Serial.println("TFTs::begin");
   #endif
   // Start with all displays selected.
@@ -19,7 +19,8 @@ void TFTs::begin() {
   InvalidateImageInBuffer();
 
   // Initialize the super class.
-  init();
+  init();  
+  fillScreen(TFT_BLACK);  
 
   // Set SPIFFS ready
   if (!SPIFFS.begin()) {
@@ -28,6 +29,9 @@ void TFTs::begin() {
     return;
   }
 
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("TFTs::begin: CountNumberOfClockFaces");
+  #endif
   NumberOfClockFaces = CountNumberOfClockFaces();
 }
 
