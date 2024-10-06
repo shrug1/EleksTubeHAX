@@ -71,8 +71,7 @@ public:
   bool isUpEdge()             { return button_state == up_edge; }
   bool isUpLongEdge()         { return button_state == up_long_edge; }
   bool isSingleClick()        { return button_state == single_click; } // Add isSingleClick method
-  bool isDoubleClick()        { return button_state == double_click; } // Add isDoubleClick method
-  bool isTripleClick()        { return button_state == triple_click; } // Add isTripleClick method
+  bool isDoubleClick()        { return button_state == double_click; } // Add isDoubleClick method  
   bool isLongClick()          { return button_state == long_click; }   // Add isLongClick method
   bool isDownLongy()          { return button_state == down_long_edge || button_state == down_long; }
   bool isDowny()              { return button_state == down_edge || button_state == down || isDownLongy(); }

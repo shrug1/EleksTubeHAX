@@ -46,8 +46,8 @@
 	256												works -> check again
 24 red 7 segment									no source in 24bit available
 	256												works
-25 Christmas theme									unstable center - white background missing
-	256												unstable center - white background missing
+25 Christmas theme									works -> numbers not even
+	256												works -> numbers not even
 26 Luminous wire_Net								works
 	256												works
 27 Luminous_wire_Ver1.0								works
