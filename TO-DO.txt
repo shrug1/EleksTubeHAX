@@ -9,6 +9,10 @@
 
 Martinius:
 
+Fix BUG:
+If power is off, the displays changed, switch on again
+If MQTT is on, but not reachable, always three seconds hanging clock
+
 switch clock faces by left and right buttons
 switch clock faces by single click in IPSTubes
 menu with double click on IPSTubes
