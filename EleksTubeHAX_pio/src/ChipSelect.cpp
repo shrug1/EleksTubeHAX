@@ -1,6 +1,6 @@
 #include "ChipSelect.h"
 
-#ifdef HARDWARE_IPSTUBE_H401_CLOCK
+#ifdef HARDWARE_IPSTUBE_CLOCK
 // Define the pins for each LCD's enable wire
 // The order is from left to right, so the first pin is for the seconds ones, the last for the hours tens
 // LCD2 is the leftmost one         - seconds one - pin 21 as GPIO15
@@ -14,7 +14,7 @@ const int numLCDs = NUM_DIGITS;
 #endif
 
 void ChipSelect::begin() {
-  #ifndef HARDWARE_IPSTUBE_H401_CLOCK
+  #ifndef HARDWARE_IPSTUBE_CLOCK
     pinMode(CSSR_LATCH_PIN, OUTPUT);
     pinMode(CSSR_DATA_PIN, OUTPUT);
     pinMode(CSSR_CLOCK_PIN, OUTPUT);
@@ -33,7 +33,7 @@ void ChipSelect::begin() {
 }
 
 void ChipSelect::clear(bool update_) {
-#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+#ifndef HARDWARE_IPSTUBE_CLOCK
   setDigitMap(all_off, update_);
 #else
   disableAllCSPinsH401();
@@ -41,7 +41,7 @@ void ChipSelect::clear(bool update_) {
 }
 
 void ChipSelect::setAll(bool update_) {
-#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+#ifndef HARDWARE_IPSTUBE_CLOCK
   setDigitMap(all_on,  update_);
 #else
   enableAllCSPinsH401();
@@ -49,7 +49,7 @@ void ChipSelect::setAll(bool update_) {
 }
 
 void ChipSelect::setDigit(uint8_t digit, bool update_) {
-  #ifndef HARDWARE_IPSTUBE_H401_CLOCK
+  #ifndef HARDWARE_IPSTUBE_CLOCK
     // Set the bit for the given digit in the digits_map
     setDigitMap(1 << digit, update_);
     if (update_) update();
@@ -67,7 +67,7 @@ void ChipSelect::setDigit(uint8_t digit, bool update_) {
 }
 
 void ChipSelect::update() {  
-  #ifndef HARDWARE_IPSTUBE_H401_CLOCK
+  #ifndef HARDWARE_IPSTUBE_CLOCK
     // Documented in README.md.  Q7 and Q6 are unused. Q5 is Seconds Ones, Q0 is Hours Tens.
     // Q7 is the first bit written, Q0 is the last.  So we push two dummy bits, then start with
     // Seconds Ones and end with Hours Tens.
@@ -88,7 +88,7 @@ void ChipSelect::update() {
 }
 
 bool ChipSelect::isSecondsOnes() {
-#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+#ifndef HARDWARE_IPSTUBE_CLOCK
   return (digits_map&SECONDS_ONES_MAP > 0);
 #else
   return true;
@@ -96,7 +96,7 @@ bool ChipSelect::isSecondsOnes() {
 }
 
 bool ChipSelect::isSecondsTens() {
-#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+#ifndef HARDWARE_IPSTUBE_CLOCK
   return (digits_map&SECONDS_TENS_MAP > 0);
 #else
   return true;
@@ -104,7 +104,7 @@ bool ChipSelect::isSecondsTens() {
 }
 
 bool ChipSelect::isMinutesOnes() {
-#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+#ifndef HARDWARE_IPSTUBE_CLOCK
   return (digits_map&MINUTES_ONES_MAP > 0);
 #else
   return true;
@@ -112,7 +112,7 @@ bool ChipSelect::isMinutesOnes() {
 }
 
 bool ChipSelect::isMinutesTens() {
-#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+#ifndef HARDWARE_IPSTUBE_CLOCK
   return (digits_map&MINUTES_TENS_MAP > 0);
 #else
   return true;
@@ -120,7 +120,7 @@ bool ChipSelect::isMinutesTens() {
 }
 
 bool ChipSelect::isHoursOnes() {
-#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+#ifndef HARDWARE_IPSTUBE_CLOCK
   return (digits_map&HOURS_ONES_MAP > 0);
 #else
   return true;
@@ -128,7 +128,7 @@ bool ChipSelect::isHoursOnes() {
 }
 
 bool ChipSelect::isHoursTens() {
-#ifndef HARDWARE_IPSTUBE_H401_CLOCK
+#ifndef HARDWARE_IPSTUBE_CLOCK
   return (digits_map&HOURS_TENS_MAP > 0);
 #else
   return true;
@@ -137,7 +137,7 @@ bool ChipSelect::isHoursTens() {
 
 
 void ChipSelect::enableAllCSPinsH401() {
-#ifdef HARDWARE_IPSTUBE_H401_CLOCK
+#ifdef HARDWARE_IPSTUBE_CLOCK
   // enable each LCD
   for (int i = 0; i < numLCDs; ++i) {
     digitalWrite(lcdEnablePins[i], LOW);
@@ -146,7 +146,7 @@ void ChipSelect::enableAllCSPinsH401() {
 }
 
 void ChipSelect::disableAllCSPinsH401() {
-#ifdef HARDWARE_IPSTUBE_H401_CLOCK
+#ifdef HARDWARE_IPSTUBE_CLOCK
   // disable each LCD
   for (int i = 0; i < numLCDs; ++i) {
     digitalWrite(lcdEnablePins[i], HIGH);
@@ -155,14 +155,14 @@ void ChipSelect::disableAllCSPinsH401() {
 }
 
 void ChipSelect::enableDigitCSPinsH401(uint8_t digit) {
-#ifdef HARDWARE_IPSTUBE_H401_CLOCK
+#ifdef HARDWARE_IPSTUBE_CLOCK
   // enable the LCD for the given digit
   digitalWrite(lcdEnablePins[digit], LOW);
 #endif
 }
 
 void ChipSelect::disableDigitCSPinsH401(uint8_t digit) {
-#ifdef HARDWARE_IPSTUBE_H401_CLOCK
+#ifdef HARDWARE_IPSTUBE_CLOCK
   // disable the LCD for the given digit
   digitalWrite(lcdEnablePins[digit], HIGH);
 #endif

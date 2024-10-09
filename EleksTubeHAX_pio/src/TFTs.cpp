@@ -6,7 +6,7 @@
 
 
 void TFTs::begin() {
-  #ifdef DEBUG_OUTPUT_TFT
+  #ifdef DEBUG_OUTPUT_TFT 
     Serial.println("TFTs::begin");
   #endif
   // Start with all displays selected.
@@ -19,7 +19,8 @@ void TFTs::begin() {
   InvalidateImageInBuffer();
 
   // Initialize the super class.
-  init();
+  init();  
+  fillScreen(TFT_BLACK);  
 
   // Set SPIFFS ready
   if (!SPIFFS.begin()) {
@@ -28,6 +29,9 @@ void TFTs::begin() {
     return;
   }
 
+  #ifdef DEBUG_OUTPUT_TFT
+    Serial.println("TFTs::begin: CountNumberOfClockFaces");
+  #endif
   NumberOfClockFaces = CountNumberOfClockFaces();
 }
 
@@ -165,7 +169,7 @@ void TFTs::showDigit(uint8_t digit) {
     if (NextNumber > 9) NextNumber = 0; // pre-load only seconds, because they are drawn first
     NextFileRequired = current_graphic * 10 + NextNumber;
   }
-  #ifdef HARDWARE_IPSTUBE_H401_CLOCK
+  #ifdef HARDWARE_IPSTUBE_CLOCK
     chip_select.update();
   #endif
   }
@@ -296,6 +300,7 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   sprintf(filename, "/%d.bmp", file_index);
 
 #ifdef DEBUG_OUTPUT_VERBOSE2
+  Serial.println("--------------------------------------");
   Serial.print("Loading: ");
   Serial.println(filename);
 #endif
@@ -309,23 +314,23 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
     return(false);
   }
 
-  uint32_t seekOffset, headerSize, paletteSize = 0;
+  uint32_t seekOffset, headerSize, paletteSize, compression = 0;
   int16_t w, h, row, col;
-  uint16_t  r, g, b, bitDepth;
+  uint16_t  r, g, b, a, bitDepth;
 
   // black background - clear whole buffer
   memset(UnpackedImageBuffer, '\0', sizeof(UnpackedImageBuffer));
   
   uint16_t magic = read16(bmpFS);
   if (magic == 0xFFFF) {
-    Serial.print("Can't openfile. Make sure you upload the SPIFFs image with BMPs. : ");
+    Serial.print("Can't open file. Make sure you upload the SPIFFs image with BMPs. : ");
     Serial.println(filename);
     bmpFS.close();
     return(false);
   }
   
   if (magic != 0x4D42) {
-    Serial.print("File not a BMP. Magic: ");
+    Serial.print("File is not a BMP. Magic Bytes are: ");    
     Serial.println(magic);
     bmpFS.close();
     return(false);
@@ -358,8 +363,11 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   Serial.print(", "); 
   Serial.println(y);
 #endif
-  if (read32(bmpFS) != 0 || (bitDepth != 24 && bitDepth != 1 && bitDepth != 4 && bitDepth != 8)) {
-    Serial.println("BMP format not recognized.");
+ //check if image is compressed -> can't decode in this version
+ //Check also for unsupported bit depths
+compression = read32(bmpFS);
+  if (compression != 0 || (bitDepth != 32 && bitDepth != 24 && bitDepth != 1 && bitDepth != 4 && bitDepth != 8)) {
+    Serial.println("BMP format not recognized! Maybe compressed BMP or unsupported bitdepth!");
     bmpFS.close();
     return(false);
   }
@@ -367,20 +375,24 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
   uint32_t palette[256];
   if (bitDepth <= 8) // 1,4,8 bit bitmap: read color palette
   {
-    read32(bmpFS); read32(bmpFS); read32(bmpFS); // size, w resolution, h resolution
+    read32(bmpFS); read32(bmpFS); read32(bmpFS); // size, w resolution (pixel per meter) -> not needed, h resolution (pixel per meter) -> not needed
     paletteSize = read32(bmpFS);
-    if (paletteSize == 0) paletteSize = bitDepth * bitDepth; // if 0, size is 2^bitDepth
+    if (paletteSize == 0) paletteSize = pow(2, bitDepth); // if 0, size is 2^bitDepth
     bmpFS.seek(14 + headerSize); // start of color palette
     for (uint16_t i = 0; i < paletteSize; i++) {
       palette[i] = read32(bmpFS);
     }
   }
 
+  // Jump to the start of the image data
   bmpFS.seek(seekOffset);
 
+  //calculate the size for one line of pixels of the image in bytes (rounded up to 4 bytes)
   uint32_t lineSize = ((bitDepth * w +31) >> 5) * 4;
+  //allocate buffer for one line of pixels
   uint8_t lineBuffer[lineSize];
   
+  //run through the image line by line (row by row)
   // row is decremented as the BMP image is drawn bottom up
   for (row = h-1; row >= 0; row--) {
     bmpFS.read(lineBuffer, sizeof(lineBuffer));
@@ -388,31 +400,36 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index) {
     
     // Convert 24 to 16 bit colours while copying to output buffer.
     for (col = 0; col < w; col++) {
-      if (bitDepth == 24) {
-          b = *bptr++;
-          g = *bptr++;
-          r = *bptr++;
-        } else {
-          uint32_t c = 0;
-          if (bitDepth == 8) {
-            c = palette[*bptr++];
-          }
-          else if (bitDepth == 4) {
-            c = palette[(*bptr >> ((col & 0x01)?0:4)) & 0x0F];
-            if (col & 0x01) bptr++;
-          }
-          else { // bitDepth == 1
-            c = palette[(*bptr >> (7 - (col & 0x07))) & 0x01];
-            if ((col & 0x07) == 0x07) bptr++;
-          }
-          b = c; g = c >> 8; r = c >> 16;
+      if (bitDepth == 32) {
+        b = *bptr++;
+        g = *bptr++;
+        r = *bptr++;
+        a = *bptr++; // Assuming the 4th byte is the alpha channel -> ignore it for now! read it, to seek the pointer
+      } else if (bitDepth == 24) {
+        b = *bptr++;
+        g = *bptr++;
+        r = *bptr++;
+      } else {
+        uint32_t c = 0;        
+        if (bitDepth == 8) { // read the color from the pallete index for the actual postion in the image data for 8 bit images
+          c = palette[*bptr++];
+        } else if (bitDepth == 4) { // read the color from the pallete index for the actual postion in the image data for 4 bit images
+          c = palette[(*bptr >> ((col & 0x01)?0:4)) & 0x0F];
+          if (col & 0x01) bptr++;
+        } else { // read the color from the pallete index for the actual postion in the image data for 1 bit images
+          c = palette[(*bptr >> (7 - (col & 0x07))) & 0x01];
+          if ((col & 0x07) == 0x07) bptr++;
         }
+        // extract the color components for palletized images
+        b = c; g = c >> 8; r = c >> 16;
+      }
 
         uint16_t color = ((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xFF) >> 3);
         if (dimming < 255) { // only dim when needed
           color = alphaBlend(dimming, color, TFT_BLACK);
         } // dimming
 
+        // write the extracted color info to the right position in the output buffer
         UnpackedImageBuffer[row+y][col+x] = color;
     } // col
   } // row

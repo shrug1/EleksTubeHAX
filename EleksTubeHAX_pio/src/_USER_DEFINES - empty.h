@@ -25,7 +25,7 @@
 //#define HARDWARE_SI_HAI_CLOCK  // uncomment for the SI HAI copy of the clock
 //#define HARDWARE_NovelLife_SE_CLOCK  // uncomment for the NovelLife SE version (Gesture only) - tested and working!; Non-SE version (Buttons only) NOT tested!; Pro version (Buttons and Gesture) NOT tested!
 //#define HARDWARE_PunkCyber_CLOCK  // uncomment for the PunkCyber / RGB Glow tube / PCBway clock
-//#define HARDWARE_IPSTUBE_H401_CLOCK  // uncomment for the IPSTUBE Model H401 Clock
+//#define HARDWARE_IPSTUBE_CLOCK  // uncomment for the IPSTUBE Model H401 Clock
 
 
 // ************* Clock font file type selection (.clk or .bmp)  *************

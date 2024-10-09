@@ -1,7 +1,7 @@
 #include "Clock.h"
 #include "WiFi_WPS.h"
 
-#if defined(HARDWARE_SI_HAI_CLOCK) || defined(HARDWARE_IPSTUBE_H401_CLOCK) // for Clocks with DS1302 chip #SI HAI or H401 XXXXXXXXXXXXXXXXXX
+#if defined(HARDWARE_SI_HAI_CLOCK) || defined(HARDWARE_IPSTUBE_CLOCK) // for Clocks with DS1302 chip #SI HAI or H401 XXXXXXXXXXXXXXXXXX
   // If it is a SI HAI Clock, use differnt RTC chip drivers
   #include <ThreeWire.h>  
   #include <RtcDS1302.h>
@@ -80,8 +80,7 @@ void Clock::begin(StoredConfig::Config::Clock *config_) {
   RtcBegin();
   ntpTimeClient.begin();
   ntpTimeClient.update();
-  Serial.print("NTP time = ");
-  Serial.println(ntpTimeClient.getFormattedTime());
+  Serial.print("NTP time = ");Serial.println(ntpTimeClient.getFormattedTime());
   setSyncProvider(&Clock::syncProvider);
 }
 
@@ -96,46 +95,89 @@ void Clock::loop() {
   }
 }
 
+void Clock::adjustClockGraphicsIdx(int8_t adj) {
+  int8_t newGraphicIndex = getActiveGraphicIdx();
+  newGraphicIndex += adj;
+
+  if (newGraphicIndex > tfts.NumberOfClockFaces) {
+    newGraphicIndex = 1;
+#ifdef DEBUG_OUTPUT
+    Serial.println("Underrun GrahicIndex!");
+#endif
+  }
+  if (newGraphicIndex < 1) {
+    newGraphicIndex = tfts.NumberOfClockFaces;
+#ifdef DEBUG_OUTPUT
+    Serial.println("Overrun GrahicIndex!");
+#endif
+  }
+
+  this->setClockGraphicsIdx(newGraphicIndex);
+}
+
+void Clock::setClockGraphicsIdx(int8_t set) {
+  if (set > tfts.NumberOfClockFaces) {
+    set = tfts.NumberOfClockFaces;
+  }
+  if (set < 1) {
+    set = 1;
+  }
+
+  config->selected_graphic = set;
+}
 
 // Static methods used for sync provider to TimeLib library.
 time_t Clock::syncProvider() {
+#ifdef DEBUG_OUTPUT_NTP
   Serial.println("syncProvider()");
+#endif
   time_t ntp_now, rtc_now;
   rtc_now = RtcGet();
 
   if (millis() - millis_last_ntp > refresh_ntp_every_ms || millis_last_ntp == 0) {
     if (WifiState == connected) { 
       // It's time to get a new NTP sync
+#ifdef DEBUG_OUTPUT_NTP
       Serial.print("Getting NTP.");
+#endif
 //      ntpTimeClient.forceUpdate();  // maybe this breaks the NTP requests as this should not be done more than every minute.
       if (ntpTimeClient.update()) {
+#ifdef DEBUG_OUTPUT_NTP        
         Serial.print(".");
+#endif
         ntp_now = ntpTimeClient.getEpochTime();
-        Serial.println("NTP query done.");
-        Serial.print("NTP time = ");
-        Serial.println(ntpTimeClient.getFormattedTime());
+#ifdef DEBUG_OUTPUT_NTP
+        Serial.println("NTP query done.");Serial.print("NTP time = ");Serial.println(ntpTimeClient.getFormattedTime());
 //      if (ntp_now > 1644601505) { //is it valid - reasonable number?
           // Sync the RTC to NTP if needed.
-        Serial.println("NTP, RTC, Diff: ");
-        Serial.println(ntp_now);
-        Serial.println(rtc_now);
-        Serial.println(ntp_now-rtc_now);
+        Serial.println("NTP, RTC, Diff: ");Serial.println(ntp_now);Serial.println(rtc_now);Serial.println(ntp_now-rtc_now);
+#endif
         if (ntp_now != rtc_now) {
           RtcSet(ntp_now);
+#ifdef DEBUG_OUTPUT_NTP
           Serial.println("Updating RTC");
+#endif
         }
         millis_last_ntp = millis();
+#ifdef DEBUG_OUTPUT_NTP
         Serial.println("Using NTP time.");
+#endif
         return ntp_now;
       } else {  // NTP valid
+#ifdef DEBUG_OUTPUT_NTP
       Serial.println("Invalid NTP response, using RTC time.");
+#endif
       return rtc_now;
       }
     } // no wifi
+#ifdef DEBUG_OUTPUT_NTP
     Serial.println("No WiFi, using RTC time.");
+#endif
     return rtc_now;
   }
+#ifdef DEBUG_OUTPUT_NTP
   Serial.println("Using RTC time.");
+#endif
   return rtc_now;
 }
 

@@ -12,14 +12,17 @@
 // For HIGH and LOW
 #include <Arduino.h>
 
+const unsigned long debounce_delay = 50; // 50 milliseconds debounce delay
+
 class Button {
 public:
   Button( 
       uint8_t bpin,
       uint8_t active_state=LOW,
-      uint32_t long_press_ms=500)
-    : bpin(bpin), active_state(active_state), long_press_ms(long_press_ms),
-      down_last_time(false), state_changed(false), millis_at_last_transition(0), button_state(idle) {}
+      uint32_t long_press_ms=600,
+      uint32_t double_click_ms=300)
+    : bpin(bpin), active_state(active_state), long_press_ms(long_press_ms), double_click_ms(double_click_ms),
+      down_last_time(false), state_changed(false), millis_at_last_transition(0), millis_at_last_release(0), button_state(idle) {}
 
   /*
    * States:
@@ -41,11 +44,13 @@ public:
                 down_long, 
                 up_edge, 
                 up_long_edge, 
+                single_click, // Add single_click state
+                double_click, // Add double_click state
+                long_click, // Add long_click state
                 num_states
              };
 
-  const static String state_str[num_states];
-
+  static const String state_str[num_states];
   void begin();
   void loop();
   
@@ -57,31 +62,40 @@ public:
   void setDownLongEdgeState() { button_state = down_long_edge; }
   void setUpEdgeState()       { button_state = up_edge; }
   void setUpLongEdgeState()   { button_state = up_long_edge; }
-  uint32_t millisInState()    { return millis_at_last_loop-millis_at_last_transition; }
-
-  bool isIdle()             { return button_state == idle; }
-  bool isDownEdge()         { return button_state == down_edge; }
-  bool isDown()             { return button_state == down; }
-  bool isDownLongEdge()     { return button_state == down_long_edge; }
-  bool isDownLong()         { return button_state == down_long; }
-  bool isUpEdge()           { return button_state == up_edge; }
-  bool isUpLongEdge()       { return button_state == up_long_edge; }
-  bool isDownLongy()        { return button_state == down_long_edge || button_state == down_long; }
-  bool isDowny()            { return button_state == down_edge || button_state == down || isDownLongy(); }
-  bool isUpy()              { return button_state == idle || button_state == up_edge || button_state == up_long_edge; }
+  uint32_t millisInState()    { return millis_at_last_loop - millis_at_last_transition; }
+  bool isIdle()               { return button_state == idle; }
+  bool isDownEdge()           { return button_state == down_edge; }
+  bool isDown()               { return button_state == down; }
+  bool isDownLongEdge()       { return button_state == down_long_edge; }
+  bool isDownLong()           { return button_state == down_long; }
+  bool isUpEdge()             { return button_state == up_edge; }
+  bool isUpLongEdge()         { return button_state == up_long_edge; }
+  bool isSingleClick()        { return button_state == single_click; } // Add isSingleClick method
+  bool isDoubleClick()        { return button_state == double_click; } // Add isDoubleClick method  
+  bool isLongClick()          { return button_state == long_click; }   // Add isLongClick method
+  bool isDownLongy()          { return button_state == down_long_edge || button_state == down_long; }
+  bool isDowny()              { return button_state == down_edge || button_state == down || isDownLongy(); }
+  bool isUpy()                { return button_state == idle || button_state == up_edge || button_state == up_long_edge; }
+  void resetState();
   
 private:
   // Config
   const uint8_t     bpin;
   const uint8_t     active_state;
   const uint32_t    long_press_ms;
-
+  const uint32_t    double_click_ms; // Add double_click_ms member
+  
   // Internal state
-  bool      down_last_time;
-  bool      state_changed;
-  uint32_t  millis_at_last_transition;
-  uint32_t  millis_at_last_loop;
-  state     button_state;
+  bool              down_last_time;
+  bool              state_changed;
+  uint32_t          millis_at_last_transition;
+  uint32_t          millis_at_last_release; // Add millis_at_last_release member
+  uint32_t          millis_at_last_press; // Add millis_at_last_press member
+  bool              single_click_pending; // Add single_click_pending flag
+  uint32_t          millis_at_last_loop;
+  state             button_state;
+  unsigned long     last_debounce_time = 0;
+  
 
   bool isButtonDown() { return digitalRead(bpin) == active_state; }
 };
@@ -98,7 +112,7 @@ public:
     
   // Just making them public, so we don't have to proxy everything.
   Button mode;
-private: 
+private:
 };
 
 #endif
@@ -118,7 +132,7 @@ public:
     
   // Just making them public, so we don't have to proxy everything.
   Button left, mode, right, power;
-private: 
+private:
 };
 
 #endif

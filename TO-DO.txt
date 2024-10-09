@@ -4,3 +4,37 @@
 - Temperature sensor readout in a single block.
 - Limit IP Geolocation to every Sunday (copy code from the fork)
 - Add static zime zone data if IP Geo is disabled  (copy code from the fork)
+
+
+
+Martinius:
+
+Fix BUG:
+If power is off, the displays changed, switch on again
+If MQTT is on, but not reachable, always three seconds hanging clock
+
+switch clock faces by left and right buttons
+switch clock faces by single click in IPSTubes
+menu with double click on IPSTubes
+
+Add RLE decoding
+switch/Updating dimming must be callable, not only every full hour, because vlues should be changeable from menu for start and stop of dimming
+
+Faster drawings! Must be possible, if framerates up tp 20fps and more are possible on the dispaly, according to other esp32 devs
+
+Album mode
+nice menu
+"animations", like flip clock
+support jpg and png
+hold all clock face files in RAM
+new counting and using mechanism for clock faces
+Start animation
+
+Bluetooth control via website or fatclient desktop app
+mobile app
+
+implement a geo location list and a location variable to let the user set the geo location manually once
+then get the offset from there and with the date of DST begin and end from there, switch the time
+search a library for this
+
+webserver for controling

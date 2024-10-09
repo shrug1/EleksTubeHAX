@@ -61,6 +61,7 @@ void sendToBroker(const char* topic, const char* message) {
     char topicArr[100];
     sprintf(topicArr, "%s/%s", MQTT_CLIENT, topic);
     MQTTclient.publish(topicArr, message);
+#ifdef DEBUG_OUTPUT_MQTT
 #ifdef DEBUG_OUTPUT // long output
     Serial.print("Sending to MQTT: ");
     Serial.print(topicArr);
@@ -71,6 +72,7 @@ void sendToBroker(const char* topic, const char* message) {
     Serial.print(topic);
     Serial.print("/");
     Serial.println(message);
+#endif
 #endif
     delay (120);  // delay to prevent flooding the broker
   }
@@ -150,7 +152,8 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
         sprintf(message, "%s%c", message, (char)payload[i]);
     }
 #ifdef DEBUG_OUTPUT_MQTT
-    Serial.print("\tMQTT message payload: ");Serial.println(message);
+#ifdef DEBUG_OUTPUT // long output
+    Serial.print("\tMQTT message payload: ");Serial.println(message);    
 #else
     Serial.print("MQTT RX: ");
     Serial.print(tokens[1]);
@@ -159,11 +162,14 @@ void callback(char* topic, byte* payload, unsigned int length) {  //A new messag
     Serial.print("/");
     Serial.println(message);
 #endif
+#endif
 
     if (tokensNumber < 3) {
         // otherwise code below crashes on the strcmp on non-initialized pointers in tokens[] array
         //can be handle differently, but this is the easiest way for now
+#ifdef DEBUG_OUTPUT_MQTT        
         Serial.println("Number of tokens in MQTT message < 3! Can't process! Exiting...");
+#endif
         return;
     }
     
