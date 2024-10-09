@@ -1,0 +1,35 @@
+Extract the data from the whole file by getting the partiton table with DD
+dd if=FW.bin skip=32768 of=partitions.bin bs=1 count=3072
+Generate partion table CSV
+& "XXX\arduino-esp32\tools\gen_esp32part.exe" 'YYY\pre-built-firmware\partitions.bin' input_partitions.csv
+check the size and starting of the SPIFFS partion
+Extract with DD
+start 2424832 = 0x25000
+size 1664K = 1664K x 1024 = 1703936
+dd if=FW.bin skip=2424832 of=SPIFFS.bin bs=1 count=1703936
+
+check which filesystem is used. if "littlefs" is readable -> LittleFS
+if not, try SPIFFS extraction with mkspiffs
+& 'ZZZ\mkspiffs.exe' -u .\ExtractDir .\SPIFFS.bin
+
+else:
+
+pip install littlefs-python
+
+littlefs-python.exe extract -v --block-size 4096 .\SPIFFS.bin .\ExtractDir\
+
+littlefs-python.exe list -v --block-size 4096 .\SPIFFS.bin
+
+Example from Cyberpunk Clock:
+LittleFS Configuration:
+  Block Size:       4096  /  0x1000
+  Image Size:    1703936  /  0x1A0000
+  Block Count:       416
+  Name Max:          255
+  Image:       SPIFFS.bin
+
+
+
+if you KNOW the values for the littlefs already you can also use mklittlefs
+
+& "FFF\AppData\Local\Arduino15\packages\esp32\tools\mklittlefs\3.0.0-gnu12-dc7f933\mklittlefs.exe" --list --block 4096 --size 1703936 .\SPIFFS.bin
