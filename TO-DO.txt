@@ -17,7 +17,7 @@ switch clock faces by left and right buttons
 switch clock faces by single click in IPSTubes
 menu with double click on IPSTubes
 
-Add RLE decoding
+Add RLE decoding!!!
 switch/Updating dimming must be callable, not only every full hour, because vlues should be changeable from menu for start and stop of dimming
 
 Faster drawings! Must be possible, if framerates up tp 20fps and more are possible on the dispaly, according to other esp32 devs
