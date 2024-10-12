@@ -151,16 +151,18 @@ void sendToBroker(const char* topic, const char* message) {
     char topicArr[100];
     sprintf(topicArr, "%s/%s", MQTT_CLIENT, topic);
     MQTTclient.publish(topicArr, message, true);
-#ifdef DEBUG_OUTPUT // long output
+#ifdef DEBUG_OUTPUT_VERBOSE // long output
     Serial.print("Sending to MQTT: ");
     Serial.print(topicArr);
     Serial.print("/");
     Serial.println(message);
 #else
+#ifdef DEBUG_OUTPUT // short output
     Serial.print("TX MQTT: ");
     Serial.print(topicArr);
     Serial.print(" ");
     Serial.println(message);
+#endif
 #endif
     delay (120);
   }
@@ -187,11 +189,12 @@ void MqttReportState(bool force) {
       LastSentMainPowerState = MqttStatusMainPower;
       LastSentMainBrightness = MqttStatusMainBrightness;
       LastSentMainGraphic = MqttStatusMainGraphic;
-
+#ifdef DEBUG_OUTPUT
       Serial.print("TX MQTT: ");
       Serial.print(topic);
       Serial.print(" ");
       Serial.println(buffer);
+#endif
     }
 
     if(force 
@@ -222,11 +225,12 @@ void MqttReportState(bool force) {
       LastSentBackBrightness = MqttStatusBackBrightness;
       strcpy(LastSentBackPattern, MqttStatusBackPattern);
       LastSentBackColorPhase = MqttStatusBackColorPhase;
-
+#ifdef DEBUG_OUTPUT
       Serial.print("TX MQTT: ");
       Serial.print(topic);
       Serial.print(" ");
       Serial.println(buffer);
+#endif
     }
 
     if(force 
@@ -240,11 +244,12 @@ void MqttReportState(bool force) {
       const char* topic = concat2(MQTT_CLIENT, "/use_twelve_hours");
       MQTTclient.publish(topic, buffer, true);
       LastSentUseTwelveHours = MqttStatusUseTwelveHours;
-
+#ifdef DEBUG_OUTPUT
       Serial.print("TX MQTT: ");
       Serial.print(topic);
       Serial.print(" ");
       Serial.println(buffer);
+#endif
     }
 
     if(force 
@@ -258,11 +263,12 @@ void MqttReportState(bool force) {
       const char* topic = concat2(MQTT_CLIENT, "/blank_zero_hours");
       MQTTclient.publish(topic, buffer, true);
       LastSentBlankZeroHours = MqttStatusBlankZeroHours;
-
+#ifdef DEBUG_OUTPUT
       Serial.print("TX MQTT: ");
       Serial.print(topic);
       Serial.print(" ");
       Serial.println(buffer);
+#endif
     }
 
     if(force 
@@ -276,11 +282,12 @@ void MqttReportState(bool force) {
       const char* topic = concat2(MQTT_CLIENT, "/pulse_bpm");
       MQTTclient.publish(topic, buffer, true);
       LastSentPulseBpm = MqttStatusPulseBpm;
-
+#ifdef DEBUG_OUTPUT
       Serial.print("TX MQTT: ");
       Serial.print(topic);
       Serial.print(" ");
       Serial.println(buffer);
+#endif
     }
 
     if(force 
@@ -294,11 +301,12 @@ void MqttReportState(bool force) {
       const char* topic = concat2(MQTT_CLIENT, "/breath_bpm");
       MQTTclient.publish(topic, buffer, true);
       LastSentBreathBpm = MqttStatusBreathBpm;
-
+#ifdef DEBUG_OUTPUT
       Serial.print("TX MQTT: ");
       Serial.print(topic);
       Serial.print(" ");
       Serial.println(buffer);
+#endif
     }
 
     if(force 
@@ -312,11 +320,12 @@ void MqttReportState(bool force) {
       const char* topic = concat2(MQTT_CLIENT, "/rainbow_duration");
       MQTTclient.publish(topic, buffer, true);
       LastSentRainbowSec = MqttStatusRainbowSec;
-
+#ifdef DEBUG_OUTPUT
       Serial.print("TX MQTT: ");
       Serial.print(topic);
       Serial.print(" ");
       Serial.println(buffer);
+#endif
     }
   }
 #endif
@@ -430,17 +439,19 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
   for (int i = 1; i < length; i++) {
       sprintf(message, "%s%c", message, (char)payload[i]);
   }
-  #ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT_VERBOSE
   Serial.print("\t     Message: ");
   Serial.println(message);
-  #else    
+#else
+#ifdef DEBUG_OUTPUT
   Serial.print("MQTT RX: ");
   Serial.print(command[0]);
   Serial.print("/");
   Serial.print(command[1]);
   Serial.print("/");
   Serial.println(message);
-  #endif    
+#endif
+ #endif    
 
   if (commandNumber < 2) {
     // otherwise code below crashes on the strmp on non-initialized pointers in command[] array
@@ -472,99 +483,110 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
   for (int i = 1; i < length; i++) {
       sprintf(message, "%s%c", message, (char)payload[i]);
   }
-  Serial.print("RX MQTT: ");
-  Serial.print(topic);
-  Serial.print(" ");
-  Serial.println(message);
+  #ifdef DEBUG_OUTPUT
+    Serial.print("RX MQTT: ");
+    Serial.print(topic);
+    Serial.print(" ");
+    Serial.println(message);
+  #endif
+   //main and set 
   if (strcmp(command[0], "main") == 0 && strcmp(command[1], "set") == 0) {
     JsonDocument doc;
     deserializeJson(doc, payload, length);
     
-    if(doc.containsKey("state")) {
-      MqttCommandMainPower = doc["state"] == MQTT_STATE_ON;
+    if(doc["state"].is<const char*>()) {
+      MqttCommandMainPower = strcmp(doc["state"], MQTT_STATE_ON) == 0;
       MqttCommandMainPowerReceived = true;
     }
-    if(doc.containsKey("brightness")) {
+    if(doc["brightness"].is<int>()) {
        MqttCommandMainBrightness = doc["brightness"];
        MqttCommandMainBrightnessReceived = true;
      }
-    if(doc.containsKey("effect")) {
-      MqttCommandMainGraphic = tfts.nameToClockFace(doc["effect"]);   
+    if(doc["effect"].is<const char*>()) {
+      MqttCommandMainGraphic = tfts.nameToClockFace(doc["effect"]);
       MqttCommandMainGraphicReceived = true;
       }
 
     doc.clear();
-  } 
+  }
+  //back and set
   if (strcmp(command[0], "back") == 0 && strcmp(command[1], "set") == 0) {
     JsonDocument doc;
     deserializeJson(doc, payload, length);
     
-    if(doc.containsKey("state")) {
-      MqttCommandBackPower = doc["state"] == MQTT_STATE_ON;
+    if(doc["state"].is<const char*>()) {
+      MqttCommandBackPower = strcmp(doc["state"], MQTT_STATE_ON) == 0;
       MqttCommandBackPowerReceived = true;
     }
-    if(doc.containsKey("brightness")) {
+    if(doc["brightness"].is<int>()) {
       MqttCommandBackBrightness = doc["brightness"];
       MqttCommandBackBrightnessReceived = true;
     }
-    if(doc.containsKey("effect")) {
+    if(doc["effect"].is<const char*>()) {
       strcpy(MqttCommandBackPattern, doc["effect"]);
       MqttCommandBackPatternReceived = true;
       }
-    if(doc.containsKey("color")) {
+    if(doc["color"].is<JsonObject>()) {
       MqttCommandBackColorPhase = backlights.hueToPhase(doc["color"]["h"]);   
       MqttCommandBackColorPhaseReceived = true;
       }
+    
     doc.clear();
   }
+  //use_twelve_hours and set
   if (strcmp(command[0], "use_twelve_hours") == 0 && strcmp(command[1], "set") == 0) {
     JsonDocument doc;
     deserializeJson(doc, payload, length);
     
-    if(doc.containsKey("state")) {
-      MqttCommandUseTwelveHours = doc["state"] == MQTT_STATE_ON;
+    if(doc["state"].is<const char*>()) {
+      MqttCommandUseTwelveHours = strcmp(doc["state"], MQTT_STATE_ON) == 0;
       MqttCommandUseTwelveHoursReceived = true;
     }
     doc.clear();
   }
+  //blank_zero_hours and set
   if (strcmp(command[0], "blank_zero_hours") == 0 && strcmp(command[1], "set") == 0) {
     JsonDocument doc;
     deserializeJson(doc, payload, length);
     
-    if(doc.containsKey("state")) {
-      MqttCommandBlankZeroHours = doc["state"] == MQTT_STATE_ON;
+    if(doc["state"].is<const char*>()) {
+      MqttCommandBlankZeroHours = strcmp(doc["state"], MQTT_STATE_ON) == 0;
       MqttCommandBlankZeroHoursReceived = true;
     }
     doc.clear();
   }
+  //pulse_bpm and set
   if (strcmp(command[0], "pulse_bpm") == 0 && strcmp(command[1], "set") == 0) {
     JsonDocument doc;
     deserializeJson(doc, payload, length);
     
-    if(doc.containsKey("state")) {
-      MqttCommandPulseBpm = uint8_t(doc["state"]);
+    if(doc["state"].is<uint8_t>()) {
+      MqttCommandPulseBpm = doc["state"];
       MqttCommandPulseBpmReceived = true;
     }
     doc.clear();
   }
+  //breath_bpm and set
   if (strcmp(command[0], "breath_bpm") == 0 && strcmp(command[1], "set") == 0) {
     JsonDocument doc;
     deserializeJson(doc, payload, length);
     
-    if(doc.containsKey("state")) {
-      MqttCommandBreathBpm = uint8_t(doc["state"]);
+    if(doc["state"].is<uint8_t>()) {
+      MqttCommandBreathBpm = doc["state"];
       MqttCommandBreathBpmReceived = true;
     }
     doc.clear();
   }
+  //rainbow_duration and set
   if (strcmp(command[0], "rainbow_duration") == 0 && strcmp(command[1], "set") == 0) {
     JsonDocument doc;
     deserializeJson(doc, payload, length);
     
-    if(doc.containsKey("state")) {
-      MqttCommandRainbowSec = float(doc["state"]);
+    if(doc["state"].is<float>()) {
+      MqttCommandRainbowSec = doc["state"];
       MqttCommandRainbowSecReceived = true;
     }
+
     doc.clear();
   }
   #endif
@@ -704,10 +726,12 @@ void MqttReportDiscovery() {
   const char* main_topic = concat3("homeassistant/light/", MQTT_CLIENT, "_main/light/config");
   MQTTclient.publish(main_topic, json_buffer, true);
   delay(120);
+#ifdef DEBUG_OUTPUT
   Serial.print("TX MQTT: ");
   Serial.print(main_topic);
   Serial.print(" ");
   Serial.println(json_buffer);
+#endif
   discovery.clear();
 
   // Back Light
@@ -738,10 +762,12 @@ void MqttReportDiscovery() {
   const char* back_topic = concat3("homeassistant/light/", MQTT_CLIENT, "_back/light/config");
   MQTTclient.publish(back_topic, json_buffer, true);
   delay(120);
+#ifdef DEBUG_OUTPUT
   Serial.print("TX MQTT: ");
   Serial.print(back_topic);
   Serial.print(" ");
   Serial.println(json_buffer);
+#endif
   discovery.clear();
 
   // Use Twelwe Hours
@@ -769,10 +795,12 @@ void MqttReportDiscovery() {
   const char* useTwelveHours_topic = concat3("homeassistant/switch/", MQTT_CLIENT, "_use_twelve_hours/switch/config");
   MQTTclient.publish(useTwelveHours_topic, json_buffer, true);
   delay(120);
+#ifdef DEBUG_OUTPUT
   Serial.print("TX MQTT: ");
   Serial.print(useTwelveHours_topic);
   Serial.print(" ");
   Serial.println(json_buffer);
+#endif
   discovery.clear();
 
   // Blank Zero Hours
@@ -800,10 +828,12 @@ void MqttReportDiscovery() {
   const char* blankZeroHours_topic = concat3("homeassistant/switch/", MQTT_CLIENT, "_blank_zero_hours/switch/config");
   MQTTclient.publish(blankZeroHours_topic, json_buffer, true);
   delay(120);
+#ifdef DEBUG_OUTPUT
   Serial.print("TX MQTT: ");
   Serial.print(blankZeroHours_topic);
   Serial.print(" ");
   Serial.println(json_buffer);
+#endif
   discovery.clear();
 
   // Pulses per minute
@@ -832,10 +862,12 @@ void MqttReportDiscovery() {
   const char* pulseBpm_topic = concat3("homeassistant/number/", MQTT_CLIENT, "_pulse_bpm/number/config");
   MQTTclient.publish(pulseBpm_topic, json_buffer, true);
   delay(120);
+#ifdef DEBUG_OUTPUT
   Serial.print("TX MQTT: ");
   Serial.print(pulseBpm_topic);
   Serial.print(" ");
   Serial.println(json_buffer);
+#endif
   discovery.clear();
 
   // Breathes per minute
@@ -864,10 +896,12 @@ void MqttReportDiscovery() {
   const char* breathBpm_topic = concat3("homeassistant/number/", MQTT_CLIENT, "_breath_bpm/number/config");
   MQTTclient.publish(breathBpm_topic, json_buffer, true);
   delay(120);
+#ifdef DEBUG_OUTPUT
   Serial.print("TX MQTT: ");
   Serial.print(breathBpm_topic);
   Serial.print(" ");
   Serial.println(json_buffer);
+#endif
   discovery.clear();
 
   // Rainbow duration
@@ -896,10 +930,12 @@ void MqttReportDiscovery() {
   const char* rainbowSec_topic = concat3("homeassistant/number/", MQTT_CLIENT, "_rainbow_duration/number/config");
   MQTTclient.publish(rainbowSec_topic, json_buffer, true);
   delay(120);
+#ifdef DEBUG_OUTPUT
   Serial.print("TX MQTT: ");
   Serial.print(rainbowSec_topic);
   Serial.print(" ");
   Serial.println(json_buffer);
+#endif
   discovery.clear();
 
   #endif

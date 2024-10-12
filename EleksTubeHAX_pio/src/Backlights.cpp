@@ -51,8 +51,7 @@ void Backlights::setIntensity(uint8_t intensity) {
   pattern_needs_init = true;
 }
 
-void Backlights::loop() {
-  //   enum patterns { dark, test, constant, rainbow, pulse, breath, num_patterns };
+void Backlights::loop() {  
   if (off || config->pattern == dark) {
     if (pattern_needs_init) {
       clear();
