@@ -61,7 +61,7 @@ public:
   void setDownEdgeState()     { button_state = down_edge; }
   void setDownLongEdgeState() { button_state = down_long_edge; }
   void setUpEdgeState()       { button_state = up_edge; }
-  void setUpLongEdgeState()   { button_state = up_long_edge; }
+  void setUpLongEdgeState()   { button_state = up_long_edge; }  
   uint32_t millisInState()    { return millis_at_last_loop - millis_at_last_transition; }
   bool isIdle()               { return button_state == idle; }
   bool isDownEdge()           { return button_state == down_edge; }
@@ -71,12 +71,13 @@ public:
   bool isUpEdge()             { return button_state == up_edge; }
   bool isUpLongEdge()         { return button_state == up_long_edge; }
   bool isSingleClick()        { return button_state == single_click; } // Add isSingleClick method
-  bool isDoubleClick()        { return button_state == double_click; } // Add isDoubleClick method  
+  bool isDoubleClick()        { return button_state == double_click; } // Add isDoubleClick method
   bool isLongClick()          { return button_state == long_click; }   // Add isLongClick method
   bool isDownLongy()          { return button_state == down_long_edge || button_state == down_long; }
   bool isDowny()              { return button_state == down_edge || button_state == down || isDownLongy(); }
   bool isUpy()                { return button_state == idle || button_state == up_edge || button_state == up_long_edge; }
   void resetState();
+  void setSingleClickState(); // Add setSingleClickState method for gesture control
   
 private:
   // Config

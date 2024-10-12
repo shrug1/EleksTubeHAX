@@ -231,6 +231,13 @@ void Button::resetState() {
   millis_at_last_transition = 0;
 }
 
+void Button::setSingleClickState() {
+  button_state = single_click;
+#ifdef DEBUG_OUTPUT_BUTTONS
+  Serial.println("Button state manually set to single_click");
+#endif
+}
+
 const String Button::state_str[Button::num_states] = 
   { "idle", 
     "down_edge", 

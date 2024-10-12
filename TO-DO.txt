@@ -22,13 +22,16 @@ switch/Updating dimming must be callable, not only every full hour, because vlue
 
 Faster drawings! Must be possible, if framerates up tp 20fps and more are possible on the dispaly, according to other esp32 devs
 
+Show Date and Month
 Album mode
 nice menu
 "animations", like flip clock
 support jpg and png
 hold all clock face files in RAM
 new counting and using mechanism for clock faces
-Start animation
+Start/Boot animation
+
+Generate "Numitron" clock face
 
 Bluetooth control via website or fatclient desktop app
 mobile app
@@ -38,3 +41,9 @@ then get the offset from there and with the date of DST begin and end from there
 search a library for this
 
 webserver for controling
+
+Generate screen safer images programatically (like Matrix rain or flying triangles)
+
+Generate some easy "clock faces" programatically, like seven segment display with different colours or better 16 segment
+directly connected -> generate also "letters" https://de.wikipedia.org/wiki/Segmentanzeige
+moving texts in the displays...

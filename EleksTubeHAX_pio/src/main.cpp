@@ -358,6 +358,7 @@ void gestureInterruptRoutine() {
 //check which gesture was detected
 void handleGesture() {
 #ifdef DEBUG_OUTPUT_VERBOSE
+    Serial.println();
     Serial.println("->main::handleGesture()");
 #endif
     if ( apds.isGestureAvailable() ) {
@@ -379,7 +380,8 @@ void handleGesture() {
             }
           }
           else {
-            buttons.left.setDownEdgeState(); // in the menu, so "press" the left button
+            //buttons.left.setSingleClickState(); // in the menu, so "press" the left button
+            buttons.left.setUpEdgeState(); // in the menu, so "press" the left button
           }
           break;
         case DIR_DOWN:
@@ -401,32 +403,37 @@ void handleGesture() {
             }
           }
           else {
-            buttons.right.setDownEdgeState(); // in the menu, so "press" the right button
+            //buttons.right.setSingleClickState(); // in the menu, so "press" the right button
+            buttons.right.setUpEdgeState(); // in the menu, so "press" the right button
           }
           break;
         case DIR_LEFT:
-          buttons.power.setDownEdgeState();
 #ifdef DEBUG_OUTPUT
           Serial.println("Gesture detected! DOWN");
 #endif
+          //buttons.power.setSingleClickState();
+          buttons.power.setUpEdgeState();
           break;
-        case DIR_RIGHT:        
-          buttons.mode.setDownEdgeState();
+        case DIR_RIGHT:
 #ifdef DEBUG_OUTPUT
           Serial.println("Gesture detected! UP");
 #endif
+          //buttons.mode.setSingleClickState();
+          buttons.mode.setUpEdgeState();
           break;
         case DIR_NEAR:
-          buttons.mode.setDownEdgeState();
 #ifdef DEBUG_OUTPUT          
           Serial.println("Gesture detected! NEAR");
 #endif
+          //buttons.mode.setSingleClickState();
+          buttons.mode.setUpEdgeState();
           break;
         case DIR_FAR:
-          buttons.power.setDownEdgeState();
 #ifdef DEBUG_OUTPUT
           Serial.println("Gesture detected! FAR");
 #endif
+          //buttons.power.setSingleClickState();
+          buttons.power.setUpEdgeState();
           break;
         default:
 #ifdef DEBUG_OUTPUT
@@ -613,7 +620,7 @@ void updateDstEveryNight() {
 #endif
 
 void updateClockDisplay(TFTs::show_t show) {
-  #ifdef DEBUG_OUTPUT_VERBOSE
+  #ifdef DEBUG_OUTPUT_TFT_VERBOSE
     Serial.println("main::updateClockDisplay!");
   #endif
   // refresh starting on seconds
@@ -880,7 +887,7 @@ void drawMenuAndHandleButtons() {
 void handlePowerSwitchPressed() {
 #ifndef ONE_BUTTON_ONLY_MENU
   // Power button pressed: If in menu, exit menu. Else turn off displays and backlight.
-  if (buttons.power.isDownEdge() && (menu.getState() == Menu::idle)) {
+  if (buttons.power.isUpEdge() && (menu.getState() == Menu::idle)) {
     #ifdef DEBUG_OUTPUT_BUTTONS
       Serial.println("Power button pressed.");
     #endif
