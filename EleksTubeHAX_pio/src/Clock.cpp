@@ -72,16 +72,33 @@ void Clock::begin(StoredConfig::Config::Clock *config_) {
     Serial.println("Loaded Clock config is invalid, using default.  This is normal on first boot.");
     setTwelveHour(false);
     setBlankHoursZero(false);
-    setTimeZoneOffset(2 * 3600);  // defaulting CEST
+    setTimeZoneOffset(1 * 3600);  // CET
     setActiveGraphicIdx(1);
     config->is_valid = StoredConfig::valid;
   }
   
   RtcBegin();
   ntpTimeClient.begin();
-  ntpTimeClient.update();
-  Serial.print("NTP time = ");Serial.println(ntpTimeClient.getFormattedTime());
-  setSyncProvider(&Clock::syncProvider);
+  if (ntpTimeClient.update()) {
+    Serial.println("NTP query done.");
+    Serial.print("NTP time = ");
+    Serial.println(ntpTimeClient.getFormattedTime());
+    setSyncProvider(&Clock::syncProvider);
+  }
+  else {
+    Serial.println("NTP query failed. Retrying in 5 seconds.");
+    delay(5000);
+    if (ntpTimeClient.update()) {
+        Serial.print("NTP time = ");
+        Serial.println(ntpTimeClient.getFormattedTime());
+        setSyncProvider(&Clock::syncProvider);
+    }
+    else {
+      //use RTC time
+      Serial.println("NTP query failed 2nd time. Using RTC time.");
+      //setSyncProvider(&Clock::syncProvider);
+    }
+  }
 }
 
 void Clock::loop() {
