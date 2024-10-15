@@ -12,8 +12,6 @@ void TFTs::begin() {
   //if hardware dimming is used, we need to attach the pin to a PWM channel
   ledcAttachPin(TFT_ENABLE_PIN, TFT_PWM_CHANNEL);
   ledcChangeFrequency(TFT_PWM_CHANNEL, 20000, 8);
-  //not needed here, because enableAllDisplays() is called later and it is called from there and if enabled is false, this does nothing
-  //ProcessUpdatedDimming();
 #else
   // Set pin for turning display power on and off.
   pinMode(TFT_ENABLE_PIN, OUTPUT);
@@ -49,8 +47,6 @@ void TFTs::reinit() {
 #ifdef DIM_WITH_ENABLE_PIN_PWM
   ledcAttachPin(TFT_ENABLE_PIN, TFT_PWM_CHANNEL);
   ledcChangeFrequency(TFT_PWM_CHANNEL, 20000, 8);
-  //same thing as on first init, not needed here, because enableAllDisplays() is called later and it is called from there and if enabled is false, this does nothing
-  //ProcessUpdatedDimming();
 #else
   // Turn power on to displays.
   pinMode(TFT_ENABLE_PIN, OUTPUT);
@@ -113,7 +109,7 @@ void TFTs::showNoMqttStatus() {
 }
 
 void TFTs::enableAllDisplays() {
-  // Turn power on to displays.  
+  // Turn power on to displays.
   enabled = true;
 #ifndef DIM_WITH_ENABLE_PIN_PWM
   digitalWrite(TFT_ENABLE_PIN, ACTIVATEDISPLAYS);
@@ -129,7 +125,7 @@ void TFTs::disableAllDisplays() {
 #ifndef DIM_WITH_ENABLE_PIN_PWM
   digitalWrite(TFT_ENABLE_PIN, DEACTIVATEDISPLAYS);
 #else
-  //if hardware dimming is used, deactivate via the dimming value
+  //if hardware dimming is used, deactivate via the dimming value calculation
   ProcessUpdatedDimming();
 #endif
 }
@@ -144,7 +140,7 @@ void TFTs::toggleAllDisplays() {
 }
 
 void TFTs::showTemperature() { 
-  #ifdef ONE_WIRE_BUS_PIN
+#ifdef ONE_WIRE_BUS_PIN
    if (fTemperature > -30) { // only show if temperature is valid
       chip_select.setHoursOnes();
       setTextColor(TFT_CYAN, TFT_BLACK);

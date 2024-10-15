@@ -186,6 +186,10 @@ void loop() {
       tfts.enableAllDisplays();
       backlights.PowerOn();
     } else {
+      // blank the screens before turning off -> needed for all clocks without a real "power switch"
+      // to "simulate" the off-switched displays
+      tfts.chip_select.setAll();
+      tfts.fillScreen(TFT_BLACK);
       tfts.disableAllDisplays();
       backlights.PowerOff();
     }
@@ -202,6 +206,10 @@ void loop() {
  #endif
       tfts.enableAllDisplays();
     } else {
+      // blank the screens before turning off -> needed for all clocks without a real "power switch"
+      // to "simulate" the off-switched displays
+      tfts.chip_select.setAll();
+      tfts.fillScreen(TFT_BLACK);
       tfts.disableAllDisplays();
     }
   }
@@ -362,16 +370,16 @@ void loop() {
   // Power button: If in menu, exit menu. Else turn off displays and backlight.
 #ifndef ONE_BUTTON_ONLY_MENU
   if (buttons.power.isUpEdge() && (menu.getState() == Menu::idle)) {
-    #ifdef DEBUG_OUTPUT
-      Serial.println("Power button pressed.");
-    #endif
+#ifdef DEBUG_OUTPUT
+    Serial.println(); Serial.println("Power button pressed!");
+#endif
     tfts.chip_select.setAll();
     tfts.fillScreen(TFT_BLACK);
     tfts.toggleAllDisplays();
     if (tfts.isEnabled()) {
-    #ifndef HARDWARE_SI_HAI_CLOCK
+#ifndef HARDWARE_SI_HAI_CLOCK
       tfts.reinit();  // reinit (original EleksTube HW: after a few hours in OFF state the displays do not wake up properly)
-    #endif
+#endif
       tfts.chip_select.setAll();
       tfts.fillScreen(TFT_BLACK);
       updateClockDisplay(TFTs::force);

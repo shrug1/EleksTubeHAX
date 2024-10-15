@@ -416,31 +416,31 @@ void checkMqtt() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {  // A new message has been received
-  #ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT
   Serial.print("Received MQTT topic: ");
   Serial.print(topic);                       // long output
-  #endif    
+#endif
   int commandNumber = 10;
   char* command[commandNumber];
   commandNumber = splitCommand(topic, command, commandNumber);
 
-  #ifndef MQTT_HOME_ASSISTANT
+#ifndef MQTT_HOME_ASSISTANT
   char message[length + 1];
   sprintf(message, "%c", (char)payload[0]);
   for (int i = 1; i < length; i++) {
       sprintf(message, "%s%c", message, (char)payload[i]);
   }
-  #ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT
   Serial.print("\t     Message: ");
   Serial.println(message);
-  #else    
+#else
   Serial.print("MQTT RX: ");
   Serial.print(command[0]);
   Serial.print("/");
   Serial.print(command[1]);
   Serial.print("/");
   Serial.println(message);
-  #endif    
+#endif    
 
   if (commandNumber < 2) {
     // otherwise code below crashes on the strmp on non-initialized pointers in command[] array
@@ -464,9 +464,9 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
         MqttCommandStateReceived = true;
       }
   }
-  #endif
+#endif //#ifndef MQTT_HOME_ASSISTANT
 
-  #ifdef MQTT_HOME_ASSISTANT
+#ifdef MQTT_HOME_ASSISTANT
   char message[length + 1];
   sprintf(message, "%c", (char)payload[0]);
   for (int i = 1; i < length; i++) {
@@ -476,12 +476,13 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
   Serial.print(topic);
   Serial.print(" ");
   Serial.println(message);
+
   if (strcmp(command[0], "main") == 0 && strcmp(command[1], "set") == 0) {
     JsonDocument doc;
     deserializeJson(doc, payload, length);
     
     if(doc["state"].is<const char*>()) {
-      MqttCommandMainPower = doc["state"] == MQTT_STATE_ON;
+      MqttCommandMainPower = strcmp(doc["state"], MQTT_STATE_ON) == 0;
       MqttCommandMainPowerReceived = true;
     }
     if(doc["brightness"].is<int>()) {
@@ -489,7 +490,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
        MqttCommandMainBrightnessReceived = true;
      }
     if(doc["effect"].is<const char*>()) {
-      MqttCommandMainGraphic = tfts.nameToClockFace(doc["effect"]);   
+      MqttCommandMainGraphic = tfts.nameToClockFace(doc["effect"]);
       MqttCommandMainGraphicReceived = true;
       }
 
@@ -500,22 +501,22 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
     deserializeJson(doc, payload, length);
     
     if(doc["state"].is<const char*>()) {
-      MqttCommandBackPower = doc["state"] == MQTT_STATE_ON;
+      MqttCommandBackPower = strcmp(doc["state"], MQTT_STATE_ON) == 0;
       MqttCommandBackPowerReceived = true;
     }
-    if(doc["brightness"].is<int>()) {
+    if(doc["brightness"].is<int>()) {    
       MqttCommandBackBrightness = doc["brightness"];
       MqttCommandBackBrightnessReceived = true;
     }
-    if(doc["effect"].is<const char*>()) {
+    if(doc["effect"].is<const char*>()) {    
       strcpy(MqttCommandBackPattern, doc["effect"]);
       MqttCommandBackPatternReceived = true;
-    }
+      }
     if(doc["color"].is<JsonObject>()) {
       MqttCommandBackColorPhase = backlights.hueToPhase(doc["color"]["h"]);   
       MqttCommandBackColorPhaseReceived = true;
-    }
-
+      }
+    
     doc.clear();
   }
   if (strcmp(command[0], "use_twelve_hours") == 0 && strcmp(command[1], "set") == 0) {
@@ -523,7 +524,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
     deserializeJson(doc, payload, length);
     
     if(doc["state"].is<const char*>()) {
-      MqttCommandUseTwelveHours = doc["state"] == MQTT_STATE_ON;
+      MqttCommandUseTwelveHours = strcmp(doc["state"], MQTT_STATE_ON) == 0;
       MqttCommandUseTwelveHoursReceived = true;
     }
 
@@ -534,7 +535,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
     deserializeJson(doc, payload, length);
     
     if(doc["state"].is<const char*>()) {
-      MqttCommandBlankZeroHours = doc["state"] == MQTT_STATE_ON;
+      MqttCommandBlankZeroHours = strcmp(doc["state"], MQTT_STATE_ON) == 0;
       MqttCommandBlankZeroHoursReceived = true;
     }
 
@@ -544,8 +545,8 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
     JsonDocument doc;
     deserializeJson(doc, payload, length);
     
-    if(doc["state"].is<int>()) {
-      MqttCommandPulseBpm = uint8_t(doc["state"]);
+    if(doc["state"].is<uint8_t>()) {
+      MqttCommandPulseBpm = doc["state"];
       MqttCommandPulseBpmReceived = true;
     }
 
@@ -555,8 +556,8 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
     JsonDocument doc;
     deserializeJson(doc, payload, length);
     
-    if(doc["state"].is<int>()) {
-      MqttCommandBreathBpm = uint8_t(doc["state"]);
+    if(doc["state"].is<uint8_t>()) {
+      MqttCommandBreathBpm = doc["state"];
       MqttCommandBreathBpmReceived = true;
     }
 
@@ -567,22 +568,24 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
     deserializeJson(doc, payload, length);
     
     if(doc["state"].is<float>()) {
-      MqttCommandRainbowSec = float(doc["state"]);
+      MqttCommandRainbowSec = doc["state"];
       MqttCommandRainbowSecReceived = true;
     }
+
     doc.clear();
   }
-  #endif
+#endif
  }
 
-void MqttLoopFrequently(){
+
+void MqttLoopFrequently() {
 #ifdef MQTT_ENABLED
   MQTTclient.loop(); 
   checkMqtt();
 #endif  
 }
 
-void MqttLoopInFreeTime(){
+void MqttLoopInFreeTime() {
 #ifdef MQTT_ENABLED
   MqttReportBackOnChange();
   MqttPeriodicReportBack();
