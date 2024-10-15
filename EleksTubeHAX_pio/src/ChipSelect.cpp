@@ -66,7 +66,10 @@ void ChipSelect::setDigit(uint8_t digit, bool update_) {
   #endif
 }
 
-void ChipSelect::update() {  
+void ChipSelect::update() {
+#ifdef DEBUG_OUTPUT
+  Serial.println("ChipSelect::update()");
+#endif
   #ifndef HARDWARE_IPSTUBE_CLOCK
     // Documented in README.md.  Q7 and Q6 are unused. Q5 is Seconds Ones, Q0 is Hours Tens.
     // Q7 is the first bit written, Q0 is the last.  So we push two dummy bits, then start with

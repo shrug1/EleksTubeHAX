@@ -30,6 +30,10 @@ void TFTs::begin() {
 }
 
 void TFTs::reinit() {
+#ifdef DEBUG_OUTPUT
+  Serial.println("TFTs::reinit");
+#endif
+#ifndef TFT_SKIP_REINIT
   // Start with all displays selected.
   chip_select.begin();
   chip_select.setAll();
@@ -83,18 +87,29 @@ void TFTs::showNoMqttStatus() {
 }
 
 void TFTs::enableAllDisplays() {
-  // Turn power on to displays.
+#ifdef DEBUG_OUTPUT
+  Serial.println("TFTs::enableAllDisplays");
+#endif
+  // Turn power on to displays.  
+  enabled = true;
+#ifndef DIM_WITH_ENABLE_PIN_PWM
   digitalWrite(TFT_ENABLE_PIN, ACTIVATEDISPLAYS);
   enabled = true;
 }
 
 void TFTs::disableAllDisplays() {
+#ifdef DEBUG_OUTPUT
+  Serial.println("TFTs::disableAllDisplays");
+#endif
   // Turn power off to displays.
   digitalWrite(TFT_ENABLE_PIN, DEACTIVATEDISPLAYS);
   enabled = false;
 }
 
 void TFTs::toggleAllDisplays() {
+#ifdef DEBUG_OUTPUT
+  Serial.println("TFTs::toggleAllDisplays");
+#endif
   if (enabled) {
     disableAllDisplays();
   }
@@ -148,23 +163,33 @@ void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
  */
  
 void TFTs::showDigit(uint8_t digit) {
-  chip_select.setDigit(digit);
+#ifdef DEBUG_OUTPUT
+  Serial.println("TFTs::showDigit()");
+#endif
+  //only do this, if the displays are enabled
+  if (enabled) {
+    chip_select.setDigit(digit);
 
-  if (digits[digit] == blanked) {
-    fillScreen(TFT_BLACK);
+    if (digits[digit] == blanked) {
+      fillScreen(TFT_BLACK);
+    }
+    else {
+      uint8_t file_index = current_graphic * 10 + digits[digit];
+      DrawImage(file_index);
+      
+      uint8_t NextNumber = digits[SECONDS_ONES] + 1;
+      if (NextNumber > 9) NextNumber = 0; // pre-load only seconds, because they are drawn first
+      NextFileRequired = current_graphic * 10 + NextNumber;
+    }
+    #ifdef HARDWARE_IPSTUBE_CLOCK
+      chip_select.update();
+    #endif
   }
   else {
-    uint8_t file_index = current_graphic * 10 + digits[digit];
-    DrawImage(file_index);
-    
-    uint8_t NextNumber = digits[SECONDS_ONES] + 1;
-    if (NextNumber > 9) NextNumber = 0; // pre-load only seconds, because they are drawn first
-    NextFileRequired = current_graphic * 10 + NextNumber;
+    //display is disabled, do nothing
+    Serial.println("TFTs::showDigit() - display is disabled");
   }
-  #ifdef HARDWARE_IPSTUBE_CLOCK
-    chip_select.update();
-  #endif
-  }
+}
 
 void TFTs::LoadNextImage() {
   if (NextFileRequired != FileInBuffer) {

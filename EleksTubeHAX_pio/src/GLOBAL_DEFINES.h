@@ -76,11 +76,15 @@
 
 // Define the activate and deactivate state for the diplay power transistor
 #ifndef HARDWARE_IPSTUBE_CLOCK
-  #define ACTIVATEDISPLAYS      HIGH    // Activate is HIGH for the IPSTUBEs
-  #define DEACTIVATEDISPLAYS    LOW     // Deactivate is LOW for the IPSTUBEs
+  #define ACTIVATEDISPLAYS      HIGH      // Activate is HIGH for the Elekstube-like clocks
+  #define DEACTIVATEDISPLAYS    LOW       // Deactivate is LOW for the Elekstube-like clocks
+  #define CALCDIMVALUE(x)       (x)       // FUTURE USAGE! Dimming value is directly used for hardware dimming for the Elekstube-like clocks
+  
 #else
-  #define ACTIVATEDISPLAYS      LOW     // Activate is LOW for the Elekstube
-  #define DEACTIVATEDISPLAYS    HIGH    // Deactivate is HIGH for the Elekstube
+  //IPSTUBEs
+  #define ACTIVATEDISPLAYS      LOW       // Activate is LOW for the IPSTUBEs
+  #define DEACTIVATEDISPLAYS    HIGH      // Deactivate is HIGH for the IPSTUBEs
+  #define CALCDIMVALUE(x)       (255 - x) // Dimming value is inverted for hardware dimming for the IPSTUBEs
 #endif
 
 
@@ -298,7 +302,12 @@
 
   // Power for all TFT displays are grounded through a MOSFET so they can all be turned off.
   // Active HIGH.
-  #define TFT_ENABLE_PIN (27)
+  // I can't find ANY pin, which is connected to the enable pin of the displays, so I use a random pin, which is not used for anything else to check if the displays are enabled
+  //#define TFT_ENABLE_PIN (GPIO_NUM_27)  // Does nothing -> not connected
+  //#define TFT_ENABLE_PIN (GPIO_NUM_16)  // NOT WORKING!!!
+  //#define TFT_ENABLE_PIN (GPIO_NUM_17)  // NOT WORKING!!!
+  #define TFT_ENABLE_PIN (GPIO_NUM_11)    // Does nothing, like GPIO_NUM_27
+
 
   // configure library \TFT_eSPI\User_Setup.h
   // ST7789 135 x 240 display with no chip select line
