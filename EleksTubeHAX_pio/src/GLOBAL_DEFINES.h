@@ -365,7 +365,7 @@
     #define BUTTON_POWER_PIN (3)
     #define BUTTON_MODE_PIN (GPIO_NUM_0) // Only ONE Button on the back of the clock - pin 23 is GPIO0 = BOOT Button
   #endif
-     
+
   // 3-wire to DS1302 RTC
   #define DS1302_SCLK  (GPIO_NUM_22) // pin 39 is GPIO22
   #define DS1302_IO    (GPIO_NUM_19) // pin 38 is GPIO19

@@ -425,10 +425,10 @@ void checkMqtt() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {  // A new message has been received
-  #ifdef DEBUG_OUTPUT
+#ifdef DEBUG_OUTPUT
   Serial.print("Received MQTT topic: ");
   Serial.print(topic);                       // long output
-  #endif    
+#endif
   int commandNumber = 10;
   char* command[commandNumber];
   commandNumber = splitCommand(topic, command, commandNumber);
@@ -451,7 +451,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
   Serial.print("/");
   Serial.println(message);
 #endif
- #endif    
+#endif    
 
   if (commandNumber < 2) {
     // otherwise code below crashes on the strmp on non-initialized pointers in command[] array
@@ -475,7 +475,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
         MqttCommandStateReceived = true;
       }
   }
-#endif
+#endif //#ifndef MQTT_HOME_ASSISTANT
 
 #ifdef MQTT_HOME_ASSISTANT
   char message[length + 1];

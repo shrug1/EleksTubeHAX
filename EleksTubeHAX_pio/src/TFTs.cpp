@@ -52,8 +52,6 @@ void TFTs::reinit() {
 #ifdef DIM_WITH_ENABLE_PIN_PWM
   ledcAttachPin(TFT_ENABLE_PIN, TFT_PWM_CHANNEL);
   ledcChangeFrequency(TFT_PWM_CHANNEL, 20000, 8);
-  //same thing as on first init, not needed here, because enableAllDisplays() is called later and it is called from there and if enabled is false, this does nothing
-  //ProcessUpdatedDimming();
 #else
   // Turn power on to displays.
   pinMode(TFT_ENABLE_PIN, OUTPUT);
@@ -117,9 +115,6 @@ void TFTs::showNoMqttStatus() {
 
 void TFTs::enableAllDisplays() {
   // Turn power on to displays.
-#ifdef DEBUG_OUTPUT
-  Serial.println("TFTs::enableAllDisplays");
-#endif
   enabled = true;
 #ifndef DIM_WITH_ENABLE_PIN_PWM
   digitalWrite(TFT_ENABLE_PIN, ACTIVATEDISPLAYS);
@@ -130,23 +125,17 @@ void TFTs::enableAllDisplays() {
 }
 
 void TFTs::disableAllDisplays() {
-#ifdef DEBUG_OUTPUT
-  Serial.println("TFTs::disableAllDisplays");
-#endif
   // Turn power off to displays.
   enabled = false;
 #ifndef DIM_WITH_ENABLE_PIN_PWM
   digitalWrite(TFT_ENABLE_PIN, DEACTIVATEDISPLAYS);
 #else
-  //if hardware dimming is used, deactivate via the dimming value
+  //if hardware dimming is used, deactivate via the dimming value calculation
   ProcessUpdatedDimming();
 #endif
 }
 
 void TFTs::toggleAllDisplays() {
-#ifdef DEBUG_OUTPUT
-  Serial.println("TFTs::toggleAllDisplays");
-#endif
   if (enabled) {
     disableAllDisplays();
   }
@@ -156,7 +145,7 @@ void TFTs::toggleAllDisplays() {
 }
 
 void TFTs::showTemperature() { 
-  #ifdef ONE_WIRE_BUS_PIN
+#ifdef ONE_WIRE_BUS_PIN
    if (fTemperature > -30) { // only show if temperature is valid
       chip_select.setHoursOnes();
       setTextColor(TFT_CYAN, TFT_BLACK);
@@ -169,7 +158,7 @@ void TFTs::showTemperature() {
 #ifdef DEBUG_OUTPUT
     Serial.println("Temperature to LCD");
 #endif    
-  #endif
+#endif
 }
 
 void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
@@ -191,7 +180,7 @@ void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
 
     if (digit == HOURS_ONES) {
         showTemperature();
-      }
+    }
   }
 }
 
@@ -200,9 +189,6 @@ void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
  */
  
 void TFTs::showDigit(uint8_t digit) {
-#ifdef DEBUG_OUTPUT
-  Serial.println("TFTs::showDigit()");
-#endif
   //only do this, if the displays are enabled
   if (enabled) {
     chip_select.setDigit(digit);
@@ -218,13 +204,12 @@ void TFTs::showDigit(uint8_t digit) {
       if (NextNumber > 9) NextNumber = 0; // pre-load only seconds, because they are drawn first
       NextFileRequired = current_graphic * 10 + NextNumber;
     }
-    #ifdef HARDWARE_IPSTUBE_CLOCK
+#ifdef HARDWARE_IPSTUBE_CLOCK
       chip_select.update();
-    #endif
+#endif
   }
   else {
-    //display is disabled, do nothing
-    Serial.println("TFTs::showDigit() - display is disabled");
+    //display is disabled, do nothing    
   }
 }
 
@@ -246,14 +231,15 @@ void TFTs::ProcessUpdatedDimming() {
   //hardware dimming is done via PWM on the pin defined by TFT_ENABLE_PIN
   //ONLY for IPSTUBE clocks in the moment! Other clocks may be damaged!
   if (enabled) {
+    //calculate the dimming value for the PWM channel and set it
     ledcWrite(TFT_PWM_CHANNEL, CALCDIMVALUE(dimming));
   } else {
-    //no dimming means 255 (full brightness)
+    //displays should not enabled, so calcdimvalue should go to 255 an set = transistor off = displays off
     ledcWrite(TFT_PWM_CHANNEL, CALCDIMVALUE(0));
   }
 #else
-  // "software" dimming is done via alpha blending in the image drawing function
-  // signal that the image in the buffer is invalid and needs to be reloaded and refilled
+  //"software" dimming is done via alpha blending in the image drawing function
+  // so here, only signal that the image in the buffer is invalid and needs to be reloaded and refilled
   InvalidateImageInBuffer();
 #endif
 }
