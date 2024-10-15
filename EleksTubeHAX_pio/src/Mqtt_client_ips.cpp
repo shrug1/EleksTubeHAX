@@ -358,9 +358,9 @@ void MqttStart() {
     }
       
   #ifndef MQTT_HOME_ASSISTANT
-    char subscibeTopic[100];
-    sprintf(subscibeTopic, "%s/#", MQTT_CLIENT);
-    MQTTclient.subscribe(subscibeTopic);  //Subscribes to all messages send to the device
+    char subscribeTopic[100];
+    sprintf(subscribeTopic, "%s/#", MQTT_CLIENT);
+    MQTTclient.subscribe(subscribeTopic);  //Subscribes to all messages send to the device
 
     sendToBroker("report/online", "true");  // Reports that the device is online
     sendToBroker("report/firmware", FIRMWARE_VERSION);  // Reports the firmware version
@@ -370,27 +370,27 @@ void MqttStart() {
   #endif
 
   #ifdef MQTT_HOME_ASSISTANT
-    char subscibeTopic[100];
-    sprintf(subscibeTopic, "%s/main/set", MQTT_CLIENT);
-    MQTTclient.subscribe(subscibeTopic);
+    char subscribeTopic[100];
+    sprintf(subscribeTopic, "%s/main/set", MQTT_CLIENT);
+    MQTTclient.subscribe(subscribeTopic);
 
-    sprintf(subscibeTopic, "%s/back/set", MQTT_CLIENT);
-    MQTTclient.subscribe(subscibeTopic);
+    sprintf(subscribeTopic, "%s/back/set", MQTT_CLIENT);
+    MQTTclient.subscribe(subscribeTopic);
 
-    sprintf(subscibeTopic, "%s/use_twelve_hours/set", MQTT_CLIENT);
-    MQTTclient.subscribe(subscibeTopic);
+    sprintf(subscribeTopic, "%s/use_twelve_hours/set", MQTT_CLIENT);
+    MQTTclient.subscribe(subscribeTopic);
 
-    sprintf(subscibeTopic, "%s/blank_zero_hours/set", MQTT_CLIENT);
-    MQTTclient.subscribe(subscibeTopic);
+    sprintf(subscribeTopic, "%s/blank_zero_hours/set", MQTT_CLIENT);
+    MQTTclient.subscribe(subscribeTopic);
 
-    sprintf(subscibeTopic, "%s/pulse_bpm/set", MQTT_CLIENT);
-    MQTTclient.subscribe(subscibeTopic);
+    sprintf(subscribeTopic, "%s/pulse_bpm/set", MQTT_CLIENT);
+    MQTTclient.subscribe(subscribeTopic);
 
-    sprintf(subscibeTopic, "%s/breath_bpm/set", MQTT_CLIENT);
-    MQTTclient.subscribe(subscibeTopic);
+    sprintf(subscribeTopic, "%s/breath_bpm/set", MQTT_CLIENT);
+    MQTTclient.subscribe(subscribeTopic);
 
-    sprintf(subscibeTopic, "%s/rainbow_duration/set", MQTT_CLIENT);
-    MQTTclient.subscribe(subscibeTopic);
+    sprintf(subscribeTopic, "%s/rainbow_duration/set", MQTT_CLIENT);
+    MQTTclient.subscribe(subscribeTopic);
   #endif
   }
 #endif
@@ -499,6 +499,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
       MqttCommandMainPowerReceived = true;
     }
     if(doc["brightness"].is<int>()) {
+    if(doc["brightness"].is<int>()) {
        MqttCommandMainBrightness = doc["brightness"];
        MqttCommandMainBrightnessReceived = true;
      }
@@ -519,9 +520,11 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
       MqttCommandBackPowerReceived = true;
     }
     if(doc["brightness"].is<int>()) {
+    if(doc["brightness"].is<int>()) {
       MqttCommandBackBrightness = doc["brightness"];
       MqttCommandBackBrightnessReceived = true;
     }
+    if(doc["effect"].is<const char*>()) {
     if(doc["effect"].is<const char*>()) {
       strcpy(MqttCommandBackPattern, doc["effect"]);
       MqttCommandBackPatternReceived = true;
@@ -542,6 +545,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
       MqttCommandUseTwelveHours = strcmp(doc["state"], MQTT_STATE_ON) == 0;
       MqttCommandUseTwelveHoursReceived = true;
     }
+
     doc.clear();
   }
   //blank_zero_hours and set
@@ -553,6 +557,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
       MqttCommandBlankZeroHours = strcmp(doc["state"], MQTT_STATE_ON) == 0;
       MqttCommandBlankZeroHoursReceived = true;
     }
+
     doc.clear();
   }
   //pulse_bpm and set
@@ -564,6 +569,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
       MqttCommandPulseBpm = doc["state"];
       MqttCommandPulseBpmReceived = true;
     }
+
     doc.clear();
   }
   //breath_bpm and set
@@ -575,6 +581,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
       MqttCommandBreathBpm = doc["state"];
       MqttCommandBreathBpmReceived = true;
     }
+
     doc.clear();
   }
   //rainbow_duration and set
