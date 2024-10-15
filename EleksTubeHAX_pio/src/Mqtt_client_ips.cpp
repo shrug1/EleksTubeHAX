@@ -433,7 +433,7 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
   char* command[commandNumber];
   commandNumber = splitCommand(topic, command, commandNumber);
 
-  #ifndef MQTT_HOME_ASSISTANT
+#ifndef MQTT_HOME_ASSISTANT
   char message[length + 1];
   sprintf(message, "%c", (char)payload[0]);
   for (int i = 1; i < length; i++) {
@@ -475,9 +475,9 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
         MqttCommandStateReceived = true;
       }
   }
-  #endif
+#endif
 
-  #ifdef MQTT_HOME_ASSISTANT
+#ifdef MQTT_HOME_ASSISTANT
   char message[length + 1];
   sprintf(message, "%c", (char)payload[0]);
   for (int i = 1; i < length; i++) {
@@ -499,7 +499,6 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
       MqttCommandMainPowerReceived = true;
     }
     if(doc["brightness"].is<int>()) {
-    if(doc["brightness"].is<int>()) {
        MqttCommandMainBrightness = doc["brightness"];
        MqttCommandMainBrightnessReceived = true;
      }
@@ -519,13 +518,11 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
       MqttCommandBackPower = strcmp(doc["state"], MQTT_STATE_ON) == 0;
       MqttCommandBackPowerReceived = true;
     }
-    if(doc["brightness"].is<int>()) {
-    if(doc["brightness"].is<int>()) {
+    if(doc["brightness"].is<int>()) {    
       MqttCommandBackBrightness = doc["brightness"];
       MqttCommandBackBrightnessReceived = true;
     }
-    if(doc["effect"].is<const char*>()) {
-    if(doc["effect"].is<const char*>()) {
+    if(doc["effect"].is<const char*>()) {    
       strcpy(MqttCommandBackPattern, doc["effect"]);
       MqttCommandBackPatternReceived = true;
       }
@@ -596,17 +593,18 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
 
     doc.clear();
   }
-  #endif
+#endif
  }
 
-void MqttLoopFrequently(){
+
+void MqttLoopFrequently() {
 #ifdef MQTT_ENABLED
   MQTTclient.loop(); 
   checkMqtt();
 #endif  
 }
 
-void MqttLoopInFreeTime(){
+void MqttLoopInFreeTime() {
 #ifdef MQTT_ENABLED
   MqttReportBackOnChange();
   MqttPeriodicReportBack();
