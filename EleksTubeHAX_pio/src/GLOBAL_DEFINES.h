@@ -268,22 +268,22 @@
 #ifdef HARDWARE_Elekstube_CLOCK_Gen2 // original EleksTube IPS clock Gen2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
   // WS2812 (or compatible) LEDs on the back of the display modules.
-  #define BACKLIGHTS_PIN (12)
+  #define BACKLIGHTS_PIN (GPIO_NUM_12)
 
   // Buttons, active low, externally pulled up (with actual resistors!)
-  #define BUTTON_LEFT_PIN (33)
-  #define BUTTON_MODE_PIN (32)
-  #define BUTTON_RIGHT_PIN (35)
-  #define BUTTON_POWER_PIN (34)
+  #define BUTTON_LEFT_PIN (GPIO_NUM_33)
+  #define BUTTON_MODE_PIN (GPIO_NUM_32)
+  #define BUTTON_RIGHT_PIN (GPIO_NUM_35)
+  #define BUTTON_POWER_PIN (GPIO_NUM_34)
 
   // I2C to DS3231 RTC.
-  #define RTC_SCL_PIN (22)
-  #define RTC_SDA_PIN (21)
+  #define RTC_SCL_PIN (GPIO_NUM_22)
+  #define RTC_SDA_PIN (GPIO_NUM_21)
 
   // Chip Select shift register, to select the display
-  #define CSSR_DATA_PIN (14)
-  #define CSSR_CLOCK_PIN (9)
-  #define CSSR_LATCH_PIN (10)
+  #define CSSR_DATA_PIN (GPIO_NUM_14)
+  #define CSSR_CLOCK_PIN (GPIO_NUM_9)
+  #define CSSR_LATCH_PIN (GPIO_NUM_10)
 
   // SPI to displays
   // DEFINED IN User_Setup.h
@@ -291,7 +291,10 @@
 
   // Power for all TFT displays are grounded through a MOSFET so they can all be turned off.
   // Active HIGH.
-  #define TFT_ENABLE_PIN (27)
+  // I can'T find ANY pin, which is connected to the enable pin of the displays, so I use a random pin, which is not used for anything else to check if the displays are enabled
+  //#define TFT_ENABLE_PIN (GPIO_NUM_16) NOT WORKING!!!
+  //#define TFT_ENABLE_PIN (GPIO_NUM_17) NOT WORKING!!!
+  #define TFT_ENABLE_PIN (GPIO_NUM_11)
 
   // configure library \TFT_eSPI\User_Setup.h
   // ST7789 135 x 240 display with no chip select line
