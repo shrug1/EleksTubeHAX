@@ -12,8 +12,6 @@ void TFTs::begin() {
   //if hardware dimming is used, we need to attach the pin to a PWM channel
   ledcAttachPin(TFT_ENABLE_PIN, TFT_PWM_CHANNEL);
   ledcChangeFrequency(TFT_PWM_CHANNEL, 20000, 8);
-  //not needed here, because enableAllDisplays() is called later and it is called from there and if enabled is false, this does nothing
-  //ProcessUpdatedDimming();
 #else
   // Set pin for turning display power on and off.
   pinMode(TFT_ENABLE_PIN, OUTPUT);
@@ -41,9 +39,6 @@ void TFTs::begin() {
 }
 
 void TFTs::reinit() {
-#ifdef DEBUG_OUTPUT
-  Serial.println("TFTs::reinit");
-#endif
 #ifndef TFT_SKIP_REINIT
   // Start with all displays selected.
   chip_select.begin();

@@ -301,14 +301,13 @@
   // DEFINED IN User_Setup.h
   // Look for: TFT_MOSI, TFT_SCLK, TFT_CS, TFT_DC, and TFT_RST
 
-  // Power for all TFT displays are grounded through a MOSFET so they can all be turned off.
-  // Active HIGH.
-  // I can't find ANY pin, which is connected to the enable pin of the displays, so I use a random pin, which is not used for anything else to check if the displays are enabled
-  //#define TFT_ENABLE_PIN (GPIO_NUM_27)  // Does nothing -> not connected
-  //#define TFT_ENABLE_PIN (GPIO_NUM_16)  // NOT WORKING!!!
-  //#define TFT_ENABLE_PIN (GPIO_NUM_17)  // NOT WORKING!!!
-  #define TFT_ENABLE_PIN (GPIO_NUM_11)    // Does nothing, like GPIO_NUM_27
+  // The enable pin of the displays of the Gen2 board is NOT connected to the ESP32! Nor the ground!
+  // So the displays can't be turned off and on! They are always on! Also the original firmware doesn't 
+  // turn them off, just switch to Matrix rain screensafer if power button is pressed!
 
+  // I can't find ANY pin, which is connected to the enable pin of the displays, so I use a random
+  // pin, which is not used for anything else
+  #define TFT_ENABLE_PIN (GPIO_NUM_27)  // Does nothing -> Not connected!
 
   // configure library \TFT_eSPI\User_Setup.h
   // ST7789 135 x 240 display with no chip select line
@@ -381,7 +380,7 @@
   // EXCEPT: The Q1 transistor is present!
   // Then the GPIO4 pin is connected to the transistor and Ground of the LCDs is running through the transistor, so the LCDs can be turned on and off AND dimmed!
   #define TFT_ENABLE_PIN (GPIO_NUM_4) // pin 24 is GPIO4
-  //if transistor is present and we want hardware dimming, we need to choose a PWM channel for this, can always be defines, even if not used
+  // If transistor is present and we want hardware dimming, we need to choose a PWM channel for this, can always be defines, even if not used
   #define TFT_PWM_CHANNEL 0
 
   // Skip reinitialization
