@@ -180,8 +180,6 @@ void loop() {
 #ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones!
       // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly, so reinit them
       tfts.reinit();
-      tfts.chip_select.setAll();
-      tfts.fillScreen(TFT_BLACK);
 #else
       // for all other clocks, just enable the displays
       tfts.enableAllDisplays();
@@ -205,8 +203,6 @@ void loop() {
 #ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones!
       // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly, so reinit them
       tfts.reinit();
-      tfts.chip_select.setAll();
-      tfts.fillScreen(TFT_BLACK);
 #else
       // for all other clocks, just enable the displays
       tfts.enableAllDisplays();
@@ -359,11 +355,11 @@ void loop() {
     MqttReportBackEverything(true);
   }
 
+  //Auto store preferences - every 60 secs after the last MQTT command was received
   if(lastMqttCommandExecuted != -1) {
     if (((millis() - lastMqttCommandExecuted) > (MQTT_SAVE_PREFERENCES_AFTER_SEC * 1000)) && menu.getState() == Menu::idle) {
       lastMqttCommandExecuted = -1;
-
-      Serial.print("Saving config...");
+      Serial.println(); Serial.print("Saving config...triggered from MQTT command received.");
       stored_config.save();
       Serial.println(" Done.");
     }
@@ -394,8 +390,6 @@ void loop() {
 #ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones!
       // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly, so reinit them
       tfts.reinit();
-      tfts.chip_select.setAll();
-      tfts.fillScreen(TFT_BLACK);
 #else
       // for all other clocks, just enable the displays
       tfts.enableAllDisplays();

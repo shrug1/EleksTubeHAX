@@ -357,12 +357,7 @@
   // Pin 3 = VDD3P3 = 3.3V analog power supply = Always LOW on this board
   // Pin 5 = SENSOR_VP = GPIO36 = Unconnected = SHOULD be HIGH = Always HIGH
   #ifdef ONE_BUTTON_ONLY_MENU
-    #define BUTTON_MODE_PIN (GPIO_NUM_0) // Only ONE Button on the back of the clock - pin 23 is GPIO0 = BOOT Button
-  #else
-    #define BUTTON_LEFT_PIN  (3)
-    #define BUTTON_RIGHT_PIN (3)
-    #define BUTTON_POWER_PIN (3)
-    #define BUTTON_MODE_PIN (GPIO_NUM_0) // Only ONE Button on the back of the clock - pin 23 is GPIO0 = BOOT Button
+    #define BUTTON_MODE_PIN (GPIO_NUM_0) // Only ONE Button on the back of the clock - pin 23 is GPIO0 = BOOT Button 
   #endif
 
   // 3-wire to DS1302 RTC
@@ -400,21 +395,17 @@
   // If you notice, that the night time dimming or manual dimming does not work, you will have a clock without the Q1 transistor 
   // and you can/should comment the following line out to get back to the software dimming!
 
-  // Comment the next line out, to DISABLE hardware dimming with GPIO4 pin (TFT_ENABLE_PIN) for a IPSTUBE clock  
+  // Comment the next line out, to DISABLE hardware dimming with GPIO4 pin (TFT_ENABLE_PIN) for a IPSTUBE clock or undef it in the USER_DEFINES.h
   #define DIM_WITH_ENABLE_PIN_PWM
     
   //NOTE: If NIGTHTIME_DIMMING is enabled: 
   // For the main LCDs: The dimming will be set to the hard coded value TFT_DIMMED_INTENSITY in the given time period EVERY HOUR beginning at NIGHT_TIME
   //    and will set back to the maximum brightness at DAY_TIME...Disable NIGHTTIME_DIMMING if you want to use the manual set dimming value all the time
   // For the backlight dimming: The dimming will ALWAYS stay to the hard coded value BACKLIGHT_DIMMED_INTENSITY in the given night time period! 
-  //    The check for it is done and the value is apply every loop...Disable NIGHTTIME_DIMMING if you want to use the manual set dimming value all the time
+  //    The check for it is done and the value is applied every loop...Disable NIGHTTIME_DIMMING if you want to use the manual set dimming value all the time
 
   // TODO: Store the dimming values and dimming times in the NVS partition to keep the last dimming value and not use the hard coded values
-  // make the times and values adjustable in the menu and/or via MQTT for both main and backlight dimming
-
-  // TODO: Save the values changed via MQTT/in HA in the NVS partition to keep the values after a reboot. Maybe define a "save command" in HA or trigger after 
-  // a few minutes of inactivity only if changed something or in the "free time" of the loop cycle...
-  // Save it every time receiving MQTT commands is a BAD idea, we know that already ;)
+  // TODO: Make the times and values adjustable in the menu and/or via MQTT for both main and backlight night time dimming
 
   // configure library \TFT_eSPI\User_Setup.h
   // ST7789 135 x 240 display with no chip select line

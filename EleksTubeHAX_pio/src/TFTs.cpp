@@ -234,8 +234,8 @@ void TFTs::ProcessUpdatedDimming() {
   }
 #else
   //"software" dimming is done via alpha blending in the image drawing function
-  // so here, only signal that the image in the buffer is invalid and needs to be reloaded and refilled
-  InvalidateImageInBuffer();
+  // so here, only signal that the image in the buffer is invalid and needs to be reloaded and refilled (force reload and redraw)
+  //InvalidateImageInBuffer();
 #endif
 }
 

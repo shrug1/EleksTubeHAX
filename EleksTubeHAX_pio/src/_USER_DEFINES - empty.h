@@ -22,6 +22,12 @@
 //#define HARDWARE_IPSTUBE_CLOCK            // uncomment for the IPSTUBE clock models (H401 and H402)
 
 
+// ************* For IPSTUBE clocks only *************
+// Unomment the next line, to DISABLE hardware dimming with GPIO4 pin (TFT_ENABLE_PIN) for a IPSTUBE clock
+// See the IPSTUBE clock hardware section in GLOBAL_DEFINES.h for more information!
+//#undef DIM_WITH_ENABLE_PIN_PWM
+
+
 // ************* Clock font file type selection (.clk or .bmp)  *************
 //#define USE_CLK_FILES   // select between .CLK and .BMP images
 
@@ -62,6 +68,7 @@
 #define MQTT_PASSWORD "__enter_your_api_key_here__"              // Password from Smartnest or API key (under MY Account)
 #define MQTT_CLIENT "__enter_your_device_id_here__"              // Device Id from Smartnest
 #define MQTT_SAVE_PREFERENCES_AFTER_SEC 60
+
 
 // ************* Optional temperature sensor *************
 //#define ONE_WIRE_BUS_PIN   4  // DS18B20 connected to GPIO4; comment this line if sensor is not connected
