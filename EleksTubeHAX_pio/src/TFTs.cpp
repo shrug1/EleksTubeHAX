@@ -153,7 +153,7 @@ void TFTs::showTemperature() {
 #ifdef DEBUG_OUTPUT
     Serial.println("Temperature to LCD");
 #endif    
-  #endif
+#endif
 }
 
 void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
@@ -175,7 +175,7 @@ void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
 
     if (digit == HOURS_ONES) {
         showTemperature();
-      }
+    }
   }
 }
 
@@ -184,23 +184,29 @@ void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
  */
  
 void TFTs::showDigit(uint8_t digit) {
-  chip_select.setDigit(digit);
+  //only do this, if the displays are enabled
+  if (enabled) {
+    chip_select.setDigit(digit);
 
-  if (digits[digit] == blanked) {
-    fillScreen(TFT_BLACK);
+    if (digits[digit] == blanked) {
+      fillScreen(TFT_BLACK);
+    }
+    else {
+      uint8_t file_index = current_graphic * 10 + digits[digit];
+      DrawImage(file_index);
+      
+      uint8_t NextNumber = digits[SECONDS_ONES] + 1;
+      if (NextNumber > 9) NextNumber = 0; // pre-load only seconds, because they are drawn first
+      NextFileRequired = current_graphic * 10 + NextNumber;
+    }
+#ifdef HARDWARE_IPSTUBE_CLOCK
+      chip_select.update();
+#endif
   }
   else {
-    uint8_t file_index = current_graphic * 10 + digits[digit];
-    DrawImage(file_index);
-    
-    uint8_t NextNumber = digits[SECONDS_ONES] + 1;
-    if (NextNumber > 9) NextNumber = 0; // pre-load only seconds, because they are drawn first
-    NextFileRequired = current_graphic * 10 + NextNumber;
+    //display is disabled, do nothing    
   }
-  #ifdef HARDWARE_IPSTUBE_CLOCK
-    chip_select.update();
-  #endif
-  }
+}
 
 void TFTs::LoadNextImage() {
   if (NextFileRequired != FileInBuffer) {
@@ -220,14 +226,15 @@ void TFTs::ProcessUpdatedDimming() {
   //hardware dimming is done via PWM on the pin defined by TFT_ENABLE_PIN
   //ONLY for IPSTUBE clocks in the moment! Other clocks may be damaged!
   if (enabled) {
+    //calculate the dimming value for the PWM channel and set it
     ledcWrite(TFT_PWM_CHANNEL, CALCDIMVALUE(dimming));
   } else {
-    //no dimming means 255 (full brightness)
+    //displays should not enabled, so calcdimvalue should go to 255 an set = transistor off = displays off
     ledcWrite(TFT_PWM_CHANNEL, CALCDIMVALUE(0));
   }
 #else
-  // "software" dimming is done via alpha blending in the image drawing function
-  // signal that the image in the buffer is invalid and needs to be reloaded and refilled
+  //"software" dimming is done via alpha blending in the image drawing function
+  // so here, only signal that the image in the buffer is invalid and needs to be reloaded and refilled
   InvalidateImageInBuffer();
 #endif
 }
