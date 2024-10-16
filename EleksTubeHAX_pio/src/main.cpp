@@ -177,13 +177,17 @@ void loop() {
   if (MqttCommandPowerReceived) {
     MqttCommandPowerReceived = false;
     if (MqttCommandPower) {
-#ifndef HARDWARE_SI_HAI_CLOCK
-      if (!tfts.isEnabled()) {
-        tfts.reinit();  // reinit (original EleksTube HW: after a few hours in OFF state the displays do not wake up properly)
-        updateClockDisplay(TFTs::force);
-      }
-#endif
+#ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones!
+      // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly, so reinit them
+      tfts.reinit();
+      tfts.chip_select.setAll();
+      tfts.fillScreen(TFT_BLACK);
+#else
+      // for all other clocks, just enable the displays
       tfts.enableAllDisplays();
+#endif
+      //redraw everything, needed because the displays was blanked before turning off
+      updateClockDisplay(TFTs::force);
       backlights.PowerOn();
     } else {
       // blank the screens before turning off -> needed for all clocks without a real "power switch"
@@ -198,13 +202,17 @@ void loop() {
   if (MqttCommandMainPowerReceived) {
     MqttCommandMainPowerReceived = false;
     if (MqttCommandMainPower) {
- #ifndef HARDWARE_SI_HAI_CLOCK
-      if (!tfts.isEnabled()) {
-        tfts.reinit();  // reinit (original EleksTube HW: after a few hours in OFF state the displays do not wake up properly)
-        updateClockDisplay(TFTs::force);
-      }
- #endif
+#ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones!
+      // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly, so reinit them
+      tfts.reinit();
+      tfts.chip_select.setAll();
+      tfts.fillScreen(TFT_BLACK);
+#else
+      // for all other clocks, just enable the displays
       tfts.enableAllDisplays();
+#endif
+      //redraw everything, needed because the displays was blanked before turning off
+      updateClockDisplay(TFTs::force);
     } else {
       // blank the screens before turning off -> needed for all clocks without a real "power switch"
       // to "simulate" the off-switched displays
@@ -367,26 +375,38 @@ void loop() {
   HandleGestureInterupt();
 #endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-  // Power button: If in menu, exit menu. Else turn off displays and backlight.
+  // Power button was pressed: if in the menu, exit menu, else turn off displays and backlight.
 #ifndef ONE_BUTTON_ONLY_MENU
   if (buttons.power.isUpEdge() && (menu.getState() == Menu::idle)) {
-#ifdef DEBUG_OUTPUT
-    Serial.println(); Serial.println("Power button pressed!");
-#endif
-    tfts.chip_select.setAll();
-    tfts.fillScreen(TFT_BLACK);
-    tfts.toggleAllDisplays();
+    // check, if we need to switch off the LC displays and LED backlights
     if (tfts.isEnabled()) {
-#ifndef HARDWARE_SI_HAI_CLOCK
-      tfts.reinit();  // reinit (original EleksTube HW: after a few hours in OFF state the displays do not wake up properly)
-#endif
+      // state is enabled -> turn OFF the displays and backlights
+
+      // blank the screens before turning off -> needed for all clocks without a real "power switch"
+      // to "simulate" the off-switched displays
       tfts.chip_select.setAll();
       tfts.fillScreen(TFT_BLACK);
-      updateClockDisplay(TFTs::force);
+      tfts.disableAllDisplays();
+      backlights.PowerOff();
     }
-    backlights.togglePower();
-  }
+    else {
+      // state is disabled -> turn ON the displays and backlights
+#ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones!
+      // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly, so reinit them
+      tfts.reinit();
+      tfts.chip_select.setAll();
+      tfts.fillScreen(TFT_BLACK);
+#else
+      // for all other clocks, just enable the displays
+      tfts.enableAllDisplays();
 #endif
+      //redraw everything, needed because the displays was blanked before turning off
+      updateClockDisplay(TFTs::force);
+      backlights.PowerOn();
+    }
+  }
+#endif //ONE_BUTTON_ONLY_MENU
+
  
   menu.loop(buttons);  // Must be called after buttons.loop()
   backlights.loop();
