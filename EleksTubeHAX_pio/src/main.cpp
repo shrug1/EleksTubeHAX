@@ -79,47 +79,61 @@ void setup() {
   tfts.fillScreen(TFT_BLACK);
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
   tfts.setCursor(0, 0, 2);  // Font 2. 16 pixel high
-  tfts.println("setup...");
+  tfts.println("Starting Setup...");
 
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   //Init the Gesture sensor
-  tfts.println("Gesture sensor start");Serial.println("Gesture sensor start");
+  tfts.setTextColor(TFT_ORANGE, TFT_BLACK);
+  tfts.print("Gest start..."); Serial.print("Gesture Sensor start...");
   GestureStart(); //TODO put into class
+  tfts.println("Done!"); Serial.println("Done!");
+  tfts.setTextColor(TFT_WHITE, TFT_BLACK);
 #endif
 
   // Setup WiFi connection. Must be done before setting up Clock.
   // This is done outside Clock so the network can be used for other things.
-//  WiFiBegin(&stored_config.config.wifi);
-  tfts.println("WiFi start");
+  tfts.setTextColor(TFT_DARKGREEN, TFT_BLACK);
+  tfts.println("WiFi start..."); Serial.println("WiFi start...");
   WifiBegin();
-  
-  // wait for a bit before querying NTP
+  tfts.setTextColor(TFT_WHITE, TFT_BLACK);
+
+  // wait a bit (5x100ms = 0.5 sec) before querying NTP
   for (uint8_t ndx=0; ndx < 5; ndx++) {
     tfts.print(">");
     delay(100);
   }
-  tfts.println("");
+  tfts.println();
 
   // Setup the clock.  It needs WiFi to be established already.
-  tfts.println("Clock start");
+  tfts.setTextColor(TFT_MAGENTA, TFT_BLACK);
+  tfts.print("Clock start..."); Serial.print("Clock start...");
   uclock.begin(&stored_config.config.uclock);
+  tfts.println("Done!"); Serial.println("Done!");
+  tfts.setTextColor(TFT_WHITE, TFT_BLACK);
 
   // Setup MQTT
-  tfts.println("MQTT start");
+  tfts.setTextColor(TFT_YELLOW, TFT_BLACK);
+  tfts.print("MQTT start..."); Serial.print("MQTT start...");
   MqttStart();
+  tfts.println("Done!"); Serial.println("Done!");
+  tfts.setTextColor(TFT_WHITE, TFT_BLACK);
 
 #ifdef GEOLOCATION_ENABLED
-  tfts.println("Geoloc query");
+  tfts.setTextColor(TFT_NAVY, TFT_BLACK);
+  tfts.println("GeoLoc query..."); Serial.println("GeoLoc query...");
   if (GetGeoLocationTimeZoneOffset()) {
-    tfts.print("TZ: ");
-    tfts.println(GeoLocTZoffset);
+    tfts.print("TZ: "); Serial.print("TZ: ");
+    tfts.println(GeoLocTZoffset); Serial.println(GeoLocTZoffset);
     uclock.setTimeZoneOffset(GeoLocTZoffset * 3600);
-    Serial.print("Saving config...");
+    Serial.println(); Serial.print("Saving config! Triggerd by timezone change...");
     stored_config.save();
-    Serial.println(" Done.");
+    Serial.println("Done.");
+    tfts.println("Done!"); Serial.println("Done!");
+    tfts.setTextColor(TFT_WHITE, TFT_BLACK);
   } else {
-    Serial.println("Geolocation failed.");    
-    tfts.println("Geo FAILED");
+    tfts.setTextColor(TFT_RED, TFT_BLACK);
+    tfts.println("GeoLoc FAILED"); Serial.println("GeoLoc failed!");
+    tfts.setTextColor(TFT_WHITE, TFT_BLACK);
   }
 #endif
 
@@ -133,9 +147,10 @@ void setup() {
   }
   tfts.current_graphic = uclock.getActiveGraphicIdx();
 
-  tfts.println("Done with setup.");
+  tfts.setTextColor(TFT_WHITE, TFT_BLACK);
+  tfts.println("Done with Setup!"); Serial.println("Done with Setup!");
 
-  // Leave boot up messages on screen for a few seconds.
+  // Leave boot up messages on screen for a few seconds (10x200ms = 2 sec)
   for (uint8_t ndx=0; ndx < 10; ndx++) {
     tfts.print(">");
     delay(200);
@@ -144,7 +159,7 @@ void setup() {
   // Start up the clock displays.
   tfts.fillScreen(TFT_BLACK);
   uclock.loop();
-  updateClockDisplay(TFTs::force);
+  updateClockDisplay(TFTs::force); // Draw all the clock digits
   Serial.println("Setup finished.");
 }
 
@@ -177,18 +192,19 @@ void loop() {
   if (MqttCommandPowerReceived) {
     MqttCommandPowerReceived = false;
     if (MqttCommandPower) {
-#ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones!
-      // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly, so reinit them
+#ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones! PunkCyber needs it too.
+      // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly
+      // -> so reinit them (includes enabling the displays)
       tfts.reinit();
 #else
       // for all other clocks, just enable the displays
       tfts.enableAllDisplays();
 #endif
-      //redraw everything, needed because the displays was blanked before turning off
+      //redraw all the clock digits -> needed because the displays was blanked before turning off
       updateClockDisplay(TFTs::force);
       backlights.PowerOn();
     } else {
-      // blank the screens before turning off -> needed for all clocks without a real "power switch"
+      // blank the screens before turning off -> needed for all clocks without a real "power switch curcuit"
       // to "simulate" the off-switched displays
       tfts.chip_select.setAll();
       tfts.fillScreen(TFT_BLACK);
@@ -200,17 +216,18 @@ void loop() {
   if (MqttCommandMainPowerReceived) {
     MqttCommandMainPowerReceived = false;
     if (MqttCommandMainPower) {
-#ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones!
-      // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly, so reinit them
+#ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones! PunkCyber needs it too.
+      // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly
+      // -> so reinit them (includes enabling the displays)
       tfts.reinit();
 #else
       // for all other clocks, just enable the displays
       tfts.enableAllDisplays();
 #endif
-      //redraw everything, needed because the displays was blanked before turning off
+      //redraw all the clock digits -> needed because the displays was blanked before turning off
       updateClockDisplay(TFTs::force);
     } else {
-      // blank the screens before turning off -> needed for all clocks without a real "power switch"
+      // blank the screens before turning off -> needed for all clocks without a real "power switch curcuit"
       // to "simulate" the off-switched displays
       tfts.chip_select.setAll();
       tfts.fillScreen(TFT_BLACK);
@@ -240,14 +257,14 @@ void loop() {
     Serial.println(idx);
     uclock.setClockGraphicsIdx(idx);  
     tfts.current_graphic = uclock.getActiveGraphicIdx();
-    updateClockDisplay(TFTs::force);   // redraw everything
+    updateClockDisplay(TFTs::force);   // redraw all the clock digits
   }
 
   if(MqttCommandMainBrightnessReceived) {
     MqttCommandMainBrightnessReceived = false;
     tfts.dimming = MqttCommandMainBrightness;
     tfts.ProcessUpdatedDimming();
-    updateClockDisplay(TFTs::force);
+    updateClockDisplay(TFTs::force); // redraw all the clock digits
   }
 
   if(MqttCommandBackBrightnessReceived) {
@@ -295,14 +312,14 @@ void loop() {
 
     uclock.setClockGraphicsIdx(MqttCommandGraphic);
     tfts.current_graphic = uclock.getActiveGraphicIdx();
-    updateClockDisplay(TFTs::force);   // redraw everything
+    updateClockDisplay(TFTs::force); // redraw all the clock digits
   }
 
   if(MqttCommandMainGraphicReceived) {
     MqttCommandMainGraphicReceived = false;
     uclock.setClockGraphicsIdx(MqttCommandMainGraphic);
     tfts.current_graphic = uclock.getActiveGraphicIdx();
-    updateClockDisplay(TFTs::force);   // redraw everything
+    updateClockDisplay(TFTs::force); // redraw all the clock digits
   }
 
   if(MqttCommandUseTwelveHoursReceived) {
@@ -359,7 +376,7 @@ void loop() {
   if(lastMqttCommandExecuted != -1) {
     if (((millis() - lastMqttCommandExecuted) > (MQTT_SAVE_PREFERENCES_AFTER_SEC * 1000)) && menu.getState() == Menu::idle) {
       lastMqttCommandExecuted = -1;
-      Serial.println(); Serial.print("Saving config...triggered from MQTT command received.");
+      Serial.println(); Serial.print("Saving config! Triggered from MQTT command received.");
       stored_config.save();
       Serial.println(" Done.");
     }
@@ -378,7 +395,7 @@ void loop() {
     if (tfts.isEnabled()) {
       // state is enabled -> turn OFF the displays and backlights
 
-      // blank the screens before turning off -> needed for all clocks without a real "power switch"
+      // blank the screens before turning off -> needed for all clocks without a real "power switch curcuit"
       // to "simulate" the off-switched displays
       tfts.chip_select.setAll();
       tfts.fillScreen(TFT_BLACK);
@@ -387,19 +404,20 @@ void loop() {
     }
     else {
       // state is disabled -> turn ON the displays and backlights
-#ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones!
-      // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly, so reinit them
+#ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones! PunkCyber needs it too.
+      // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly
+      // -> so reinit them (includes enabling the displays)
       tfts.reinit();
 #else
       // for all other clocks, just enable the displays
       tfts.enableAllDisplays();
 #endif
-      //redraw everything, needed because the displays was blanked before turning off
+      //redraw all the clock digits -> needed because the displays was blanked before turning off
       updateClockDisplay(TFTs::force);
       backlights.PowerOn();
     }
   }
-#endif //ONE_BUTTON_ONLY_MENU
+#endif // ONE_BUTTON_ONLY_MENU
 
  
   menu.loop(buttons);  // Must be called after buttons.loop()
@@ -408,8 +426,7 @@ void loop() {
 
   EveryFullHour(true); // night or daytime
 
-  // Update the clock.
-  updateClockDisplay();
+  updateClockDisplay(); // Draw only the changed clock digits!
   
   UpdateDstEveryNight();
 
@@ -419,9 +436,9 @@ void loop() {
     int8_t menu_change = menu.getChange();
 
     if (menu_state == Menu::idle) {
-      // We just changed into idle, so force redraw everything, and save the config.
-      updateClockDisplay(TFTs::force);
-      Serial.print("Saving config...");
+      // We just changed into idle, so force a redraw of all clock digits and save the config.
+      updateClockDisplay(TFTs::force); // redraw all the clock digits
+      Serial.println(); Serial.print("Saving config! Triggered from leaving menu...");
       stored_config.save();
       Serial.println(" Done.");
     }
@@ -431,7 +448,6 @@ void loop() {
         if (menu_change != 0) {
           backlights.setNextPattern(menu_change);
         }
-
         setupMenu();
         tfts.println("Pattern:");
         tfts.println(backlights.getPatternStr());
@@ -460,8 +476,7 @@ void loop() {
           uclock.toggleTwelveHour();
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::force);
-        }
-        
+        }        
         setupMenu();
         tfts.println("Hour format");
         tfts.println(uclock.getTwelveHour() ? "12 hour" : "24 hour"); 
@@ -471,8 +486,8 @@ void loop() {
         if (menu_change != 0) {
           uclock.toggleBlankHoursZero();
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
-        }
-        
+          //delay(50); // wait a bit, so the displays are updated before the menu is redrawn
+        }        
         setupMenu();
         tfts.println("Blank zero?");
         tfts.println(uclock.getBlankHoursZero() ? "yes" : "no");
@@ -481,13 +496,13 @@ void loop() {
       else if (menu_state == Menu::utc_offset_hour) {
         if (menu_change != 0) {
           uclock.adjustTimeZoneOffset(menu_change * 3600);
-
-          EveryFullHour();
-
+          // check if we need dimming for the night, because timezone was changed
+          //EveryFullHour();
+          // this erases the menu (on HOURS_TENS)! -> Redraw Menu imidiately afterwards
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
+          //delay(400); // wait a bit, so the displays are updated before the menu is redrawn
         }
-
         setupMenu();
         tfts.println("UTC Offset");
         tfts.println(" +/- Hour");
@@ -503,15 +518,15 @@ void loop() {
       else if (menu_state == Menu::utc_offset_15m) {
         if (menu_change != 0) {
           uclock.adjustTimeZoneOffset(menu_change * 900);
-
-          EveryFullHour();
-
+          // check if we need dimming for the night, because timezone was changed
+          //EveryFullHour();
+          // this erases the menu (on HOURS_TENS)! -> Redraw Menu imidiately afterwards
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
           tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), TFTs::yes);
           tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), TFTs::yes);
+          //delay(400); // wait a bit, so the displays are updated before the menu is redrawn
         }
-
         setupMenu();
         tfts.println("UTC Offset");
         tfts.println(" +/- 15m");
@@ -530,13 +545,12 @@ void loop() {
 
           if(tfts.current_graphic != uclock.getActiveGraphicIdx()) {
             tfts.current_graphic = uclock.getActiveGraphicIdx();
-            updateClockDisplay(TFTs::force);   // redraw everything
+            updateClockDisplay(TFTs::force); // redraw all the clock digits
           }
         }
-
         setupMenu();
         tfts.println("Selected");
-        tfts.println(" graphic:");
+        tfts.println("graphic:");
         tfts.printf("    %d\n", uclock.getActiveGraphicIdx());
       }
      
@@ -572,11 +586,13 @@ void loop() {
     time_in_loop = millis() - millis_at_top;
     if (time_in_loop < 20) {
       MqttLoopInFreeTime();
+#ifdef ONE_WIRE_BUS_PIN      
       PeriodicReadTemperature();
       if (bTemperatureUpdated) {
         tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::force);  // show latest clock digit and temperature readout together
         bTemperatureUpdated = false;
       }
+#endif
       
       // run once a day (= 744 times per month which is below the limit of 5k for free account)
       if (DstNeedsUpdate) { // Daylight savings time changes at 3 in the morning
@@ -683,9 +699,14 @@ void HandleGesture() {
 #endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 void setupMenu() {
+  // Prepare drawing of the menu texts
+
+  // use most left display
   tfts.chip_select.setHoursTens();
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
+  //use lower half of the display, fill with black
   tfts.fillRect(0, 120, 135, 120, TFT_BLACK);
+  // use font 4. 26 pixel high
   tfts.setCursor(0, 124, 4);  // Font 4. 26 pixel high
 }
 
@@ -709,25 +730,25 @@ void EveryFullHour(bool loopUpdate) {
     Serial.print("current hour = ");
     Serial.println(current_hour);
     if (isNightTime(current_hour)) {
-      Serial.println("Setting night mode (dimmed)");
+      Serial.println("Setting night mode (dimmed)!");
       tfts.dimming = TFT_DIMMED_INTENSITY;
       tfts.ProcessUpdatedDimming();
       backlights.setDimming(true);
-      if (menu.getState() == Menu::idle || !loopUpdate) { // otherwise erases the menu
-        updateClockDisplay(TFTs::force); // update all
+      if (menu.getState() == Menu::idle || (loopUpdate==true)) { // otherwise erases the menu
+        updateClockDisplay(TFTs::force); // redraw all the clock digits
       }
     } else {
-      Serial.println("Setting daytime mode (max brightness)");
+      Serial.println("Setting daytime mode (max brightness)!");
       tfts.dimming = 255; // 0..255
       tfts.ProcessUpdatedDimming();
       backlights.setDimming(false);
-      if (menu.getState() == Menu::idle || !loopUpdate) { // otherwise erases the menu
-        updateClockDisplay(TFTs::force); // update all
+      if (menu.getState() == Menu::idle || (loopUpdate==true)) { // otherwise erases the menu
+        updateClockDisplay(TFTs::force); // redraw all the clock digits
       }
     }
     hour_old = current_hour;
   }
-#endif   
+#endif
 }
 
 void UpdateDstEveryNight() {

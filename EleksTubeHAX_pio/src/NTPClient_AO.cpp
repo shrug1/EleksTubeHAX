@@ -117,33 +117,25 @@ bool NTPClient::forceUpdate() {
 	//Perform a few validity checks on the packet
 	if((_packetBuffer[0] & 0b11000000) == 0b11000000)		//Check for LI=UNSYNC
     {
-#ifdef DEBUG_NTPClient
-      Serial.println("err: NTP UnSync");
-#endif
+      DBG("err: NTP UnSync");
       return false;
     }
   
 	if((_packetBuffer[0] & 0b00111000) >> 3 < 0b100)		//Check for Version >= 4
     {
-#ifdef DEBUG_NTPClient
-      Serial.println("err: Incorrect NTP Version");
-#endif
+      DBG("err: Incorrect NTP Version");
       return false;
     }
 
 	if((_packetBuffer[0] & 0b00000111) != 0b100)			//Check for Mode == Server
     {
-#ifdef DEBUG_NTPClient
-      Serial.println("err: NTP mode is not Server");
-#endif
+      DBG("err: NTP mode is not Server");
       return false;
     }
 
 	if((_packetBuffer[1] < 1) || (_packetBuffer[1] > 15))		//Check for valid Stratum
     {
-#ifdef DEBUG_NTPClient
-      Serial.println("err: Incorrect NTP Stratum");
-#endif
+      DBG("err: Incorrect NTP Stratum");
       return false;
     }
 
@@ -152,9 +144,7 @@ bool NTPClient::forceUpdate() {
 		_packetBuffer[20] == 0 && _packetBuffer[21] == 0 &&
 		_packetBuffer[22] == 0 && _packetBuffer[22] == 0)		//Check for ReferenceTimestamp != 0
     {
-#ifdef DEBUG_NTPClient
-      Serial.println("err: Incorrect NTP Ref Timestamp");
-#endif
+      DBG("err: Incorrect NTP Ref Timestamp");
       return false;
     }
 
@@ -171,8 +161,10 @@ bool NTPClient::forceUpdate() {
 }
 
 bool NTPClient::update() {
+  DBG("NTPClient::update() called");
   if ((millis() - this->_lastUpdate >= this->_updateInterval)     // Update after _updateInterval
     || this->_lastUpdate == 0) {                                // Update if there was no update yet.
+    DBG("NTPClient::update() - _updateInterval passed - NTP update needed!");
     if (!this->_udpSetup) this->begin();                         // setup the UDP client if needed
     return this->forceUpdate();
   }
