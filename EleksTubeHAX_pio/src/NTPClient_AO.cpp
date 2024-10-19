@@ -12,9 +12,9 @@
 #include "NTPClient_AO.h"
 
 #ifdef DEBUG_NTPClient
-  #define DBG(X) Serial.println(F(X))
+  #define DBG_NTP(X) Serial.println(X)
 #else
-  #define DBG(X) (void)0
+  #define DBG_NTP(X) (void)0
 #endif
 
 NTPClient::NTPClient(UDP& udp) {
@@ -57,14 +57,14 @@ void NTPClient::begin(int port) {
 }
 
 bool NTPClient::forceUpdate() {
-  DBG("Update from NTP Server...");
+  DBG_NTP("Update from NTP Server...");
 
   // flush any existing packets
   while(this->_udp->parsePacket() != 0)
     this->_udp->flush();
 
   if (!this->sendNTPPacket()) {
-    DBG("NTP err: Could not send packet");
+    DBG_NTP("NTP err: Could not send packet");
     return false;
   }
 
@@ -75,7 +75,7 @@ bool NTPClient::forceUpdate() {
     delay ( 10 );
     cb = this->_udp->parsePacket();
     if (timeout > 100) {
-      DBG("NTP Timeout!");
+      DBG_NTP("NTP Timeout!");
       return false; // timeout after 1000 ms
       }
     timeout++;
@@ -88,7 +88,7 @@ bool NTPClient::forceUpdate() {
   memset(_packetBuffer, 0, sizeof(_packetBuffer));
 
   if (this->_udp->read(_packetBuffer, NTP_PACKET_SIZE) != NTP_PACKET_SIZE) {
-    DBG("NTP err: Incorrect data size");
+    DBG_NTP("NTP err: Incorrect data size");
     return false;
   }
   
@@ -117,25 +117,25 @@ bool NTPClient::forceUpdate() {
 	//Perform a few validity checks on the packet
 	if((_packetBuffer[0] & 0b11000000) == 0b11000000)		//Check for LI=UNSYNC
     {
-      DBG("err: NTP UnSync");
+      DBG_NTP("err: NTP UnSync");
       return false;
     }
   
 	if((_packetBuffer[0] & 0b00111000) >> 3 < 0b100)		//Check for Version >= 4
     {
-      DBG("err: Incorrect NTP Version");
+      DBG_NTP("err: Incorrect NTP Version");
       return false;
     }
 
 	if((_packetBuffer[0] & 0b00000111) != 0b100)			//Check for Mode == Server
     {
-      DBG("err: NTP mode is not Server");
+      DBG_NTP("err: NTP mode is not Server");
       return false;
     }
 
 	if((_packetBuffer[1] < 1) || (_packetBuffer[1] > 15))		//Check for valid Stratum
     {
-      DBG("err: Incorrect NTP Stratum");
+      DBG_NTP("err: Incorrect NTP Stratum");
       return false;
     }
 
@@ -144,7 +144,7 @@ bool NTPClient::forceUpdate() {
 		_packetBuffer[20] == 0 && _packetBuffer[21] == 0 &&
 		_packetBuffer[22] == 0 && _packetBuffer[22] == 0)		//Check for ReferenceTimestamp != 0
     {
-      DBG("err: Incorrect NTP Ref Timestamp");
+      DBG_NTP("err: Incorrect NTP Ref Timestamp");
       return false;
     }
 
@@ -161,10 +161,8 @@ bool NTPClient::forceUpdate() {
 }
 
 bool NTPClient::update() {
-  DBG("NTPClient::update() called");
   if ((millis() - this->_lastUpdate >= this->_updateInterval)     // Update after _updateInterval
     || this->_lastUpdate == 0) {                                // Update if there was no update yet.
-    DBG("NTPClient::update() - _updateInterval passed - NTP update needed!");
     if (!this->_udpSetup) this->begin();                         // setup the UDP client if needed
     return this->forceUpdate();
   }

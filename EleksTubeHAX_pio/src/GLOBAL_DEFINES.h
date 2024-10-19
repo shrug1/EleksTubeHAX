@@ -445,4 +445,69 @@
   #define USER_SETUP_LOADED
 #endif  // IPSTUBE clock models (H401 and H402) XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+// Debug output macros XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+#ifdef DEBUG_OUTPUT
+    #define DBG_L(X) Serial.println(X)
+    #define DBG(X) Serial.print(X)
+#else
+    #define DBG_L(X) (void)0
+    #define DBG(X) (void)0
+#endif
+
+#ifdef DEBUG_OUTPUT_VERBOSE
+    #define DBG_VERBOSE_L(X) Serial.println(X)
+    #define DBG_VERBOSE(X) Serial.print(X)
+#else
+    #define DBG_VERBOSE_L(X) (void)0
+    #define DBG_VERBOSE(X) (void)0
+#endif
+
+#ifdef DEBUG_OUTPUT_TFT
+    #define DBG_TFT_L(X) Serial.println(X)
+    #define DBG_TFT(X) Serial.print(X)
+#else
+    #define DBG_TFT_L(X) (void)0
+    #define DBG_TFT(X) (void)0
+#endif
+
+#ifdef DEBUG_OUTPUT_MENU
+    #define DBG_MENU_L(X) Serial.println(X)
+    #define DBG_MENU(X) Serial.print(X)
+#else
+    #define DBG_MENU_L(X) (void)0
+    #define DBG_MENU(X) (void)0
+#endif
+
+#ifdef DEBUG_OUTPUT_BUTTONS
+    #define DBG_BUTTONS_L(X) Serial.println(X)
+    #define DBG_BUTTONS(X) Serial.print(X)
+#else
+    #define DBG_BUTTONS_L(X) (void)0
+    #define DBG_BUTTONS(X) (void)0
+#endif
+
+#ifdef DEBUG_OUTPUT_MQTT
+    #define DBG_MQTT_L(X) Serial.println(X)
+    #define DBG_MQTT(X) Serial.print(X)
+#else
+    #define DBG_MQTT_L(X) (void)0
+    #define DBG_MQTT(X) (void)0
+#endif
+
+#ifdef DEBUG_OUTPUT_BACKLIGHTS
+    #define DBG_BACKLIGHTS_L(X) Serial.println(X)
+    #define DBG_BACKLIGHTS(X) Serial.print(X)
+#else
+    #define DBG_BACKLIGHTS_L(X) (void)0
+    #define DBG_BACKLIGHTS(X) (void)0
+#endif
+
+#ifdef DEBUG_OUTPUT_CHIPSELECT
+    #define DBG_CHIPSELECT_L(X) Serial.println(X)
+    #define DBG_CHIPSELECT(X) Serial.print(X)
+#else
+    #define DBG_CHIPSELECT_L(X) (void)0
+    #define DBG_CHIPSELECT(X) (void)0
+#endif
+
 #endif /* GLOBAL_DEFINES_H_ */

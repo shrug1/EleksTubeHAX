@@ -249,12 +249,13 @@ void loop() {
     randomSeed(millis());
     uint8_t idx;
     if (MqttCommandState >= 90)
-      { idx = random(1, tfts.NumberOfClockFaces+1); } else
+      { idx = random(1, tfts.NumberOfClockFaces+1); }
+    else
       { idx = (MqttCommandState / 5) -1; }  // 10..40 -> graphic 1..6
-    Serial.print("Graphic change request from MQTT; command: ");
-    Serial.print(MqttCommandState);
-    Serial.print(", index: ");
-    Serial.println(idx);
+    DBG_MQTT("Graphic change request from MQTT; command: ");
+    DBG_MQTT(MqttCommandState);
+    DBG_MQTT(", index: ");
+    DBG_MQTT_L(idx);
     uclock.setClockGraphicsIdx(idx);  
     tfts.current_graphic = uclock.getActiveGraphicIdx();
     updateClockDisplay(TFTs::force);   // redraw all the clock digits
@@ -276,10 +277,10 @@ void loop() {
     MqttCommandPatternReceived = false;
 
     for(int8_t i = 0; i < Backlights::num_patterns; i++){
-        Serial.print("New pattern ");
-        Serial.print(MqttCommandPattern);
-        Serial.print(", check pattern ");
-        Serial.println(Backlights::patterns_str[i]);
+        DBG_MQTT("New pattern ");
+        DBG_MQTT(MqttCommandPattern);
+        DBG_MQTT(", check pattern ");
+        DBG_MQTT_L(Backlights::patterns_str[i]);
       if(strcmp(MqttCommandPattern, (Backlights::patterns_str[i]).c_str()) == 0) {
         backlights.setPattern(Backlights::patterns(i));
         break;
@@ -290,10 +291,10 @@ void loop() {
   if(MqttCommandBackPatternReceived) {
     MqttCommandBackPatternReceived = false;
     for(int8_t i = 0; i < Backlights::num_patterns; i++){
-        Serial.print("new pattern ");
-        Serial.print(MqttCommandBackPattern);
-        Serial.print(", check pattern ");
-        Serial.println(Backlights::patterns_str[i]);
+        DBG_MQTT("new pattern ");
+        DBG_MQTT(MqttCommandBackPattern);
+        DBG_MQTT(", check pattern ");
+        DBG_MQTT_L(Backlights::patterns_str[i]);
       if(strcmp(MqttCommandBackPattern, (Backlights::patterns_str[i]).c_str()) == 0) {
         backlights.setPattern(Backlights::patterns(i));
         break;
@@ -368,7 +369,6 @@ void loop() {
 
   if(MqttCommandReceived) {
     lastMqttCommandExecuted = millis();
-
     MqttReportBackEverything(true);
   }
 
@@ -376,9 +376,9 @@ void loop() {
   if(lastMqttCommandExecuted != -1) {
     if (((millis() - lastMqttCommandExecuted) > (MQTT_SAVE_PREFERENCES_AFTER_SEC * 1000)) && menu.getState() == Menu::idle) {
       lastMqttCommandExecuted = -1;
-      Serial.println(); Serial.print("Saving config! Triggered from MQTT command received.");
+      DBG_MQTT_L(""); Serial.print("Saving config! Triggered from MQTT command received.");
       stored_config.save();
-      Serial.println(" Done.");
+      DBG_MQTT_L("Done!");
     }
   }
 
@@ -486,7 +486,6 @@ void loop() {
         if (menu_change != 0) {
           uclock.toggleBlankHoursZero();
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::force);
-          //delay(50); // wait a bit, so the displays are updated before the menu is redrawn
         }        
         setupMenu();
         tfts.println("Blank zero?");
@@ -495,13 +494,13 @@ void loop() {
       // UTC Offset, hours
       else if (menu_state == Menu::utc_offset_hour) {
         if (menu_change != 0) {
-          uclock.adjustTimeZoneOffset(menu_change * 3600);
-          // check if we need dimming for the night, because timezone was changed
-          //EveryFullHour();
-          // this erases the menu (on HOURS_TENS)! -> Redraw Menu imidiately afterwards
+          time_t newOffset = menu_change * 3600; // calculate the new offset
+          uclock.adjustTimeZoneOffset(newOffset); // set the new offset
+          uclock.loop(); // update the clock time
+// TODO: check if needed!
+// EveryFullHour(); // check if we need dimming for the night, because timezone was changed
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
-          //delay(400); // wait a bit, so the displays are updated before the menu is redrawn
         }
         setupMenu();
         tfts.println("UTC Offset");
@@ -517,15 +516,15 @@ void loop() {
       // UTC Offset, 15 minutes
       else if (menu_state == Menu::utc_offset_15m) {
         if (menu_change != 0) {
-          uclock.adjustTimeZoneOffset(menu_change * 900);
-          // check if we need dimming for the night, because timezone was changed
-          //EveryFullHour();
-          // this erases the menu (on HOURS_TENS)! -> Redraw Menu imidiately afterwards
+          time_t newOffset = menu_change * 900; // calculate the new offset
+          uclock.adjustTimeZoneOffset(newOffset); // set the new offset
+          uclock.loop(); // update the clock time
+// TODO: check if needed!
+// EveryFullHour(); // check if we need dimming for the night, because timezone was changed          
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
           tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), TFTs::yes);
           tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), TFTs::yes);
-          //delay(400); // wait a bit, so the displays are updated before the menu is redrawn
         }
         setupMenu();
         tfts.println("UTC Offset");
@@ -538,7 +537,7 @@ void loop() {
         }
         tfts.printf("%d:%02d\n", offset_hour, offset_min);
       }
-      // select clock "font"
+      // select clock face
       else if (menu_state == Menu::selected_graphic) {
         if (menu_change != 0) {
           uclock.adjustClockGraphicsIdx(menu_change);
@@ -553,9 +552,7 @@ void loop() {
         tfts.println("graphic:");
         tfts.printf("    %d\n", uclock.getActiveGraphicIdx());
       }
-     
-
-#ifdef WIFI_USE_WPS   ////  WPS code
+#ifdef WIFI_USE_WPS   //  WPS code
       // connect to WiFi using wps pushbutton mode
       else if (menu_state == Menu::start_wps) {
         if (menu_change != 0) { // button was pressed
@@ -567,15 +564,14 @@ void loop() {
             tfts.setCursor(0, 0, 4);  // Font 4. 26 pixel high
             WiFiStartWps();
           }
-        }
-        
+        }        
         setupMenu();
         tfts.println("Connect to WiFi?");
         tfts.println("Left=WPS");
       }
-#endif   
+#endif
     }
-  }
+  } // if (menu.stateChanged())
 
   uint32_t time_in_loop = millis() - millis_at_top;
   if (time_in_loop < 20) {
@@ -662,36 +658,35 @@ void GestureInterruptRoutine() {
 }
 
 //check which gesture was detected
-void HandleGesture() { 
-    //Serial.println("->main::HandleGesture()");
-    if ( apds.isGestureAvailable() ) {
+void HandleGesture() {
+  if ( apds.isGestureAvailable() ) {
     switch ( apds.readGesture() ) {
       case DIR_UP:
         buttons.left.setUpEdgeState();
-        Serial.println("Gesture detected! LEFT");
+        Serial.println(); Serial.println("Gesture detected! LEFT");
         break;
       case DIR_DOWN:
         buttons.right.setUpEdgeState();
-        Serial.println("Gesture detected! RIGHT");
+        Serial.println(); Serial.println("Gesture detected! RIGHT");
         break;
       case DIR_LEFT:
         buttons.power.setUpEdgeState();
-        Serial.println("Gesture detected! DOWN");
+        Serial.println(); Serial.println("Gesture detected! DOWN");
         break;
       case DIR_RIGHT:
         buttons.mode.setUpEdgeState();
-        Serial.println("Gesture detected! UP");
+        Serial.println(); Serial.println("Gesture detected! UP");
         break;
       case DIR_NEAR:
         buttons.mode.setUpEdgeState();
-        Serial.println("Gesture detected! NEAR");
+        Serial.println(); Serial.println("Gesture detected! NEAR");
         break;
       case DIR_FAR:
         buttons.power.setUpEdgeState();
-        Serial.println("Gesture detected! FAR");
+        Serial.println(); Serial.println("Gesture detected! FAR");
         break;
       default:
-        Serial.println("Movement detected but NO gesture detected!");
+        Serial.println(); Serial.println("Movement detected but NO gesture detected!");
     }
   }
   return;

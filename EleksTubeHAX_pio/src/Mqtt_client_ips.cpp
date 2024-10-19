@@ -151,17 +151,14 @@ void sendToBroker(const char* topic, const char* message) {
     char topicArr[100];
     sprintf(topicArr, "%s/%s", MQTT_CLIENT, topic);
     MQTTclient.publish(topicArr, message, true);
-#ifdef DEBUG_OUTPUT // long output
-    Serial.print("Sending to MQTT: ");
-    Serial.print(topicArr);
-    Serial.print("/");
-    Serial.println(message);
-#else
-    Serial.print("TX MQTT: ");
-    Serial.print(topicArr);
-    Serial.print(" ");
-    Serial.println(message);
-#endif
+    // DBG_VERBOSE("Sending to MQTT: ");
+    // DBG_VERBOSE(topicArr);
+    // DBG_VERBOSE("/");
+    // DBG_VERBOSE_L(message);
+    DBG_MQTT(topicArr);
+    DBG_MQTT(" ");
+    DBG_MQTT("TX MQTT: ");
+    DBG_MQTT_L(message);
     delay (120);
   }
 }
@@ -187,11 +184,10 @@ void MqttReportState(bool force) {
       LastSentMainPowerState = MqttStatusMainPower;
       LastSentMainBrightness = MqttStatusMainBrightness;
       LastSentMainGraphic = MqttStatusMainGraphic;
-
-      Serial.print("TX MQTT: ");
-      Serial.print(topic);
-      Serial.print(" ");
-      Serial.println(buffer);
+      DBG_MQTT("TX MQTT: ");
+      DBG_MQTT(topic);
+      DBG_MQTT(" ");
+      DBG_MQTT_L(buffer);
     }
 
     if(force 
@@ -223,10 +219,10 @@ void MqttReportState(bool force) {
       strcpy(LastSentBackPattern, MqttStatusBackPattern);
       LastSentBackColorPhase = MqttStatusBackColorPhase;
 
-      Serial.print("TX MQTT: ");
-      Serial.print(topic);
-      Serial.print(" ");
-      Serial.println(buffer);
+      DBG_MQTT("TX MQTT: ");
+      DBG_MQTT(topic);
+      DBG_MQTT(" ");
+      DBG_MQTT_L(buffer);
     }
 
     if(force 
@@ -241,10 +237,10 @@ void MqttReportState(bool force) {
       MQTTclient.publish(topic, buffer, true);
       LastSentUseTwelveHours = MqttStatusUseTwelveHours;
 
-      Serial.print("TX MQTT: ");
-      Serial.print(topic);
-      Serial.print(" ");
-      Serial.println(buffer);
+      DBG_MQTT("TX MQTT: ");
+      DBG_MQTT(topic);
+      DBG_MQTT(" ");
+      DBG_MQTT_L(buffer);
     }
 
     if(force 
@@ -259,10 +255,10 @@ void MqttReportState(bool force) {
       MQTTclient.publish(topic, buffer, true);
       LastSentBlankZeroHours = MqttStatusBlankZeroHours;
 
-      Serial.print("TX MQTT: ");
-      Serial.print(topic);
-      Serial.print(" ");
-      Serial.println(buffer);
+      DBG_MQTT("TX MQTT: ");
+      DBG_MQTT(topic);
+      DBG_MQTT(" ");
+      DBG_MQTT_L(buffer);
     }
 
     if(force 
@@ -277,10 +273,10 @@ void MqttReportState(bool force) {
       MQTTclient.publish(topic, buffer, true);
       LastSentPulseBpm = MqttStatusPulseBpm;
 
-      Serial.print("TX MQTT: ");
-      Serial.print(topic);
-      Serial.print(" ");
-      Serial.println(buffer);
+      DBG_MQTT("TX MQTT: ");
+      DBG_MQTT(topic);
+      DBG_MQTT(" ");
+      DBG_MQTT_L(buffer);
     }
 
     if(force 
@@ -295,10 +291,10 @@ void MqttReportState(bool force) {
       MQTTclient.publish(topic, buffer, true);
       LastSentBreathBpm = MqttStatusBreathBpm;
 
-      Serial.print("TX MQTT: ");
-      Serial.print(topic);
-      Serial.print(" ");
-      Serial.println(buffer);
+      DBG_MQTT("TX MQTT: ");
+      DBG_MQTT(topic);
+      DBG_MQTT(" ");
+      DBG_MQTT_L(buffer);
     }
 
     if(force 
@@ -313,10 +309,10 @@ void MqttReportState(bool force) {
       MQTTclient.publish(topic, buffer, true);
       LastSentRainbowSec = MqttStatusRainbowSec;
 
-      Serial.print("TX MQTT: ");
-      Serial.print(topic);
-      Serial.print(" ");
-      Serial.println(buffer);
+      DBG_MQTT("TX MQTT: ");
+      DBG_MQTT(topic);
+      DBG_MQTT(" ");
+      DBG_MQTT_L(buffer);
     }
   }
 #endif
@@ -331,19 +327,19 @@ void MqttStart() {
     MQTTclient.setCallback(callback);
     MQTTclient.setBufferSize(2048);
 
-    Serial.println("Connecting to MQTT...");
+    DBG_MQTT_L("Connecting to MQTT...");
     if (MQTTclient.connect(MQTT_CLIENT, MQTT_USERNAME, MQTT_PASSWORD)) {
-        Serial.println("MQTT connected");
+        DBG_MQTT_L("MQTT connected");
         MqttConnected = true;
     } else {
       if (MQTTclient.state() == 5) {
-          Serial.println("Connection not allowed by broker, possible reasons:");
-          Serial.println("- Device is already online. Wait some seconds until it appears offline");
-          Serial.println("- Wrong Username or password. Check credentials");
-          Serial.println("- Client Id does not belong to this username, verify ClientId");
+          DBG_MQTT_L("Connection not allowed by broker, possible reasons:");
+          DBG_MQTT_L("- Device is already online. Wait some seconds until it appears offline");
+          DBG_MQTT_L("- Wrong Username or password. Check credentials");
+          DBG_MQTT_L("- Client Id does not belong to this username, verify ClientId");
       } else {
-          Serial.print("Not possible to connect to Broker Error code:");
-          Serial.println(MQTTclient.state());
+          DBG_MQTT("Not possible to connect to Broker Error code:");
+          DBG_MQTT_L(MQTTclient.state());
       }
       return;  // do not continue if not connected
     }
@@ -416,10 +412,8 @@ void checkMqtt() {
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {  // A new message has been received
-#ifdef DEBUG_OUTPUT
-  Serial.print("Received MQTT topic: ");
-  Serial.print(topic);                       // long output
-#endif
+  DBG_MQTT("Received MQTT topic: ");
+  DBG_MQTT(topic);                       // long output
   int commandNumber = 10;
   char* command[commandNumber];
   commandNumber = splitCommand(topic, command, commandNumber);
@@ -430,21 +424,18 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
   for (int i = 1; i < length; i++) {
       sprintf(message, "%s%c", message, (char)payload[i]);
   }
-#ifdef DEBUG_OUTPUT
-  Serial.print("\t     Message: ");
-  Serial.println(message);
-#else
-  Serial.print("MQTT RX: ");
-  Serial.print(command[0]);
-  Serial.print("/");
-  Serial.print(command[1]);
-  Serial.print("/");
-  Serial.println(message);
-#endif    
+  DBG_VERBOSE("\t     Message: ");
+  DBG_VERBOSE_L(message);
+  DBG_MQTT("MQTT RX: ");
+  DBG_MQTT(command[0]);
+  DBG_MQTT("/");
+  DBG_MQTT(command[1]);
+  DBG_MQTT("/");
+  DBG_MQTT_L(message);   
 
   if (commandNumber < 2) {
     // otherwise code below crashes on the strmp on non-initialized pointers in command[] array
-    Serial.println("Number of command in MQTT message < 2!");
+    DBG_MQTT_L("Number of command in MQTT message < 2!");
     return; 
   }
     
@@ -472,10 +463,10 @@ void callback(char* topic, byte* payload, unsigned int length) {  // A new messa
   for (int i = 1; i < length; i++) {
       sprintf(message, "%s%c", message, (char)payload[i]);
   }
-  Serial.print("RX MQTT: ");
-  Serial.print(topic);
-  Serial.print(" ");
-  Serial.println(message);
+  DBG_MQTT("RX MQTT: ");
+  DBG_MQTT(topic);
+  DBG_MQTT(" ");
+  DBG_MQTT_L(message);
 
   if (strcmp(command[0], "main") == 0 && strcmp(command[1], "set") == 0) {
     JsonDocument doc;
@@ -712,10 +703,10 @@ void MqttReportDiscovery() {
   const char* main_topic = concat3("homeassistant/light/", MQTT_CLIENT, "_main/light/config");
   MQTTclient.publish(main_topic, json_buffer, true);
   delay(120);
-  Serial.print("TX MQTT: ");
-  Serial.print(main_topic);
-  Serial.print(" ");
-  Serial.println(json_buffer);
+  DBG_MQTT("TX MQTT: ");
+  DBG_MQTT(main_topic);
+  DBG_MQTT(" ");
+  DBG_MQTT_L(json_buffer);
   discovery.clear();
 
   // Back Light
@@ -746,10 +737,10 @@ void MqttReportDiscovery() {
   const char* back_topic = concat3("homeassistant/light/", MQTT_CLIENT, "_back/light/config");
   MQTTclient.publish(back_topic, json_buffer, true);
   delay(120);
-  Serial.print("TX MQTT: ");
-  Serial.print(back_topic);
-  Serial.print(" ");
-  Serial.println(json_buffer);
+  DBG_MQTT("TX MQTT: ");
+  DBG_MQTT(back_topic);
+  DBG_MQTT(" ");
+  DBG_MQTT_L(json_buffer);
   discovery.clear();
 
   // Use Twelwe Hours
@@ -777,10 +768,10 @@ void MqttReportDiscovery() {
   const char* useTwelveHours_topic = concat3("homeassistant/switch/", MQTT_CLIENT, "_use_twelve_hours/switch/config");
   MQTTclient.publish(useTwelveHours_topic, json_buffer, true);
   delay(120);
-  Serial.print("TX MQTT: ");
-  Serial.print(useTwelveHours_topic);
-  Serial.print(" ");
-  Serial.println(json_buffer);
+  DBG_MQTT("TX MQTT: ");
+  DBG_MQTT(useTwelveHours_topic);
+  DBG_MQTT(" ");
+  DBG_MQTT_L(json_buffer);
   discovery.clear();
 
   // Blank Zero Hours
@@ -808,10 +799,10 @@ void MqttReportDiscovery() {
   const char* blankZeroHours_topic = concat3("homeassistant/switch/", MQTT_CLIENT, "_blank_zero_hours/switch/config");
   MQTTclient.publish(blankZeroHours_topic, json_buffer, true);
   delay(120);
-  Serial.print("TX MQTT: ");
-  Serial.print(blankZeroHours_topic);
-  Serial.print(" ");
-  Serial.println(json_buffer);
+  DBG_MQTT("TX MQTT: ");
+  DBG_MQTT(blankZeroHours_topic);
+  DBG_MQTT(" ");
+  DBG_MQTT_L(json_buffer);
   discovery.clear();
 
   // Pulses per minute
@@ -840,10 +831,10 @@ void MqttReportDiscovery() {
   const char* pulseBpm_topic = concat3("homeassistant/number/", MQTT_CLIENT, "_pulse_bpm/number/config");
   MQTTclient.publish(pulseBpm_topic, json_buffer, true);
   delay(120);
-  Serial.print("TX MQTT: ");
-  Serial.print(pulseBpm_topic);
-  Serial.print(" ");
-  Serial.println(json_buffer);
+  DBG_MQTT("TX MQTT: ");
+  DBG_MQTT(pulseBpm_topic);
+  DBG_MQTT(" ");
+  DBG_MQTT_L(json_buffer);
   discovery.clear();
 
   // Breathes per minute
@@ -872,10 +863,10 @@ void MqttReportDiscovery() {
   const char* breathBpm_topic = concat3("homeassistant/number/", MQTT_CLIENT, "_breath_bpm/number/config");
   MQTTclient.publish(breathBpm_topic, json_buffer, true);
   delay(120);
-  Serial.print("TX MQTT: ");
-  Serial.print(breathBpm_topic);
-  Serial.print(" ");
-  Serial.println(json_buffer);
+  DBG_MQTT("TX MQTT: ");
+  DBG_MQTT(breathBpm_topic);
+  DBG_MQTT(" ");
+  DBG_MQTT_L(json_buffer);
   discovery.clear();
 
   // Rainbow duration
@@ -904,10 +895,10 @@ void MqttReportDiscovery() {
   const char* rainbowSec_topic = concat3("homeassistant/number/", MQTT_CLIENT, "_rainbow_duration/number/config");
   MQTTclient.publish(rainbowSec_topic, json_buffer, true);
   delay(120);
-  Serial.print("TX MQTT: ");
-  Serial.print(rainbowSec_topic);
-  Serial.print(" ");
-  Serial.println(json_buffer);
+  DBG_MQTT("TX MQTT: ");
+  DBG_MQTT(rainbowSec_topic);
+  DBG_MQTT(" ");
+  DBG_MQTT_L(json_buffer);
   discovery.clear();
 
   #endif
@@ -915,30 +906,30 @@ void MqttReportDiscovery() {
 
 void MqttReportBackOnChange() {
   if(MQTTclient.connected()) {
-    #ifndef MQTT_HOME_ASSISTANT
+#ifndef MQTT_HOME_ASSISTANT
     MqttReportPowerState();
     MqttReportStatus();
-    #endif
-    #ifdef MQTT_HOME_ASSISTANT_DISCOVERY
+#endif
+#ifdef MQTT_HOME_ASSISTANT_DISCOVERY
     if(!discoveryReported) {
       MqttReportDiscovery();
       discoveryReported = true;
     }
-    #endif
-    #ifdef MQTT_HOME_ASSISTANT
+#endif
+#ifdef MQTT_HOME_ASSISTANT
     MqttReportState(false);
-    #endif
+#endif
   }
 }
   
 void MqttPeriodicReportBack() {
   if (((millis() - lastTimeSent) > (MQTT_REPORT_STATUS_EVERY_SEC * 1000)) && MQTTclient.connected()) {
-    #ifdef MQTT_HOME_ASSISTANT_DISCOVERY
+#ifdef MQTT_HOME_ASSISTANT_DISCOVERY
     if(!discoveryReported) {
       MqttReportDiscovery();
       discoveryReported = true;
     }
-    #endif
+#endif
     MqttReportBackEverything(true);
   }
 }
