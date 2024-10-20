@@ -54,6 +54,7 @@
   #include <DS1307RTC.h>
     void RtcBegin() {}
     uint32_t RtcGet() {
+      DBG_VERBOSE("RtcGet() returns RTC.get(): "); DBG_VERBOSE_L(RTC.get());
       return RTC.get();
     }
     void RtcSet(uint32_t tt) {
@@ -72,7 +73,7 @@ void Clock::begin(StoredConfig::Config::Clock *config_) {
     Serial.println("Loaded Clock config is invalid, using default. This is normal on first boot!");
     setTwelveHour(false);
     setBlankHoursZero(false);
-    setTimeZoneOffset(1 * 3600);  // CET
+    setTimeZoneOffset(11 * 3600);  // CET
     setActiveGraphicIdx(1);
     config->is_valid = StoredConfig::valid;
   }
@@ -133,6 +134,7 @@ time_t Clock::syncProvider() {
       }
     } // no wifi
     Serial.println("No WiFi, using RTC time.");
+    DBG_VERBOSE("No WiFi, using RTC time: "); DBG_VERBOSE_L(rtc_now);
     return rtc_now;
   }
   Serial.println("Using RTC time.");

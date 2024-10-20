@@ -376,7 +376,7 @@ void loop() {
   if(lastMqttCommandExecuted != -1) {
     if (((millis() - lastMqttCommandExecuted) > (MQTT_SAVE_PREFERENCES_AFTER_SEC * 1000)) && menu.getState() == Menu::idle) {
       lastMqttCommandExecuted = -1;
-      DBG_MQTT_L(""); Serial.print("Saving config! Triggered from MQTT command received.");
+      DBG_MQTT_L(""); DBG_MQTT("Saving config! Triggered from MQTT command received...");
       stored_config.save();
       DBG_MQTT_L("Done!");
     }
@@ -494,95 +494,50 @@ void loop() {
       // UTC Offset, hours
       else if (menu_state == Menu::utc_offset_hour) {
         time_t currOffset = uclock.getTimeZoneOffset();
-        int currentOffsetInMinutes = currOffset / 60;
-        double currentOffsetInHours = static_cast<double>(currOffset) / 3600;
-        DBG_VERBOSE("Current offset in seconds: "); DBG_VERBOSE_L(currOffset);
-        DBG_VERBOSE("Current offset in minutes: "); DBG_VERBOSE_L(currentOffsetInMinutes);
-        DBG_VERBOSE("Current offset in hours: "); DBG_VERBOSE_L(currentOffsetInHours);
-        int currentHour = uclock.getHour();
-        int currentMinute = uclock.getMinute();
-        DBG_VERBOSE("Current time with offset: "); DBG_VERBOSE(currentHour); DBG_VERBOSE(":"); DBG_VERBOSE_L(currentMinute);
-        int currentUTCHour = hour(uclock.loop_time);
-        int currentUTCMinute = minute(uclock.loop_time);
-        DBG_VERBOSE("Current UTC time: "); DBG_VERBOSE(currentUTCHour); DBG_VERBOSE(":"); DBG_VERBOSE_L(currentUTCMinute);
+
         if (menu_change != 0) {
-          time_t newOffsetAdjustmentValue = menu_change * 3600; // calculate the new offset
-          time_t newOffset = currOffset + newOffsetAdjustmentValue;
-          int newOffsetInMinutes = newOffset / 60;
+          // calculate the new offset
+          time_t newOffsetAdjustmentValue = menu_change * 3600;
+          time_t newOffset = currOffset + newOffsetAdjustmentValue;          
           double newOffsetInHours = static_cast<double>(newOffset) / 3600;
-          DBG_VERBOSE("Adjustment in Seconds: "); DBG_VERBOSE_L(newOffsetAdjustmentValue);
-          DBG_VERBOSE("New offset in Seconds: "); DBG_VERBOSE_L(newOffset);
-          DBG_VERBOSE("New offset in Minutes: "); DBG_VERBOSE_L(newOffsetInMinutes);
-          DBG_VERBOSE("New offset in Hours: "); DBG_VERBOSE_L(newOffsetInHours);
-          int OffsetTryOutInSeconds = newOffsetInHours * 3600;
-          DBG_VERBOSE("OffsetTryOutInSeconds: "); DBG_VERBOSE_L(OffsetTryOutInSeconds);
-          // Check if the sign of the offset has changed (passed over 0 hours)
+
+          // Check if the sign of the offset has changed (passed over +/-0 hours)
           if ((currOffset < 0 && newOffset > 0) || (currOffset > 0 && newOffset < 0)) {
-              // Preserve the minutes part of the offset
-              int currOffsetSecondsOnlyFromZero = (currOffset % 3600);
-              int currOffsetMinutesOnlyFromZero = (currOffset % 3600) / 60;
-              DBG_VERBOSE("currOffsetSecondsOnlyFromZero: "); DBG_VERBOSE_L(currOffsetSecondsOnlyFromZero);              
-              DBG_VERBOSE("currOffsetMinutesOnlyFromZero: "); DBG_VERBOSE_L(currOffsetMinutesOnlyFromZero);
-              // if (currOffsetMinutesOnlyFromZero < 0) { // if the minutes are negative, make them positive
-                  // currOffsetMinutesOnlyFromZero = -currOffsetMinutesOnlyFromZero;
-                  // DBG_VERBOSE("NEGATE! currOffsetMinutesOnlyFromZero: "); DBG_VERBOSE_L(currOffsetMinutesOnlyFromZero);
-              // }
-              // if (currOffsetMinutesOnlyFromZero > 0) { // if the minutes are negative, make them positive
-              //     currOffsetMinutesOnlyFromZero = -currOffsetMinutesOnlyFromZero;
-              //     DBG_VERBOSE("NEGATE! currOffsetMinutesOnlyFromZero: "); DBG_VERBOSE_L(currOffsetMinutesOnlyFromZero);
-              // }
-              int newOffsetAsHoursOnly = (newOffset / 3600);
-              double newOffsetInHours3 = static_cast<double>(newOffset) / 3600;
-              DBG_VERBOSE("newOffsetAsHoursOnly: "); DBG_VERBOSE_L(newOffsetAsHoursOnly);
-              DBG_VERBOSE("newOffsetInHours3: "); DBG_VERBOSE_L(newOffsetInHours3);
-              int newOffsetAsSeconds = currOffsetMinutesOnlyFromZero * 60;
-              DBG_VERBOSE("newOffsetAsSeconds: "); DBG_VERBOSE_L(newOffsetAsSeconds);
-              newOffset = newOffsetAsHoursOnly + newOffsetAsSeconds; // calculate the new offset
-              //newOffset = (newOffset / 3600) * 3600 + currMinutes * 60; // calculate the new offset
-              DBG_VERBOSE("New offset 2 (newOffsetAsHoursOnly + newOffsetAsSeconds): "); DBG_VERBOSE_L(newOffset);
               newOffset = newOffsetInHours * 3600;
-              DBG_VERBOSE("New offset 3 (newOffsetInHours * 3600): "); DBG_VERBOSE_L(newOffset);
           }
-          // check if the new offset is within the allowed range of -12 to +12 hours
-          if (newOffset > 43200) { // overflow (12*3600 = 43200 -> set to -12 hour -> 2*-12*3600 = -86400)
-            //newOffsetAdjustmentValue = -86400;
-            newOffset = -43200;
-            // int calcValue = 90000;
-            // if (currentOffsetInMinutes > 0) { // if the minutes are negative, make them positive
-            //   calcValue = 90000 - currentOffsetInMinutes;
-            //   DBG_VERBOSE("Apply calc value: "); DBG_VERBOSE_L(calcValue);
-            // }
-            // newOffset = newOffset - calcValue; // try to keep the minutes part of the offset by subtracting 25 hours
-            DBG_VERBOSE("newOffset: "); DBG_VERBOSE_L(newOffset);
-            DBG_VERBOSE_L("UTC offset overflow! Substracted 24 hours.");
+
+          // If the minutes part of the offset is 0, we want to change from +12 to -12 or vice versa (without changing the shown time on the displays)
+          // if the minutes part is not 0, we want to wrap around to the other side but keep the minutes part (i.e. from 11:45 directly to -11:45)
+          // so we will change the shown time on the displays if the minutes part is not 0!
+          // Only other choice would be to go to the next offset without a minute part (i.e. from 11:15 to 12:00 and then to -12:00) so minutes part would be lost.
+          bool offsetWrapAround = false;
+          // Check if the new offset is within the allowed range of -12 to +12 hours
+          if (newOffset > 43200) { // overflow (12*3600 = 43200 -> set to -12 hour)
+              int currentOffsetMinutesPartAsSeconds = newOffset % 3600;
+              if (currentOffsetMinutesPartAsSeconds == 0) { // offset was exactly +12 hours, minutes part is 0
+                  newOffset = -43200; // set to -12 hours
+                  offsetWrapAround = true;
+              } else {
+                  newOffset = -39600 + (-currentOffsetMinutesPartAsSeconds);  // wrap around to the negative side but add the minutes part
+                  offsetWrapAround = true;
+              }
           }
-          if (newOffset < -43200) { // underflow (-12*3600 = -43200 -> set to +12 hour -> 24*3600 = 86400)
-            //newOffsetAdjustmentValue = 86400;
-            newOffset = 43200;
-            //newOffset = newOffset + 90000; // try to keep the minutes part of the offset by adding 25 hours
-            DBG_VERBOSE("newOffset: "); DBG_VERBOSE_L(newOffset);
-            DBG_VERBOSE_L("UTC offset underflow! Added 24 hours.");
+          if (newOffset < -43200 && !offsetWrapAround) { // underflow (-12*3600 = -43200 -> set to +12 hour)
+              int currentOffsetMinutesPartAsSeconds = newOffset % 3600;
+              if (currentOffsetMinutesPartAsSeconds == 0) { // offset was exactly -12 hours, minutes part is 0
+                  newOffset = 43200; // set to +12 hours
+              } else {
+                  currentOffsetMinutesPartAsSeconds = -currentOffsetMinutesPartAsSeconds; // make the minutes part positive
+                  newOffset = 39600 + currentOffsetMinutesPartAsSeconds; // wrap around to the positive side but add the minutes part
+              }
           }
-          DBG_VERBOSE("New offset before set: "); DBG_VERBOSE_L(newOffset);
           uclock.setTimeZoneOffset(newOffset); // set the new offset
-          DBG_VERBOSE_L("New offset set!");
-          uclock.loop(); // update the clock time
-          DBG_VERBOSE_L("Clock loop done!");
+          uclock.loop(); // update the clock time -> will "flicker" the menu for a short time, but without, menu is not redrawn at all
 // TODO: check if needed!
 // EveryFullHour(); // check if we need dimming for the night, because timezone was changed
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
-          currOffset = uclock.getTimeZoneOffset();
-          DBG_VERBOSE("New set offset in Secods: "); DBG_VERBOSE_L(currOffset);
-          int newHour = uclock.getHour();
-          int newMinute = uclock.getMinute();
-          DBG_VERBOSE("New time with offset: "); DBG_VERBOSE(newHour); DBG_VERBOSE(":"); DBG_VERBOSE_L(newMinute);
-          int newUTCHour = hour(uclock.loop_time);
-          int newUTCMinute = minute(uclock.loop_time);
-          DBG_VERBOSE("Current UTC time: "); DBG_VERBOSE(newUTCHour); DBG_VERBOSE(":"); DBG_VERBOSE_L(newUTCMinute);
-        }else
-        {
-            DBG_VERBOSE_L("Menu not changed, just draw it!");
+          currOffset = uclock.getTimeZoneOffset(); // get the new offset as current offset for the menu
         }
         setupMenu();
         tfts.println("UTC Offset");
@@ -590,61 +545,47 @@ void loop() {
         char offsetStr[11];
         int8_t offset_hour = currOffset/3600;
         int8_t offset_min = (currOffset%3600)/60;
-        DBG_VERBOSE("offset_hour: "); DBG_VERBOSE_L(offset_hour);
-        DBG_VERBOSE("offset_min: "); DBG_VERBOSE_L(offset_min);
         if(offset_min <= 0 && offset_hour <= 0) { // negative timezone value -> Make them positive and print a minus in front
           offset_min = -offset_min;
           offset_hour = -offset_hour;
-          DBG_VERBOSE("NEGATE! offset_min: "); DBG_VERBOSE_L(offset_min);
-          DBG_VERBOSE("NEGATE! offset_hour: "); DBG_VERBOSE_L(offset_hour);
           snprintf(offsetStr, sizeof(offsetStr), "-%d:%02d", offset_hour, offset_min);
-          DBG_VERBOSE("NEGATE1! offsetStr: "); DBG_VERBOSE_L(offsetStr);
         } else {
           if(offset_min >= 0 && offset_hour >= 0) {// postive timezone value for hours and minutes -> show a plus in front
               snprintf(offsetStr, sizeof(offsetStr), "+%d:%02d", offset_hour, offset_min);
-              DBG_VERBOSE("NORMAL! offsetStr: "); DBG_VERBOSE_L(offsetStr);
           }
         }
         if(offset_min == 0 && offset_hour == 0) { // we don't want a sign in front of the 0:00 case
             snprintf(offsetStr, sizeof(offsetStr), "%d:%02d", offset_hour, offset_min);
-            DBG_VERBOSE("NULLNULLNULL! offsetStr: "); DBG_VERBOSE_L(offsetStr);
         }
         tfts.println(offsetStr);
       } // END UTC Offset, hours
       // BEGIN UTC Offset, 15 minutes
       else if (menu_state == Menu::utc_offset_15m) {
         time_t currOffset = uclock.getTimeZoneOffset();
-        DBG_VERBOSE("Current offset: "); DBG_VERBOSE_L(currOffset);
+
         if (menu_change != 0) {
           time_t newOffsetAdjustmentValue = menu_change * 900; // calculate the new offset
           time_t newOffset = currOffset + newOffsetAdjustmentValue;
-          DBG_VERBOSE("Adjustment: "); DBG_VERBOSE_L(newOffsetAdjustmentValue);
-          DBG_VERBOSE("New offset: "); DBG_VERBOSE_L(newOffset);
+
           // check if the new offset is within the allowed range of -12 to +12 hours
-          if (newOffset > 43200) { // overflow (12*3600 = 43200 -> set to -12 hour -> 2*-12*3600 = -86400)
-            //newOffsetAdjustmentValue = -86400;
-            //newOffset = -43200;
-            newOffset = newOffset - 86400; // try to keep the minutes part of the offset by subtracting 24 hours
-            DBG_VERBOSE("newOffset: "); DBG_VERBOSE_L(newOffset);
-            DBG_VERBOSE_L("UTC offset overflow! Substracted 24 hours.");
+          // same behaviour as for the +/-1 hour offset, but with 15 minutes steps
+          bool offsetWrapAround = false;
+          if (newOffset > 43200) { // we just "passed" +12 hours -> set to -12 hours
+            newOffset = -43200;
+            offsetWrapAround = true;
           }
-          if (newOffset < -43200) { // underflow (-12*3600 = -43200 -> set to +12 hour -> 24*3600 = 86400)
-            //newOffsetAdjustmentValue = 86400;
-            //newOffset = 43200;
-            newOffset = newOffset + 86400; // try to keep the minutes part of the offset by adding 24 hours
-            DBG_VERBOSE("newOffset: "); DBG_VERBOSE_L(newOffset);
-            DBG_VERBOSE_L("UTC offset underflow! Added 24 hours.");
+          if (newOffset == -43200 && !offsetWrapAround) { // we just passed -12 hours -> set to +12 hours
+            newOffset = 43200;
           }
           uclock.setTimeZoneOffset(newOffset); // set the new offset
-          uclock.loop(); // update the clock time
+          uclock.loop(); // update the clock time -> will "flicker" the menu for a short time, but without, menu is not redrawn at all
 // TODO: check if needed!
 // EveryFullHour(); // check if we need dimming for the night, because timezone was changed          
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
           tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), TFTs::yes);
           tfts.setDigit(MINUTES_ONES, uclock.getMinutesOnes(), TFTs::yes);
-          currOffset = uclock.getTimeZoneOffset();
-          DBG_VERBOSE("new set offset: "); DBG_VERBOSE_L(currOffset);
+          currOffset = uclock.getTimeZoneOffset(); // get the new offset as current offset for the menu
         }
         setupMenu();
         tfts.println("UTC Offset");
@@ -652,24 +593,17 @@ void loop() {
         char offsetStr[11];
         int8_t offset_hour = currOffset/3600;
         int8_t offset_min = (currOffset%3600)/60;
-        DBG_VERBOSE("offset_hour: "); DBG_VERBOSE_L(offset_hour);
-        DBG_VERBOSE("offset_min: "); DBG_VERBOSE_L(offset_min);
         if(offset_min <= 0 && offset_hour <= 0) { // negative timezone value -> Make them positive and print a minus in front
           offset_min = -offset_min;
           offset_hour = -offset_hour;
-          DBG_VERBOSE("NEGATE! offset_min: "); DBG_VERBOSE_L(offset_min);
-          DBG_VERBOSE("NEGATE! offset_hour: "); DBG_VERBOSE_L(offset_hour);
           snprintf(offsetStr, sizeof(offsetStr), "-%d:%02d", offset_hour, offset_min);
-          DBG_VERBOSE("NEGATE1! offsetStr: "); DBG_VERBOSE_L(offsetStr);
         } else {
           if(offset_min >= 0 && offset_hour >= 0) {// postive timezone value for hours and minutes -> show a plus in front
               snprintf(offsetStr, sizeof(offsetStr), "+%d:%02d", offset_hour, offset_min);
-              DBG_VERBOSE("NORMAL! offsetStr: "); DBG_VERBOSE_L(offsetStr);
           }
         }
         if(offset_min == 0 && offset_hour == 0) { // we don't want a sign in front of the 0:00 case so overwrite the string
             snprintf(offsetStr, sizeof(offsetStr), "%d:%02d", offset_hour, offset_min);
-            DBG_VERBOSE("NULLNULLNULL! offsetStr: "); DBG_VERBOSE_L(offsetStr);
         }
         tfts.println(offsetStr);
       } // END UTC Offset, 15 minutes
