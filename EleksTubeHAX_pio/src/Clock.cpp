@@ -69,7 +69,7 @@ void Clock::begin(StoredConfig::Config::Clock *config_) {
   if (config->is_valid != StoredConfig::valid) {
     // Config is invalid, probably a new device never had its config written.
     // Load some reasonable defaults.
-    Serial.println("Loaded Clock config is invalid, using default.  This is normal on first boot.");
+    Serial.println("Loaded Clock config is invalid, using default. This is normal on first boot!");
     setTwelveHour(false);
     setBlankHoursZero(false);
     setTimeZoneOffset(1 * 3600);  // CET
