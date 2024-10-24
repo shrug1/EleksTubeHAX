@@ -507,34 +507,60 @@ void loop() {
           }
 
           // If the minutes part of the offset is 0, we want to change from +12 to -12 or vice versa (without changing the shown time on the displays)
-          // if the minutes part is not 0, we want to wrap around to the other side but keep the minutes part (i.e. from 11:45 directly to -11:45)
-          // so we will change the shown time on the displays if the minutes part is not 0!
-          // Only other choice would be to go to the next offset without a minute part (i.e. from 11:15 to 12:00 and then to -12:00) so minutes part would be lost.
-          bool offsetWrapAround = false;
-          // Check if the new offset is within the allowed range of -12 to +12 hours
-          if (newOffset > 43200) { // overflow (12*3600 = 43200 -> set to -12 hour)
-              int currentOffsetMinutesPartAsSeconds = newOffset % 3600;
-              if (currentOffsetMinutesPartAsSeconds == 0) { // offset was exactly +12 hours, minutes part is 0
-                  newOffset = -43200; // set to -12 hours
-                  offsetWrapAround = true;
-              } else {
-                  newOffset = -39600 + (-currentOffsetMinutesPartAsSeconds);  // wrap around to the negative side but add the minutes part
-                  offsetWrapAround = true;
-              }
+          // If the minutes part is not 0:
+          // **1st choice: We want to wrap around to the other side and change the minutes part (i.e. from 11:45 directly to -11:15).
+          // this will make the commanded +/- "one hour" change, but changes the minutes part from 45 to 15 and from 15 to 45.
+          // 2nd choice would be to wrap around but keep the minutes part (i.e. from 11:45 directly to -11:45), but this would change the time shown on the displays.
+          // 3rd choice would be to go to the next offset without a minute part (i.e. from 11:15 to 12:00 and then to -12:00), so minutes part would be lost.
+          // ** implemented in the moment
+
+          // 1st choice implementation
+          if (newOffset > 43200) { // overflow (12*3600 = 43200 -> subtract 24 hours)
+            newOffset = newOffset - 86400;
+          }else {
+            if (newOffset < -43200) { // underflow (-12*3600 = -43200 -> add 24 hours)
+              newOffset = newOffset + 86400;
+            }
           }
-          if (newOffset < -43200 && !offsetWrapAround) { // underflow (-12*3600 = -43200 -> set to +12 hour)
-              int currentOffsetMinutesPartAsSeconds = newOffset % 3600;
-              if (currentOffsetMinutesPartAsSeconds == 0) { // offset was exactly -12 hours, minutes part is 0
-                  newOffset = 43200; // set to +12 hours
-              } else {
-                  currentOffsetMinutesPartAsSeconds = -currentOffsetMinutesPartAsSeconds; // make the minutes part positive
-                  newOffset = 39600 + currentOffsetMinutesPartAsSeconds; // wrap around to the positive side but add the minutes part
-              }
-          }
+          
+          // // 2nd choice implementation
+          // bool offsetWrapAround = false;
+          // // Check if the new offset is within the allowed range of -12 to +12 hours
+          // if (newOffset > 43200) { // overflow (12*3600 = 43200 -> set to -12 hour)
+          //   int currentOffsetMinutesPartAsSeconds = newOffset % 3600;
+          //   if (currentOffsetMinutesPartAsSeconds == 0) { // offset was exactly +12 hours, minutes part is 0
+          //     newOffset = -43200; // set to -12 hours
+          //     offsetWrapAround = true;
+          //   } else {
+          //     newOffset = -39600 + (-currentOffsetMinutesPartAsSeconds);  // wrap around to the negative side but add the minutes part
+          //     offsetWrapAround = true;
+          //   }
+          // }
+          // if (newOffset < -43200 && !offsetWrapAround) { // underflow (-12*3600 = -43200 -> set to +12 hour)
+          //   int currentOffsetMinutesPartAsSeconds = newOffset % 3600;
+          //   if (currentOffsetMinutesPartAsSeconds == 0) { // offset was exactly -12 hours, minutes part is 0
+          //     newOffset = 43200; // set to +12 hours
+          //   } else {
+          //     currentOffsetMinutesPartAsSeconds = -currentOffsetMinutesPartAsSeconds; // make the minutes part positive
+          //     newOffset = 39600 + currentOffsetMinutesPartAsSeconds; // wrap around to the positive side but add the minutes part
+          //   }
+          // }
+
+          // // 3rd choice implementation
+          // bool offsetWrapAround = false;
+          // if (newOffset > 43200) { // we just "passed" +12 hours -> set to -12 hours
+          //   newOffset = -43200;
+          //   offsetWrapAround = true;
+          // }
+          // if (newOffset == -43200 && !offsetWrapAround) { // we just passed -12 hours -> set to +12 hours
+          //   newOffset = 43200;
+          // }
+
           uclock.setTimeZoneOffset(newOffset); // set the new offset
           uclock.loop(); // update the clock time -> will "flicker" the menu for a short time, but without, menu is not redrawn at all
-// TODO: check if needed!
-// EveryFullHour(); // check if we need dimming for the night, because timezone was changed
+
+          EveryFullHour(); // check if we need dimming for the night, because timezone was changed
+          
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
           currOffset = uclock.getTimeZoneOffset(); // get the new offset as current offset for the menu
@@ -551,22 +577,22 @@ void loop() {
           snprintf(offsetStr, sizeof(offsetStr), "-%d:%02d", offset_hour, offset_min);
         } else {
           if(offset_min >= 0 && offset_hour >= 0) {// postive timezone value for hours and minutes -> show a plus in front
-              snprintf(offsetStr, sizeof(offsetStr), "+%d:%02d", offset_hour, offset_min);
+            snprintf(offsetStr, sizeof(offsetStr), "+%d:%02d", offset_hour, offset_min);
           }
         }
         if(offset_min == 0 && offset_hour == 0) { // we don't want a sign in front of the 0:00 case
-            snprintf(offsetStr, sizeof(offsetStr), "%d:%02d", offset_hour, offset_min);
+          snprintf(offsetStr, sizeof(offsetStr), "%d:%02d", offset_hour, offset_min);
         }
         tfts.println(offsetStr);
       } // END UTC Offset, hours
       // BEGIN UTC Offset, 15 minutes
       else if (menu_state == Menu::utc_offset_15m) {
         time_t currOffset = uclock.getTimeZoneOffset();
-
+        
         if (menu_change != 0) {
           time_t newOffsetAdjustmentValue = menu_change * 900; // calculate the new offset
           time_t newOffset = currOffset + newOffsetAdjustmentValue;
-
+          
           // check if the new offset is within the allowed range of -12 to +12 hours
           // same behaviour as for the +/-1 hour offset, but with 15 minutes steps
           bool offsetWrapAround = false;
@@ -577,10 +603,12 @@ void loop() {
           if (newOffset == -43200 && !offsetWrapAround) { // we just passed -12 hours -> set to +12 hours
             newOffset = 43200;
           }
+          
           uclock.setTimeZoneOffset(newOffset); // set the new offset
           uclock.loop(); // update the clock time -> will "flicker" the menu for a short time, but without, menu is not redrawn at all
-// TODO: check if needed!
-// EveryFullHour(); // check if we need dimming for the night, because timezone was changed          
+          
+          EveryFullHour(); // check if we need dimming for the night, because timezone was changed
+          
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
           tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), TFTs::yes);
@@ -599,11 +627,11 @@ void loop() {
           snprintf(offsetStr, sizeof(offsetStr), "-%d:%02d", offset_hour, offset_min);
         } else {
           if(offset_min >= 0 && offset_hour >= 0) {// postive timezone value for hours and minutes -> show a plus in front
-              snprintf(offsetStr, sizeof(offsetStr), "+%d:%02d", offset_hour, offset_min);
+            snprintf(offsetStr, sizeof(offsetStr), "+%d:%02d", offset_hour, offset_min);
           }
         }
         if(offset_min == 0 && offset_hour == 0) { // we don't want a sign in front of the 0:00 case so overwrite the string
-            snprintf(offsetStr, sizeof(offsetStr), "%d:%02d", offset_hour, offset_min);
+          snprintf(offsetStr, sizeof(offsetStr), "%d:%02d", offset_hour, offset_min);
         }
         tfts.println(offsetStr);
       } // END UTC Offset, 15 minutes
