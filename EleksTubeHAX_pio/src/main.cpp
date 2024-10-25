@@ -18,20 +18,11 @@
 #include "Mqtt_client_ips.h"
 #include "TempSensor_inc.h"
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-// #include "Gestures.h"
-//TODO put into class
 #include <Wire.h>
 #include <SparkFun_APDS9960.h>
-#endif //NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-// Constants
-
-// Global Variables
-#ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-//TODO put into class
-SparkFun_APDS9960 apds      = SparkFun_APDS9960();
-//interupt signal for gesture sensor
-int volatile      isr_flag  = 0;
+SparkFun_APDS9960 apds      = SparkFun_APDS9960();      //gesture sensor class
+int volatile      isr_flag  = 0;                        //interupt signal for gesture sensor
 #endif //NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 Backlights    backlights;
@@ -41,18 +32,31 @@ Clock         uclock;
 Menu          menu;
 StoredConfig  stored_config;
 
-bool          FullHour        = false;
+#ifdef NIGHTTIME_DIMMING
+bool          isDimmingNeeded = false;
 uint8_t       hour_old        = 255;
+#endif
+
+#ifdef GEOLOCATION_ENABLED
 bool          DstNeedsUpdate  = false;
 uint8_t       yesterday       = 0;
+#endif
 
 uint32_t lastMqttCommandExecuted = (uint32_t) -1;
 
 // Helper function, defined below.
 void updateClockDisplay(TFTs::show_t show=TFTs::yes);
 void setupMenu(void);
-void EveryFullHour(bool loopUpdate=false);
-void UpdateDstEveryNight(void);
+
+#ifdef NIGHTTIME_DIMMING
+bool isNightTime(uint8_t current_hour);
+void checkDimmingNeeded(void);
+#endif
+
+#ifdef GEOLOCATION_ENABLED
+void GeoLocUpdateDstEveryNight(void);
+#endif
+
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void GestureStart();
 void HandleGestureInterupt(void); //only for NovelLife SE
@@ -60,6 +64,7 @@ void GestureInterruptRoutine(void); //only for NovelLife SE
 void HandleGesture(void); //only for NovelLife SE
 #endif //NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+// Initialize the clock XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void setup() {
   Serial.begin(115200);
   delay(1000);  // Waiting for serial monitor to catch up.
@@ -111,12 +116,14 @@ void setup() {
   tfts.println("Done!"); Serial.println("Done!");
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
 
+#ifdef MQTT_ENABLED
   // Setup MQTT
   tfts.setTextColor(TFT_YELLOW, TFT_BLACK);
   tfts.print("MQTT start..."); Serial.print("MQTT start...");
   MqttStart();
   tfts.println("Done!"); Serial.println("Done!");
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
+#endif  
 
 #ifdef GEOLOCATION_ENABLED
   tfts.setTextColor(TFT_NAVY, TFT_BLACK);
@@ -163,11 +170,13 @@ void setup() {
   Serial.println("Setup finished.");
 }
 
+// Main loop XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void loop() {
   uint32_t millis_at_top = millis();
   // Do all the maintenance work
   WifiReconnect(); // if not connected attempt to reconnect
-  
+
+#ifdef MQTT_ENABLED  
   MqttLoopFrequently();
 
   bool MqttCommandReceived = 
@@ -192,20 +201,19 @@ void loop() {
   if (MqttCommandPowerReceived) {
     MqttCommandPowerReceived = false;
     if (MqttCommandPower) {
-#ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones! PunkCyber needs it too.
+#ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones! PunkCyber is included here.
       // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly
       // -> so reinit them (includes enabling the displays)
       tfts.reinit();
 #else
       // for all other clocks, just enable the displays
       tfts.enableAllDisplays();
-#endif
-      //redraw all the clock digits -> needed because the displays was blanked before turning off
-      updateClockDisplay(TFTs::force);
+#endif      
+      updateClockDisplay(TFTs::force); //redraw all the clock digits -> needed because the displays was blanked before turning off
       backlights.PowerOn();
     } else {
       // blank the screens before turning off -> needed for all clocks without a real "power switch curcuit"
-      // to "simulate" the off-switched displays
+      // to "simulate" the off-switched displays (blackout)
       tfts.chip_select.setAll();
       tfts.fillScreen(TFT_BLACK);
       tfts.disableAllDisplays();
@@ -216,19 +224,18 @@ void loop() {
   if (MqttCommandMainPowerReceived) {
     MqttCommandMainPowerReceived = false;
     if (MqttCommandMainPower) {
-#ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones! PunkCyber needs it too.
+#ifdef HARDWARE_Elekstube_CLOCK // maybe also for other clocks needed? => check the direct clones! PunkCyber is included here.
       // Needed for original EleksTube hardware only, because after a few hours in OFF state, the displays do not wake up properly
       // -> so reinit them (includes enabling the displays)
       tfts.reinit();
 #else
       // for all other clocks, just enable the displays
       tfts.enableAllDisplays();
-#endif
-      //redraw all the clock digits -> needed because the displays was blanked before turning off
-      updateClockDisplay(TFTs::force);
+#endif      
+      updateClockDisplay(TFTs::force); //redraw all the clock digits -> needed because the displays was blanked before turning off
     } else {
       // blank the screens before turning off -> needed for all clocks without a real "power switch curcuit"
-      // to "simulate" the off-switched displays
+      // to "simulate" the off-switched displays (blackout)
       tfts.chip_select.setAll();
       tfts.fillScreen(TFT_BLACK);
       tfts.disableAllDisplays();
@@ -381,6 +388,7 @@ void loop() {
       DBG_MQTT_L("Done!");
     }
   }
+#endif // MQTT_ENABLED
 
   buttons.loop();
 
@@ -423,12 +431,15 @@ void loop() {
   menu.loop(buttons);  // Must be called after buttons.loop()
   backlights.loop();
   uclock.loop();
-
-  EveryFullHour(true); // night or daytime
+#ifdef NIGHTTIME_DIMMING
+  checkDimmingNeeded(); // night or day time brightness change
+#endif
 
   updateClockDisplay(); // Draw only the changed clock digits!
   
-  UpdateDstEveryNight();
+#ifdef GEOLOCATION_ENABLED
+  GeoLocUpdateDstEveryNight();
+#endif
 
   // Menu
   if (menu.stateChanged() && tfts.isEnabled()) {
@@ -558,9 +569,9 @@ void loop() {
 
           uclock.setTimeZoneOffset(newOffset); // set the new offset
           uclock.loop(); // update the clock time -> will "flicker" the menu for a short time, but without, menu is not redrawn at all
-
-          EveryFullHour(); // check if we need dimming for the night, because timezone was changed
-          
+#ifdef NIGHTTIME_DIMMING
+          checkDimmingNeeded(); // check if we need dimming for the night, because timezone was changed
+#endif          
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
           currOffset = uclock.getTimeZoneOffset(); // get the new offset as current offset for the menu
@@ -606,9 +617,9 @@ void loop() {
           
           uclock.setTimeZoneOffset(newOffset); // set the new offset
           uclock.loop(); // update the clock time -> will "flicker" the menu for a short time, but without, menu is not redrawn at all
-          
-          EveryFullHour(); // check if we need dimming for the night, because timezone was changed
-          
+#ifdef NIGHTTIME_DIMMING          
+          checkDimmingNeeded(); // check if we need dimming for the night, because timezone was changed
+#endif          
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
           tfts.setDigit(MINUTES_TENS, uclock.getMinutesTens(), TFTs::yes);
@@ -672,14 +683,14 @@ void loop() {
   } // if (menu.stateChanged())
 
   uint32_t time_in_loop = millis() - millis_at_top;
-  if (time_in_loop < 20) {
-    // we have free time, spend it for loading next image into buffer
+  if (time_in_loop < 20) { // we have free time, spend it for loading next image into buffer    
     tfts.LoadNextImage();
-
-    // we still have extra time
+    
     time_in_loop = millis() - millis_at_top;
-    if (time_in_loop < 20) {
+    if (time_in_loop < 20) { // we have still free time, spend it for MQTT loop and DST checking
+#ifdef MQTT_ENABLED
       MqttLoopInFreeTime();
+#endif
 #ifdef ONE_WIRE_BUS_PIN      
       PeriodicReadTemperature();
       if (bTemperatureUpdated) {
@@ -687,14 +698,15 @@ void loop() {
         bTemperatureUpdated = false;
       }
 #endif
-      
+#ifdef GEOLOCATION_ENABLED
       // run once a day (= 744 times per month which is below the limit of 5k for free account)
       if (DstNeedsUpdate) { // Daylight savings time changes at 3 in the morning
         if (GetGeoLocationTimeZoneOffset()) {
           uclock.setTimeZoneOffset(GeoLocTZoffset * 3600);
           DstNeedsUpdate = false;  // done for this night; retry if not sucessfull
         }
-      }  
+      }
+#endif
       // Sleep for up to 20ms, less if we've spent time doing stuff above.
       time_in_loop = millis() - millis_at_top;
       if (time_in_loop < 20) {
@@ -702,14 +714,15 @@ void loop() {
       }
     }
   }
-// #ifdef DEBUG_OUTPUT
-//   if (time_in_loop <= 2) Serial.print(".");
-//   else {
-//     Serial.print("time spent in loop (ms): ");
-//     Serial.println(time_in_loop);
-//   }
-// #endif
+#ifdef DEBUG_OUTPUT
+  if (time_in_loop <= 2) // if we spent less than 2ms in the loop, print just a dot
+    Serial.print(".");
+  else {
+    Serial.print("Time spent in loop (ms): "); Serial.println(time_in_loop); // print the time spent in the loop
+  }
+#endif
 }
+
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 void GestureStart()
 {
@@ -791,70 +804,59 @@ void HandleGesture() {
 }
 #endif // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
-void setupMenu() {
-  // Prepare drawing of the menu texts
-
-  // use most left display
-  tfts.chip_select.setHoursTens();
-  tfts.setTextColor(TFT_WHITE, TFT_BLACK);
-  //use lower half of the display, fill with black
-  tfts.fillRect(0, 120, 135, 120, TFT_BLACK);
-  // use font 4. 26 pixel high
-  tfts.setCursor(0, 124, 4);  // Font 4. 26 pixel high
+void setupMenu() { // Prepare drawing of the menu texts  
+  tfts.chip_select.setHoursTens(); // use most left display
+  tfts.setTextColor(TFT_WHITE, TFT_BLACK);  
+  tfts.fillRect(0, 120, 135, 120, TFT_BLACK); //use lower half of the display, fill with black  
+  tfts.setCursor(0, 124, 4);  // use font 4 - 26 pixel high - for the menu text
 }
 
-bool isNightTime(uint8_t current_hour) {
-    if (DAY_TIME < NIGHT_TIME) {
-      // "Night" spans across midnight
-      return (current_hour < DAY_TIME) || (current_hour >= NIGHT_TIME);
-    }
-    else {
-      // "Night" starts after midnight, entirely contained within the day
-      return (current_hour >= NIGHT_TIME) && (current_hour < DAY_TIME);
-    }
-}
-
-void EveryFullHour(bool loopUpdate) {
-  // dim the clock in the night
 #ifdef NIGHTTIME_DIMMING
-  uint8_t current_hour = uclock.getHour24();
-  FullHour = current_hour != hour_old;
-  if (FullHour) {
-    Serial.print("current hour = ");
-    Serial.println(current_hour);
-    if (isNightTime(current_hour)) {
-      Serial.println("Setting night mode (dimmed)!");
-      tfts.dimming = TFT_DIMMED_INTENSITY;
-      tfts.ProcessUpdatedDimming();
+bool isNightTime(uint8_t current_hour) { // check the actual hour is in the defined "night time"
+  if (DAY_TIME_START < NIGHT_TIME_START) { // "Night" spans across midnight so it is split between two days
+    return (current_hour < DAY_TIME_START) || (current_hour >= NIGHT_TIME_START);
+  }
+  else { // "Night" starts after midnight, entirely contained within the current day
+    return (current_hour >= NIGHT_TIME_START) && (current_hour < DAY_TIME_START);
+  }
+}
+
+void checkDimmingNeeded() { // dim the display in the defined night time
+  uint8_t current_hour = uclock.getHour24(); // for internal calcs we always use 24h format
+  isDimmingNeeded = current_hour != hour_old; //check, if the hour has changed since last loop (from time passing by or from timezone change)
+  if (isDimmingNeeded) {
+    Serial.print("current hour = "); Serial.println(current_hour);
+    if (isNightTime(current_hour)) { //check if it is in the defined night time
+      Serial.println("Set to night mode (dimmed)!");
+      tfts.dimming = TFT_NIGHTTIME_INTENSITY;
       backlights.setDimming(true);
-      if (menu.getState() == Menu::idle || (loopUpdate==true)) { // otherwise erases the menu
-        updateClockDisplay(TFTs::force); // redraw all the clock digits
-      }
     } else {
-      Serial.println("Setting daytime mode (max brightness)!");
-      tfts.dimming = 255; // 0..255
-      tfts.ProcessUpdatedDimming();
+      Serial.println("Set to daytime mode (normal brightness)!");
+      tfts.dimming = TFT_DAYTIME_INTENSITY; // 0..255
       backlights.setDimming(false);
-      if (menu.getState() == Menu::idle || (loopUpdate==true)) { // otherwise erases the menu
-        updateClockDisplay(TFTs::force); // redraw all the clock digits
-      }
     }
+    tfts.ProcessUpdatedDimming(); // for hardware dimming only in the moment
+    updateClockDisplay(TFTs::force); // redraw all the clock digits -> software dimming will be done here
     hour_old = current_hour;
   }
-#endif
 }
+#endif // NIGHTTIME_DIMMING
 
-void UpdateDstEveryNight() {
+#ifdef GEOLOCATION_ENABLED
+void GeoLocUpdateDstEveryNight() {
   uint8_t currentDay = uclock.getDay();
   // This `DstNeedsUpdate` is True between 3:00:05 and 3:00:59. Has almost one minute of time slot to fetch updates, incl. eventual retries.
-  DstNeedsUpdate = (currentDay != yesterday) && (uclock.getHour24() == 3) && (uclock.getMinute() == 0) && (uclock.getSecond() > 5);
+  if (currentDay == yesterday) {
+    return;
+  }  
+  DstNeedsUpdate = (uclock.getHour24() == 3) && (uclock.getMinute() == 0) && (uclock.getSecond() > 5);
   if (DstNeedsUpdate) {
-  Serial.print("DST needs update...");
-
-  // Update day after geoloc was sucesfully updated. Otherwise this will immediatelly disable the failed update retry.
-  yesterday = currentDay;
+    Serial.print("DST needs update...");
+    // Update day after geoloc was sucesfully updated. Otherwise this will immediatelly disable the failed update retry.
+    yesterday = currentDay;
   }
 }
+#endif // GEOLOCATION_ENABLED
 
 void updateClockDisplay(TFTs::show_t show) {
   // refresh starting on seconds

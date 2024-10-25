@@ -166,14 +166,17 @@ void TFTs::setDigit(uint8_t digit, uint8_t value, show_t show) {
         showNoWifiStatus();
       }    
 
+#ifdef MQTT_ENABLED
     if (digit == SECONDS_TENS) 
       if (!MqttConnected) { 
         showNoMqttStatus();
       }
-
+#endif
+#ifdef ONE_WIRE_BUS_PIN
     if (digit == HOURS_ONES) {
         showTemperature();
     }
+#endif
   }
 }
 

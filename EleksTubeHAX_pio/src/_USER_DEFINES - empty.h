@@ -33,11 +33,13 @@
 
 
 // ************* Display Dimming / Night time operation *************
-#define NIGHTTIME_DIMMING               // uncomment to enable dimming in the given time period between NIGHT_TIME and DAY_TIME
-#define NIGHT_TIME                  22  // dim displays at 10 pm 
-#define DAY_TIME                    7   // full brightness after 7 am
-#define BACKLIGHT_DIMMED_INTENSITY  1   // 0..7
-#define TFT_DIMMED_INTENSITY        20  // 0..255
+#define NIGHTTIME_DIMMING                   // uncomment to enable dimming in the given time period between NIGHT_TIME_START and DAY_TIME_START
+#define NIGHT_TIME_START                22  // dim displays at 10 pm 
+#define DAY_TIME_START                  7   // full brightness after 7 am
+#define BACKLIGHT_NIGHTTIME_INTENSITY   1   // 0..7
+#define BACKLIGHT_DAYTIME_INTENSITY     7   // 0..7
+#define TFT_NIGHTTIME_INTENSITY         20  // 0..255
+#define TFT_DAYTIME_INTENSITY           255 // 0..255
 
 
 // ************* WiFi config *************

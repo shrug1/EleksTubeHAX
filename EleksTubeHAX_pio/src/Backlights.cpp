@@ -66,7 +66,7 @@ void Backlights::loop() {
       fill(phaseToColor(config->color_phase));
     }
     if (dimming) {
-    setBrightness(0xFF >> max_intensity - BACKLIGHT_DIMMED_INTENSITY - 1);
+    setBrightness(0xFF >> max_intensity - (uint8_t) BACKLIGHT_NIGHTTIME_INTENSITY - 1);
     } else {
     setBrightness(0xFF >> max_intensity - config->intensity - 1);
     }
@@ -91,7 +91,7 @@ void Backlights::pulsePattern() {
   float pulse_length_millis = (60.0f * 1000) / config->pulse_bpm;
   float val = 1 + abs(sin(2 * M_PI * millis() / pulse_length_millis)) * 254;
   if (dimming) {
-    val = val * BACKLIGHT_DIMMED_INTENSITY / 7;
+    val = val * (uint8_t) BACKLIGHT_NIGHTTIME_INTENSITY / 7;
   } else {
     val = val * config->intensity / 7;
   }
@@ -109,7 +109,7 @@ void Backlights::breathPattern() {
   float val = (exp(sin(2 * M_PI * millis() / pulse_length_millis)) - 0.36787944f) * 108.0f;
 
   if (dimming) {
-    val = val * BACKLIGHT_DIMMED_INTENSITY / 7;
+    val = val * (uint8_t) BACKLIGHT_NIGHTTIME_INTENSITY / 7;
   } else {
     val = val * config->intensity / 7;
   }
@@ -133,7 +133,7 @@ void Backlights::testPattern() {
   setPixelColor(digit, color);
 
   if (dimming) {
-    setBrightness(0xFF >> max_intensity - (uint8_t) BACKLIGHT_DIMMED_INTENSITY - 1);
+    setBrightness(0xFF >> max_intensity - (uint8_t) BACKLIGHT_NIGHTTIME_INTENSITY - 1);
   }  else {
     setBrightness(0xFF >> max_intensity - config->intensity - 1);  
   }
@@ -202,7 +202,7 @@ void Backlights::rainbowPattern() {
     setPixelColor(digit, phaseToColor(my_phase));
   }
   if (dimming) {
-    setBrightness(0xFF >> max_intensity - (uint8_t) BACKLIGHT_DIMMED_INTENSITY - 1);
+    setBrightness(0xFF >> max_intensity - (uint8_t) BACKLIGHT_NIGHTTIME_INTENSITY - 1);
   }  else {
     setBrightness(0xFF >> max_intensity - config->intensity - 1);  
   }

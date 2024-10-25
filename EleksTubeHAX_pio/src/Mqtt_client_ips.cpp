@@ -11,13 +11,14 @@
  */
 
 #include "Mqtt_client_ips.h"
+#ifdef MQTT_ENABLED
 #include "WiFi.h"  // for ESP32
 #include <PubSubClient.h>  // Download and install this library first from: https://www.arduinolibraries.info/libraries/pub-sub-client
 #include <ArduinoJson.h>
 #include "TempSensor.h"
 #include "TFTs.h"
 #include "Backlights.h"
-#include "Clock.h" 
+#include "Clock.h"
 
 #define concat2(first, second) first second
 #define concat3(first, second, third) first second third
@@ -933,3 +934,5 @@ void MqttPeriodicReportBack() {
     MqttReportBackEverything(true);
   }
 }
+
+#endif // MQTT_ENABLED
