@@ -12,7 +12,9 @@
 #define NTP_PACKET_SIZE 48
 #define NTP_DEFAULT_LOCAL_PORT 1337
 
+#ifdef DEBUG_OUTPUT_NTP
 #define DEBUG_NTPClient
+#endif
 
 class NTPClient {
   private:

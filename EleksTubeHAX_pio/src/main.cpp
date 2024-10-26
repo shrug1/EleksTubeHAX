@@ -381,7 +381,7 @@ void loop() {
 
   //Auto store preferences - every 60 secs after the last MQTT command was received
   if(lastMqttCommandExecuted != -1) {
-    if (((millis() - lastMqttCommandExecuted) > (MQTT_SAVE_PREFERENCES_AFTER_SEC * 1000)) && menu.getState() == Menu::idle) {
+    if (((millis() - lastMqttCommandExecuted) > (MQTT_SAVE_CONFIG_AFTER_SEC * 1000)) && menu.getState() == Menu::idle) {
       lastMqttCommandExecuted = -1;
       DBG_MQTT_L(""); DBG_MQTT("Saving config! Triggered from MQTT command received...");
       stored_config.save();
@@ -571,7 +571,7 @@ void loop() {
           uclock.loop(); // update the clock time -> will "flicker" the menu for a short time, but without, menu is not redrawn at all
 #ifdef NIGHTTIME_DIMMING
           checkDimmingNeeded(); // check if we need dimming for the night, because timezone was changed
-#endif          
+#endif
           tfts.setDigit(HOURS_TENS, uclock.getHoursTens(), TFTs::yes);
           tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::yes);
           currOffset = uclock.getTimeZoneOffset(); // get the new offset as current offset for the menu
