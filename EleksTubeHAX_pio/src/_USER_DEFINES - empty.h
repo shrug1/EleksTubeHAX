@@ -10,11 +10,11 @@
 #define USER_DEFINES_H_
 
 // *************  Debug output  *************
-// #define DEBUG_OUTPUT                      //uncomment for Debug logs via serial interface
+#define DEBUG_OUTPUT                      //uncomment for Debug logs via serial interface
 
 // --- extended debug output ---
 // #define DEBUG_OUTPUT_TFT                 // uncomment for TFT class debug output
-#define DEBUG_OUTPUT_VERBOSE                // uncomment for verbose debug output
+// #define DEBUG_OUTPUT_VERBOSE                // uncomment for verbose debug output
 // #define DEBUG_OUTPUT_MENU                // uncomment for menu specific debug output
 // #define DEBUG_OUTPUT_BUTTONS             // uncomment for buttons specific debug output
 // #define DEBUG_OUTPUT_MQTT                // uncomment for MQTT specific debug output
@@ -24,7 +24,7 @@
 
 
 // ************* Type of the clock hardware  *************
-// #define HARDWARE_Elekstube_CLOCK          // uncomment for the original Elekstube clock
+#define HARDWARE_Elekstube_CLOCK          // uncomment for the original Elekstube clock
 // #define HARDWARE_Elekstube_CLOCK_Gen2     // uncomment for the original Elekstube clock Gen2.1 (ESP32 Pico D4 Chip)
 // #define HARDWARE_SI_HAI_CLOCK             // uncomment for the SI HAI copy of the clock
 // #define HARDWARE_NovelLife_SE_CLOCK       // uncomment for the NovelLife SE version (Gesture only) - tested and working!; Non-SE version (Buttons only) NOT tested!; Pro version (Buttons and Gesture) NOT tested!
