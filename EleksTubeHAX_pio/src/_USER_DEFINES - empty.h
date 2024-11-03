@@ -34,8 +34,9 @@
 
 
 // ************* WiFi config *************
-#define WIFI_CONNECT_TIMEOUT_SEC  20
-#define WIFI_RETRY_CONNECTION_SEC  15
+#define WIFI_CONNECT_TIMEOUT_SEC    20      // Time to wait for establishing a WiFi connection to a known AP
+#define WIFI_RETRY_CONNECTION_SEC   15      // Time between WiFi reconnect attempts
+#define WIFI_WPS_CONNECT_TIMEOUT_SEC 120    // How long to wait for WPS button press to connect initially
 #define WIFI_USE_WPS                  //uncomment to use WPS instead of hard coded wifi credentials 
 #define WIFI_SSID      "__enter_your_wifi_ssid_here__"       // not needed if WPS is used
 #define WIFI_PASSWD    "__enter_your_wifi_password_here__"   // not needed if WPS is used.  Caution - Hard coded password is stored as clear text in BIN file
