@@ -15,7 +15,9 @@
 #include "Menu.h"
 #include "StoredConfig.h"
 #include "WiFi_WPS.h"
+#if defined (MQTT_ENABLED)
 #include "Mqtt_client_ips.h"
+#endif
 #include "TempSensor_inc.h"
 #ifdef HARDWARE_NovelLife_SE_CLOCK // NovelLife_SE Clone XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 // #include "Gestures.h"
@@ -121,6 +123,7 @@ void setup() {
   Serial.println("Done!");
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
 
+#if defined (MQTT_ENABLED)
   // Setup MQTT
   tfts.setTextColor(TFT_YELLOW, TFT_BLACK);
   tfts.print("MQTT start...");
@@ -129,6 +132,7 @@ void setup() {
   tfts.println("Done!");
   Serial.println("Done!");
   tfts.setTextColor(TFT_WHITE, TFT_BLACK);
+#endif
 
 #ifdef GEOLOCATION_ENABLED
   tfts.setTextColor(TFT_NAVY, TFT_BLACK);
@@ -185,7 +189,8 @@ void loop() {
   uint32_t millis_at_top = millis();
   // Do all the maintenance work
   WifiReconnect(); // if not connected attempt to reconnect
-  
+
+#if defined(MQTT_ENABLED)
   MqttLoopFrequently();
 
   bool MqttCommandReceived = 
@@ -385,6 +390,7 @@ void loop() {
       Serial.println(" Done.");
     }
   }
+#endif
 
   buttons.loop();
 
@@ -622,7 +628,9 @@ void loop() {
     // we still have extra time
     time_in_loop = millis() - millis_at_top;
     if (time_in_loop < 20) {
+  #if defined (MQTT_ENABLED)
       MqttLoopInFreeTime();
+  #endif
       PeriodicReadTemperature();
       if (bTemperatureUpdated) {
         tfts.setDigit(HOURS_ONES, uclock.getHoursOnes(), TFTs::force);  // show latest clock digit and temperature readout together
