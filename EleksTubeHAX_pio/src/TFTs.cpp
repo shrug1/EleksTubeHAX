@@ -108,26 +108,23 @@ void TFTs::showNoMqttStatus() {
   print("NO MQTT !");
 }
 
-void TFTs::enableAllDisplays() {
-  // Turn power on to displays.
-  enabled = true;
+void TFTs::enableAllDisplays() {  
 #ifndef DIM_WITH_ENABLE_PIN_PWM
-  digitalWrite(TFT_ENABLE_PIN, ACTIVATEDISPLAYS);
-#else
-  //if hardware dimming is used, only activate with the current dimming value
-  ProcessUpdatedDimming();
+  digitalWrite(TFT_ENABLE_PIN, ACTIVATEDISPLAYS); // Turn power on for the displays.
+#else  
+  ProcessUpdatedDimming(); //if hardware dimming is used, only activate with the current dimming value
 #endif
+  enabled = true;
 }
 
-void TFTs::disableAllDisplays() {
-  // Turn power off to displays.
-  enabled = false;
+void TFTs::disableAllDisplays() {  
 #ifndef DIM_WITH_ENABLE_PIN_PWM
-  digitalWrite(TFT_ENABLE_PIN, DEACTIVATEDISPLAYS);
+  digitalWrite(TFT_ENABLE_PIN, DEACTIVATEDISPLAYS); // Turn power off for the displays.
 #else
   //if hardware dimming is used, deactivate via the dimming value calculation
   ProcessUpdatedDimming();
 #endif
+  enabled = false;
 }
 
 void TFTs::toggleAllDisplays() {
