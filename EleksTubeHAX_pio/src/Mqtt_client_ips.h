@@ -3,6 +3,8 @@
 
 #include "GLOBAL_DEFINES.h"
 
+#define MAX_PATTERN_LENGTH 24
+
 extern bool MqttConnected;
 
 // commands from server
@@ -20,8 +22,8 @@ extern uint8_t MqttCommandBackBrightness;
 extern bool MqttCommandBrightnessReceived;
 extern bool MqttCommandMainBrightnessReceived;
 extern bool MqttCommandBackBrightnessReceived;
-extern char MqttCommandPattern[];
-extern char MqttCommandBackPattern[];
+extern char MqttCommandPattern[MAX_PATTERN_LENGTH];
+extern char MqttCommandBackPattern[MAX_PATTERN_LENGTH];
 extern bool MqttCommandPatternReceived;
 extern bool MqttCommandBackPatternReceived;
 extern uint16_t MqttCommandBackColorPhase;
@@ -50,8 +52,8 @@ extern int MqttStatusBattery;
 extern uint8_t MqttStatusBrightness;
 extern uint8_t MqttStatusMainBrightness;
 extern uint8_t MqttStatusBackBrightness;
-extern char MqttStatusPattern[];
-extern char MqttStatusBackPattern[];
+extern char MqttStatusPattern[MAX_PATTERN_LENGTH];
+extern char MqttStatusBackPattern[MAX_PATTERN_LENGTH];
 extern uint16_t MqttStatusBackColorPhase;
 extern uint8_t MqttStatusGraphic;
 extern uint8_t MqttStatusMainGraphic;

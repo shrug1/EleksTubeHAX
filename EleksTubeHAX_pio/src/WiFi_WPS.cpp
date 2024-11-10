@@ -20,10 +20,14 @@ static esp_wps_config_t wps_config;
 void wpsInitConfig()
 {
   wps_config.wps_type = ESP_WPS_MODE;
-  strcpy(wps_config.factory_info.manufacturer, ESP_MANUFACTURER);
-  strcpy(wps_config.factory_info.model_number, ESP_MODEL_NUMBER);
-  strcpy(wps_config.factory_info.model_name, ESP_MODEL_NAME);
-  strcpy(wps_config.factory_info.device_name, DEVICE_NAME);
+  strncpy(wps_config.factory_info.manufacturer, ESP_MANUFACTURER, sizeof(wps_config.factory_info.manufacturer) - 1);
+  wps_config.factory_info.manufacturer[sizeof(wps_config.factory_info.manufacturer) - 1] = '\0'; // Ensure null termination
+  strncpy(wps_config.factory_info.model_number, ESP_MODEL_NUMBER, sizeof(wps_config.factory_info.model_number) - 1);
+  wps_config.factory_info.model_number[sizeof(wps_config.factory_info.model_number) - 1] = '\0';
+  strncpy(wps_config.factory_info.model_name, ESP_MODEL_NAME, sizeof(wps_config.factory_info.model_name) - 1);
+  wps_config.factory_info.model_name[sizeof(wps_config.factory_info.model_name) - 1] = '\0';
+  strncpy(wps_config.factory_info.device_name, DEVICE_NAME, sizeof(wps_config.factory_info.device_name) - 1);
+  wps_config.factory_info.device_name[sizeof(wps_config.factory_info.device_name) - 1] = '\0';
 }
 #endif
 
@@ -83,33 +87,31 @@ void WiFiEvent(WiFiEvent_t event, WiFiEventInfo_t info)
 void WifiBegin()
 {
   WifiState = disconnected;
+  unsigned long StartTime = 0;
 
   WiFi.mode(WIFI_STA);
   WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE, INADDR_NONE);
   WiFi.setHostname(DEVICE_NAME);
 
-#ifdef WIFI_USE_WPS ////  WPS code
-  // no data is saved, start WPS imediatelly
+#ifdef WIFI_USE_WPS //  WPS code
   if (stored_config.config.wifi.WPS_connected != StoredConfig::valid)
-  {
-    // Config is invalid, probably a new device never had its config written.
+  { // Check, if the stored config is valid
+    // stored config data is invalid, probably a new device never had its config written.
     Serial.println("Loaded Wifi config is invalid. Not connecting to WiFi.");
     WiFiStartWps(); // infinite loop until connected
   }
   else
-  {
-    // data is saved, connect now
-    // WiFi credentials are known, connect
+  { // stored config data is present and valid, WiFi credentials are known, connect now
     tfts.println("Joining WiFi");
     tfts.println(stored_config.config.wifi.ssid);
     Serial.print("Joining WiFi ");
     Serial.println(stored_config.config.wifi.ssid);
 
-    // https://stackoverflow.com/questions/48024780/esp32-wps-reconnect-on-power-on
+    // source: https://stackoverflow.com/questions/48024780/esp32-wps-reconnect-on-power-on
     WiFi.begin(); // use internally saved data
     WiFi.onEvent(WiFiEvent);
 
-    unsigned long StartTime = millis();
+    StartTime = millis();
 
     while ((WiFi.status() != WL_CONNECTED))
     {
@@ -129,13 +131,16 @@ void WifiBegin()
 
   WiFi.begin(WIFI_SSID, WIFI_PASSWD);
   WiFi.onEvent(WiFiEvent);
-  unsigned long StartTime = millis();
+
+  StartTime = millis();
+
   while ((WiFi.status() != WL_CONNECTED))
-  {
+  { // loop until connected or timeout
     delay(500);
     tfts.print(">");
     Serial.print(">");
-    if ((millis() - StartTime) > (WIFI_CONNECT_TIMEOUT_SEC * 1000)) {
+    if ((millis() - StartTime) > (WIFI_CONNECT_TIMEOUT_SEC * 1000))
+    {
       tfts.setTextColor(TFT_RED, TFT_BLACK);
       tfts.println("\nTIMEOUT!");
       tfts.setTextColor(TFT_WHITE, TFT_BLACK);
@@ -144,8 +149,9 @@ void WifiBegin()
       return; // exit loop, exit procedure, continue clock startup
     }
   }
+#endif // WIFI_USE_WPS
 
-#endif
+  WifiState = connected; // if we pass here, we are connected!
 
   WifiState = connected;
   
@@ -212,6 +218,7 @@ void WiFiStartWps()
   stored_config.config.wifi.WPS_connected = StoredConfig::valid; // Mark the configuration as valid
   Serial.println(); Serial.print("Saving config! Triggered from WPS success...");
   stored_config.save();
+  Serial.println("Done");
   Serial.println(" WPS finished.");
 }
 #endif

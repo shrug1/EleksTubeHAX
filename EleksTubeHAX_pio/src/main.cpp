@@ -403,9 +403,12 @@ void loop()
   MqttStatusBrightness = backlights.getIntensity();
   MqttStatusMainBrightness = tfts.dimming;
   MqttStatusBackBrightness = backlights.getIntensity();
-  strcpy(MqttStatusPattern, backlights.getPatternStr().c_str());
-  strcpy(MqttStatusBackPattern, backlights.getPatternStr().c_str());
-  backlights.getPatternStr().toCharArray(MqttStatusBackPattern, backlights.getPatternStr().length() + 1);
+  String PatternName = backlights.getPatternStr();
+  strncpy(MqttStatusPattern, PatternName.c_str(), sizeof(MqttStatusPattern) - 1);
+  MqttStatusPattern[sizeof(MqttStatusPattern) - 1] = '\0'; // Ensure null termination
+  strncpy(MqttStatusBackPattern, PatternName.c_str(), sizeof(MqttStatusBackPattern) - 1);
+  MqttStatusBackPattern[sizeof(MqttStatusBackPattern) - 1] = '\0'; // Ensure null termination
+  PatternName.toCharArray(MqttStatusBackPattern, PatternName.length() + 1);
   MqttStatusBackColorPhase = backlights.getColorPhase();
   MqttStatusGraphic = uclock.getActiveGraphicIdx();
   MqttStatusMainGraphic = uclock.getActiveGraphicIdx();

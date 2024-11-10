@@ -196,13 +196,13 @@ uint16_t TFTs::UnpackedImageBuffer[TFT_HEIGHT][TFT_WIDTH];
 int8_t TFTs::CountNumberOfClockFaces()
 {
   int8_t i, found;
-  char filename[10];
+  char filename[MAX_FILENAME_LENGTH]; // Ensure the buffer is adequately sized
 
   Serial.print("Searching for BMP clock files... ");
   found = 0;
   for (i = 1; i < 10; i++)
   {
-    sprintf(filename, "/%d.bmp", i * 10); // search for files 10.bmp, 20.bmp,...
+    snprintf(filename, sizeof(filename), "/%d.bmp", i * 10); // search for files 10.bmp, 20.bmp,...
     if (!FileExists(filename))
     {
       found = i - 1;
@@ -220,8 +220,8 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index)
 
   fs::File bmpFS;
   // Filenames are no bigger than "255.bmp\0"
-  char filename[10];
-  sprintf(filename, "/%d.bmp", file_index);
+  char filename[MAX_FILENAME_LENGTH];
+  snprintf(filename, sizeof(filename), "/%d.bmp", file_index);
 
 #ifdef DEBUG_OUTPUT
   Serial.print("Loading: ");
@@ -380,13 +380,13 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index)
 int8_t TFTs::CountNumberOfClockFaces()
 {
   int8_t i, found;
-  char filename[10];
+  char filename[MAX_FILENAME_LENGTH];
 
   Serial.print("Searching for CLK clock files... ");
   found = 0;
   for (i = 1; i < 10; i++)
   {
-    sprintf(filename, "/%d.clk", i * 10); // search for files 10.clk, 20.clk,...
+    snprintf(filename, sizeof(filename), "/%d.clk", i * 10); // search for files with zero -  10.clk, 20.clk,...
     if (!FileExists(filename))
     {
       found = i - 1;
@@ -404,8 +404,8 @@ bool TFTs::LoadImageIntoBuffer(uint8_t file_index)
 
   fs::File bmpFS;
   // Filenames are no bigger than "255.clk\0"
-  char filename[10];
-  sprintf(filename, "/%d.clk", file_index);
+  char filename[MAX_FILENAME_LENGTH];
+  snprintf(filename, sizeof(filename), "/%d.clk", file_index);
 
 #ifdef DEBUG_OUTPUT
   Serial.print("Loading: ");

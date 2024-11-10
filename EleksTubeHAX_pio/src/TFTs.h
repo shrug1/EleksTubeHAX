@@ -11,6 +11,8 @@
 #include <TFT_eSPI.h>
 #include "ChipSelect.h"
 
+#define MAX_FILENAME_LENGTH 10
+
 class TFTs : public TFT_eSPI
 {
 public:
