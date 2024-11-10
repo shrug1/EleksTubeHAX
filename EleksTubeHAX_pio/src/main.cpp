@@ -764,8 +764,8 @@ void checkDimmingNeeded() { // dim the display in the defined night time
       tfts.ProcessUpdatedDimming();
       backlights.setDimming(true);
     } else {
-      Serial.println("Setting daytime mode (max brightness)");
-      tfts.dimming = 255; // 0..255
+      Serial.println("Setting daytime mode");
+      tfts.dimming = DAYTIME_TFT_DIMMED_INTENSITY; // 0..255
       tfts.ProcessUpdatedDimming();
       backlights.setDimming(false);
     }
