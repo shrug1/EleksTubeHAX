@@ -1,7 +1,7 @@
-Nixie Tube
-Blue Ribbon
-Soap Bubble Rainbow
-Modern Neon
-Yellow and Blue Dots
-Cyan and Pink
-Nixie Thin Blue
+1 Nixie Classic V1.0 IPS
+2 Realistic Mesh Tube
+3 Blue Folded
+4 Red 7 Segment
+5 White Paint
+6 Electric Wires
+7 Nixie Thin Blue
